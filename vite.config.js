@@ -16,11 +16,30 @@ const MANGLE_RESERVED = [
     'triggerJSONImport',
     'showGameStyle', 'showExamples',
     'handleCopyDesign', 'handleCopyTech', 'handleExport', 'handleGeminiGenerate',
-    'handleSaveTemplate', 'handleLoadTemplate', 'handleDeleteTemplate',
-    'handleImportJSON', 'handleExportJSON', 'handleGetSuggestions', 'handleSelectSuggestion',
-    'handleCoachNext', 'handleCoachSkip', 'handleNext', 'handlePrev', 'handleReset',
+    'handleSaveTemplate', 'saveAsUserTemplate', 'handleLoadTemplate',
+    'handleDeleteTemplate', 'deleteUserTemplate',
+    'handleImportJSON', 'handleExportJSON', 'handleGetSuggestions', 'applySuggestion',
+    'handleSelectSuggestion', 'handleCoachNext', 'handleCoachSkip',
+    'handleNextTab', 'handlePrevTab', 'handleReset',
+    'confirmReplace', 'confirmAppend', 'cancelSuggestion', 'saveApiKey',
+    'setTab', 'tabCompletion', 'toggleSection',
     'updateField', 'toggleSelection', 'handleExampleChange', 'addExample', 'removeExample',
     'handleRuleChange', 'addRule', 'removeRule',
+    'MAX_USER_TEMPLATES', 'TAB_KEYS',
+    // W5-6 Prompt Versions
+    'promptVersions', 'versionPanelOpen', 'setVersionPanelOpen', 'restoreVersion',
+    'saveVersion', 'deleteVersion', 'renameVersion', 'getVersion', 'versionsOfKind',
+    'computeLineDiff', 'diffStats',
+    // W7-8 Profile Bank
+    'profileBank', 'profileBankOpen', 'setProfileBankOpen', 'applyProfile',
+    'vaultExists', 'isLocked', 'hasProfiles', 'lastError',
+    'setup', 'unlock', 'lock',
+    'addProfile', 'updateProfile', 'deleteProfile',
+    'exportEncrypted', 'importEncrypted',
+    'MAX_PROFILES',
+    // W7-8 crypto helpers (called by hook consumer code)
+    'createVault', 'unlockVault', 'encryptProfileEntry', 'decryptProfileEntry',
+    'encryptString', 'decryptString', 'generateSalt', 'generateIV', 'testUnlock',
 ];
 
 export default defineConfig({

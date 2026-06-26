@@ -1,5 +1,11 @@
-/* TDA Prompt Builder v3.0 — main stylesheet
+/* TDA Prompt Builder v3.1 — main stylesheet
    Tailwind pre-compiled via PostCSS + custom design tokens + legacy CSS preserved
+
+   W3-4 additions:
+     - 3rd theme 'warm' (amber/orange, primary school friendly)
+     - Radius scale token (sm/md/lg/xl/full)
+     - Inter + JetBrains Mono font swap
+     - Focus-visible ring global rule (WCAG 2.1 AA)
 */
 
 @tailwind base;
@@ -7,7 +13,7 @@
 @tailwind utilities;
 
 /* Custom CSS preserved from v2.0 single-file */
-        /* === Design Tokens (統一 spacing / shadow / transition) === */
+        /* === Design Tokens (統一 spacing / shadow / transition / radius) === */
         :root {
             /* Spacing scale — 8px 為基數 (phase 2.3.1) */
             --space-1: 4px;
@@ -31,15 +37,48 @@
             --transition-base: 250ms var(--ease-out);
             --transition-slow: 400ms var(--ease-out);
 
+            /* === Phase 3.4: Radius scale (W3-4.3) === */
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+
+            /* === Phase 3.4: Focus ring (WCAG 2.1 AA, W3-4.5) === */
+            --focus-ring: 0 0 0 3px rgba(6, 182, 212, 0.5);
+            --focus-ring-warm: 0 0 0 3px rgba(245, 158, 11, 0.5);
+
             /* Cyber theme glow */
             --cyber-glow: 0 0 20px rgba(6,182,212,0.4);
         }
 
         body {
-            font-family: 'Noto Sans TC', sans-serif;
+            /* Phase 3.4 font swap (W3-4.2): Inter 為主體，Noto Sans TC 中文 fallback，JetBrains Mono for code */
+            font-family: 'Inter', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             overflow-x: hidden;
             transition: background-color var(--transition-base), color var(--transition-base);
         }
+
+        /* === Phase 3.4: Focus-visible ring global (WCAG 2.1 AA, W3-4.5) === */
+        *:focus { outline: none; }
+        *:focus-visible {
+            outline: 2px solid #06b6d4;
+            outline-offset: 2px;
+            transition: outline-offset var(--transition-fast);
+        }
+        body.theme-warm *:focus-visible {
+            outline-color: #f59e0b;
+        }
+        body.theme-plain *:focus-visible {
+            outline-color: #2563eb;
+        }
+
+        /* === Phase 3.4: Radius utility classes (W3-4.3) === */
+        .radius-token-sm { border-radius: var(--radius-sm); }
+        .radius-token-md { border-radius: var(--radius-md); }
+        .radius-token-lg { border-radius: var(--radius-lg); }
+        .radius-token-xl { border-radius: var(--radius-xl); }
+        .radius-token-full { border-radius: var(--radius-full); }
 
         /* Phase 3.4.3: Loading skeleton pulse */
         @keyframes skeleton-pulse {
@@ -283,4 +322,61 @@
         }
         .mono {
             font-family: 'Share Tech Mono', monospace;
+        }
+
+        /* === Phase 3.4.3: WARM THEME (W3-4.1) ===
+           暖色主題 — 適合 primary school 低刺激環境
+           Amber / Orange palette，柔光，避免 cyber 嘅 neon blue 高對比
+        */
+        body.theme-warm {
+            background-color: #fffbeb; /* Amber 50 */
+            color: #451a03; /* Amber 950 */
+        }
+
+        /* Warm Card/Border — cream + soft amber */
+        body.theme-warm .plain-border,
+        body.theme-warm .warm-border {
+            background: #ffffff;
+            border: 1px solid #fde68a; /* Amber 200 */
+            box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.08), 0 2px 4px -1px rgba(245, 158, 11, 0.04);
+            transition: all 0.3s ease;
+        }
+
+        /* Warm Input */
+        body.theme-warm .plain-input,
+        body.theme-warm .warm-input {
+            background: #fffef9;
+            border: 1px solid #fcd34d; /* Amber 300 */
+            color: #451a03;
+            transition: all 0.3s ease;
+        }
+        body.theme-warm .plain-input:focus,
+        body.theme-warm .warm-input:focus {
+            border-color: #f59e0b; /* Amber 500 */
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25);
+            outline: none;
+        }
+
+        /* Warm scrollbar */
+        body.theme-warm textarea::-webkit-scrollbar-track { background: #fef3c7; border-radius: 4px; }
+        body.theme-warm textarea::-webkit-scrollbar-thumb { background: #fcd34d; border-radius: 4px; border: 1px solid #f59e0b; }
+        body.theme-warm textarea::-webkit-scrollbar-thumb:hover { background: #f59e0b; }
+
+        /* Disable cyber grid + vignette in warm (低刺激) */
+        body.theme-warm .cyber-grid,
+        body.theme-warm .vignette {
+            opacity: 0 !important;
+        }
+
+        /* === Phase 3.4: Smooth font rendering === */
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+
+        /* === Phase 3.4: Mono font helper (W3-4.2 — JetBrains Mono for code) === */
+        .font-mono-token {
+            font-family: 'JetBrains Mono', 'Share Tech Mono', monospace;
+            font-feature-settings: 'liga' 0, 'calt' 0;
         }

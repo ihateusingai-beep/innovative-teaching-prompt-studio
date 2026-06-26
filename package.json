@@ -1,6 +1,6 @@
 {
   "name": "tda-prompt-builder",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "SEN Teacher Prompt Builder — single-file React app, Vite build pipeline, IIFE bundle",
   "private": true,
   "type": "module",

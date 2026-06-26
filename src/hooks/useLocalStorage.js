@@ -27,13 +27,33 @@ export const useLocalStorage = (key, initialValue) => {
     }, [key, initialValue]);
 
     const setValue = useCallback((newValue) => {
-        setRawValue(newValue);
-        if (newValue === null || newValue === undefined) {
+        // Handle functional updater: useState's setRawValue 接受 function 自動 unwrap，
+        // 但 storage save 需要 actual value。我哋手動 unwrap to save correct data.
+        let resolvedValue = newValue;
+        if (typeof newValue === 'function') {
+            // Functional updater: 我哋需要 current value 嚟 compute next.
+            // 但 setRawValue 仲未 apply，所以呢度取 current `value` (closure-captured).
+            // 用 functional form for setRawValue so React 同步 apply.
+            setRawValue(prev => {
+                const next = newValue(prev);
+                // Side effect: persist resolved value
+                if (next === null || next === undefined) {
+                    removeFromStorage(key);
+                } else {
+                    saveToStorage(key, next);
+                }
+                return next;
+            });
+            return;
+        }
+        // Direct value
+        setRawValue(resolvedValue);
+        if (resolvedValue === null || resolvedValue === undefined) {
             removeFromStorage(key);
         } else {
-            saveToStorage(key, newValue);
+            saveToStorage(key, resolvedValue);
         }
-    }, [key]);
+    }, [key, value]);
 
     const clear = useCallback(() => {
         removeFromStorage(key);

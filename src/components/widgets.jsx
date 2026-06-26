@@ -6,18 +6,27 @@ import { Card } from './ui.jsx';
 // === Quality Score Badge ===
 // Compact score badge shown in bottom-right corner of each section
 // Click to open QualityScoreDetail modal
+// W3-4.1: 加 warm third case (amber palette)
 const scoreColor = (grade, theme) => {
     if (grade === 'S' || grade === 'A') return theme === 'cyber'
         ? 'bg-emerald-900/40 text-emerald-300 border-emerald-500/50'
+        : theme === 'warm'
+        ? 'bg-emerald-100 text-emerald-800 border-emerald-400'
         : 'bg-emerald-100 text-emerald-700 border-emerald-500';
     if (grade === 'B') return theme === 'cyber'
         ? 'bg-cyan-900/40 text-cyan-300 border-cyan-500/50'
+        : theme === 'warm'
+        ? 'bg-amber-100 text-amber-800 border-amber-400'
         : 'bg-cyan-100 text-cyan-700 border-cyan-500';
     if (grade === 'C') return theme === 'cyber'
         ? 'bg-amber-900/40 text-amber-300 border-amber-500/50'
+        : theme === 'warm'
+        ? 'bg-orange-100 text-orange-800 border-orange-400'
         : 'bg-amber-100 text-amber-700 border-amber-500';
     return theme === 'cyber'
         ? 'bg-slate-800/60 text-slate-400 border-slate-600/50'
+        : theme === 'warm'
+        ? 'bg-orange-50 text-orange-700 border-orange-300'
         : 'bg-slate-100 text-slate-600 border-slate-400';
 };
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowRight, ArrowLeft, Save, Sparkles, Wand2, Eye, Copy, Download, Upload, RotateCcw, History, Key, Star, X, FileText, Trash2, Sun, Moon, ChevronDown, ChevronLeft, ChevronRight, Plus, CheckCircle2, ExternalLink, Github, Monitor, Bot, Zap, BookOpen, Gamepad2, HeartHandshake, MessageCircle, FlaskConical } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Save, Sparkles, Wand2, Eye, Copy, Download, Upload, RotateCcw, History, Key, Star, X, FileText, FileJson, Trash2, Sun, Moon, ChevronDown, ChevronLeft, ChevronRight, Plus, CheckCircle2, ExternalLink, Github, Monitor, Bot, Zap, BookOpen, Gamepad2, HeartHandshake, MessageCircle, FlaskConical, Users } from 'lucide-react';
 
 import { useAppState } from './state/useAppState.js';
 import { formatTimeAgo } from './utils/time.js';
@@ -10,6 +10,9 @@ import { SEN_TO_A11Y_MAP, getRecommendedA11y } from './data/sen-a11y-map.js';
 import { Card, Label, Input, TextArea, Select, CollapsibleSection } from './components/ui.jsx';
 import { ApiSettingsModal, CoachMark, ConfirmReplaceDialog } from './components/modals.jsx';
 import { QualityScoreBadge, QualityScoreDetail, TemplateCard, SuggestionPanel } from './components/widgets.jsx';
+import { VersionPanel } from './components/VersionPanel.jsx';
+import { DiffView } from './components/DiffView.jsx';
+import { ProfileBankPanel } from './components/ProfileBankPanel.jsx';
 
 const categories = [
     { value: "教學工具", label: "📚 教學工具", icon: BookOpen },
@@ -164,7 +167,46 @@ const ONBOARDING_STEPS = ['templates', 'step1', 'step2', 'step3', 'step4'];
 
 export function App() {
     const s = useAppState();
-    const { step, setStep, toggleTheme, copiedDesign, copiedTech, showScoreDetail, setShowScoreDetail, expandedSections, setExpandedSections, previewOpen, setPreviewOpen, previewTab, setPreviewTab, theme, setTheme, onboardingStep, onboardingActive, setOnboardingActive, activeSuggestionField, setActiveSuggestionField, pendingSuggestion, setPendingSuggestion, aiGenerating, aiResult, aiError, showApiSettings, setShowApiSettings, formData, setFormData, updateField, toggleSelection, handleExampleChange, addExample, removeExample, handleRuleChange, addRule, removeRule, userTemplates, geminiApiKey, setGeminiApiKey, fileInputRef, lastSavedAt, recoverySnapshot, acceptRecovery, dismissRecovery, canUndo, canRedo, pushHistory, undo, redo, handleCopyDesign, handleCopyTech, handleExport, handleGeminiGenerate, handleSaveTemplate, handleLoadTemplate, handleDeleteTemplate, handleImportJSON, handleExportJSON, handleGetSuggestions, handleSelectSuggestion, handleCoachNext, handleCoachSkip, handleNext, handlePrev, handleReset, designPrompt, techPrompt, qualityScore, categories, subjects, builtinTemplates, triggerJSONImport, showGameStyle, showExamples } = s;
+    const {
+// Tab nav (W1-2)
+        activeTab, setActiveTab, handleNextTab, handlePrevTab, tabCompletion, TAB_KEYS,
+// Theme
+        toggleTheme, theme, setTheme,
+// Quality / preview
+        copiedDesign, copiedTech, showScoreDetail, setShowScoreDetail, previewOpen, setPreviewOpen, previewTab, setPreviewTab,
+// W5-6 Prompt Versions
+        promptVersions, versionPanelOpen, setVersionPanelOpen, restoreVersion,
+        // W7-8 Student Profile Bank
+        profileBank, profileBankOpen, setProfileBankOpen, applyProfile,
+        // Sections
+        expandedSections, setExpandedSections, toggleSection,
+        // Onboarding
+        onboardingStep, onboardingActive, setOnboardingActive,
+        // Suggestion
+        activeSuggestionField, setActiveSuggestionField, pendingSuggestion, setPendingSuggestion,
+        // AI
+        aiGenerating, aiResult, aiError, showApiSettings, setShowApiSettings,
+        // Form data
+        formData, setFormData, updateField, toggleSelection, handleExampleChange, addExample, removeExample, handleRuleChange, addRule, removeRule,
+        // Templates + Gemini key
+        userTemplates, geminiApiKey, setGeminiApiKey, fileInputRef, MAX_USER_TEMPLATES,
+        // Recovery
+        lastSavedAt, recoverySnapshot, acceptRecovery, dismissRecovery,
+        // Undo / Redo
+        canUndo, canRedo, pushHistory, undo, redo,
+        // Handlers
+        handleCopyDesign, handleCopyTech, handleExport, handleGeminiGenerate,
+        saveApiKey, saveAsUserTemplate, deleteUserTemplate, handleLoadTemplate,
+        handleDeleteTemplate, handleImportJSON, handleExportJSON,
+        handleGetSuggestions, applySuggestion, handleSelectSuggestion,
+        handleCoachNext, handleCoachSkip, handleReset,
+        confirmReplace, confirmAppend, cancelSuggestion,
+        // Computed
+        designPrompt, techPrompt, qualityScore,
+        // Constants
+        categories, subjects, builtinTemplates, triggerJSONImport,
+        showGameStyle, showExamples,
+    } = s;
 const renderStep1 = () => (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-token-4">
         {/* === Sub-section 0: 範本庫（快速開始） === */}
@@ -754,7 +796,7 @@ const renderStep2 = () => (
                 placeholder="例如：讓學生透過拖放蘋果來練習 10 以內的加法，或是幫助自閉症學生指認當下的情緒..."
                 value={formData.purpose}
                 onChange={(e) => updateField('purpose', e.target.value)}
-                className={!formData.purpose && step === 2 ? "border-red-500/50" : ""}
+                className={!formData.purpose && activeTab === 'content' ? "border-red-500/50" : ""}
             />
             {activeSuggestionField === 'purpose' && (
                 <SuggestionPanel
@@ -1003,7 +1045,7 @@ const renderStep3 = () => (
 );
 
 
-const renderStep4 = () => (
+const renderStep4 = (formData, designPrompt, techPrompt, qualityScore) => (
     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-token-4">
         <div className={`border p-token-6 rounded-2xl flex items-start gap-token-4 ${
             theme === 'cyber'
@@ -1030,7 +1072,7 @@ const renderStep4 = () => (
             </div>
             <QualityScoreBadge
                 theme={theme}
-                score={promptScorer(formData)}
+                score={qualityScore}
                 onClick={() => setShowScoreDetail(prev => !prev)}
             />
         </div>
@@ -1038,17 +1080,17 @@ const renderStep4 = () => (
         {showScoreDetail && (
             <QualityScoreDetail
                 theme={theme}
-                score={promptScorer(formData)}
+                score={qualityScore}
                 onClose={() => setShowScoreDetail(false)}
             />
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-token-4 h-[600px]">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-token-4 md:h-[600px]">
             {/* Left Side: Design Prompt */}
             <div className="flex flex-col h-full">
                 <div className={`flex items-center justify-between mb-2 ${theme === 'cyber' ? 'text-cyan-300' : 'text-slate-700'}`}>
                     <span className="text-sm font-bold orbitron">Part 1: 設計與邏輯</span>
-                    <button 
+                    <button
                         onClick={handleCopyDesign}
                         className={`px-token-3 py-token-1 rounded-lg flex items-center gap-token-2 text-xs font-bold transition-all border shadow-sm ${
                             theme === 'cyber'
@@ -1060,9 +1102,9 @@ const renderStep4 = () => (
                         {copiedDesign ? "已複製" : "複製 Part 1"}
                     </button>
                 </div>
-                <textarea 
+                <textarea
                     readOnly
-                    value={generateDesignPrompt()}
+                    value={designPrompt}
                     className={`flex-1 w-full font-mono text-xs p-token-4 rounded-xl outline-none resize-none leading-relaxed border shadow-inner ${
                         theme === 'cyber'
                         ? 'bg-slate-950 text-cyan-300 border-slate-800'
@@ -1075,7 +1117,7 @@ const renderStep4 = () => (
             <div className="flex flex-col h-full">
                 <div className={`flex items-center justify-between mb-2 ${theme === 'cyber' ? 'text-purple-300' : 'text-slate-700'}`}>
                     <span className="text-sm font-bold orbitron">Part 2: 技術與執行</span>
-                    <button 
+                    <button
                         onClick={handleCopyTech}
                         className={`px-token-3 py-token-1 rounded-lg flex items-center gap-token-2 text-xs font-bold transition-all border shadow-sm ${
                             theme === 'cyber'
@@ -1087,9 +1129,9 @@ const renderStep4 = () => (
                         {copiedTech ? "已複製" : "複製 Part 2"}
                     </button>
                 </div>
-                <textarea 
+                <textarea
                     readOnly
-                    value={generateTechPrompt()}
+                    value={techPrompt}
                     className={`flex-1 w-full font-mono text-xs p-token-4 rounded-xl outline-none resize-none leading-relaxed border shadow-inner ${
                         theme === 'cyber'
                         ? 'bg-slate-950 text-purple-300 border-slate-800'
@@ -1101,6 +1143,20 @@ const renderStep4 = () => (
         
         <div className="flex justify-end gap-token-2 mt-4">
                  <button
+                    onClick={() => setVersionPanelOpen(true)}
+                    className={`px-token-3 py-token-2 rounded-lg flex items-center gap-token-2 text-sm font-bold transition-all border shadow-sm ${
+                        theme === 'cyber'
+                        ? 'bg-slate-800/80 hover:bg-slate-700/80 text-amber-400 backdrop-blur-md border-amber-500/30 hover:border-amber-400'
+                        : theme === 'warm'
+                        ? 'bg-amber-100 hover:bg-amber-200 text-amber-800 border-amber-300'
+                        : 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200'
+                    }`}
+                    title="管理 Prompt 版本 + Diff View (W5-6)"
+                >
+                    <History size={16} />
+                    <span className="hidden sm:inline">📚 版本 ({promptVersions.versions.length})</span>
+                </button>
+                <button
                     onClick={() => setShowApiSettings(true)}
                     className={`px-token-3 py-token-2 rounded-lg flex items-center gap-token-2 text-sm font-bold transition-all border shadow-sm ${
                         theme === 'cyber'
@@ -1119,7 +1175,7 @@ const renderStep4 = () => (
                             setAiError(null);
                             setAiResult('');
                             setAiGenerating(true);
-                            const techPrompt = generateTechPrompt();
+                            // techPrompt 由 params 傳入（已 compute 過）
                             const text = await generateWithGemini('tech', techPrompt);
                             setAiResult(text);
                         } catch (err) {
@@ -1141,7 +1197,7 @@ const renderStep4 = () => (
                     {aiGenerating ? '⏳ 生成中...' : '🚀 直接生成 HTML'}
                 </button>
                  <button
-                    onClick={handleSaveJSON}
+                    onClick={handleExportJSON}
                     className={`px-token-3 py-token-2 rounded-lg flex items-center gap-token-2 text-sm font-bold transition-all border shadow-sm ${
                         theme === 'cyber'
                         ? 'bg-slate-800/80 hover:bg-slate-700/80 text-cyan-400 backdrop-blur-md border-cyan-500/30 hover:border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.1)]'
@@ -1152,8 +1208,8 @@ const renderStep4 = () => (
                     <FileJson size={16} />
                     <span className="hidden sm:inline">JSON</span>
                 </button>
-                <button 
-                    onClick={handleExportDOCX}
+                <button
+                    onClick={handleExport}
                     className={`px-token-3 py-token-2 rounded-lg flex items-center gap-token-2 text-sm font-bold transition-all border shadow-sm ${
                         theme === 'cyber'
                         ? 'bg-slate-800/80 hover:bg-slate-700/80 text-cyan-400 backdrop-blur-md border-cyan-500/30 hover:border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.1)]'
@@ -1165,7 +1221,7 @@ const renderStep4 = () => (
                     <span className="hidden sm:inline">DOCX</span>
                 </button>
                 <button 
-                    onClick={() => setStep(3)} // Return to step 3
+                    onClick={() => setActiveTab('rules')} // Return to 規則 tab
                     className={`px-token-4 py-token-2 rounded-lg flex items-center gap-token-2 text-sm font-bold transition-all border shadow-sm ${
                         theme === 'cyber'
                         ? 'bg-slate-800/80 hover:bg-slate-700/80 text-cyan-400 backdrop-blur-md border-cyan-500/30 hover:border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.1)]'
@@ -1324,49 +1380,97 @@ const renderAiResult = () => (
                 />
             )}
 
-            {/* Recovery prompt modal — 開頁時如果 localStorage 有 unsaved data */}
+            {/* W5-6: Prompt Version Panel modal */}
+            {versionPanelOpen && (
+                <VersionPanel
+                    theme={theme}
+                    versions={promptVersions.versions}
+                    currentDesignPrompt={designPrompt}
+                    currentTechPrompt={techPrompt}
+                    formData={formData}
+                    onSave={promptVersions.saveVersion}
+                    onRestore={restoreVersion}
+                    onDelete={promptVersions.deleteVersion}
+                    onClose={() => setVersionPanelOpen(false)}
+                    asModal={true}
+                />
+            )}
+
+            {/* W7-8: Student Profile Bank modal */}
+            {profileBankOpen && (
+                <ProfileBankPanel
+                    theme={theme}
+                    bank={profileBank}
+                    formData={formData}
+                    onApplyProfile={applyProfile}
+                    onClose={() => setProfileBankOpen(false)}
+                    asModal={true}
+                />
+            )}
+
+            {/* Recovery snackbar — bottom-right, 10s auto-dismiss (W1-2) */}
             {recoverySnapshot && (
                 <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-token-4"
+                    initial={{ opacity: 0, y: 30, x: 30 }}
+                    animate={{ opacity: 1, y: 0, x: 0 }}
+                    exit={{ opacity: 0, y: 30, x: 30 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                    className="fixed bottom-6 right-6 z-50 w-[min(90vw,360px)]"
                 >
-                    <Card theme={theme} className="max-w-md w-full p-token-6">
-                        <div className="flex items-center gap-token-3 mb-4">
-                            <div className={`p-token-2 rounded-full ${theme === 'cyber' ? 'bg-cyan-900/40 text-cyan-300' : 'bg-blue-100 text-blue-600'}`}>
-                                <RotateCcw size={24} />
+                    <div className={`p-token-4 rounded-2xl border shadow-2xl backdrop-blur-md ${
+                        theme === 'cyber'
+                            ? 'bg-slate-900/95 border-cyan-500/40 shadow-[0_0_20px_rgba(6,182,212,0.3)]'
+                            : 'bg-white border-blue-300'
+                    }`}>
+                        <div className="flex items-start gap-token-3 mb-3">
+                            <div className={`flex-none p-token-2 rounded-full ${
+                                theme === 'cyber' ? 'bg-cyan-900/50 text-cyan-300' : 'bg-blue-100 text-blue-600'
+                            }`}>
+                                <RotateCcw size={18} />
                             </div>
-                            <div>
-                                <h3 className={`text-lg font-bold ${theme === 'cyber' ? 'text-cyan-100 orbitron' : 'text-slate-800'}`}>
+                            <div className="flex-1 min-w-0">
+                                <h4 className={`text-sm font-bold ${
+                                    theme === 'cyber' ? 'text-cyan-100 orbitron' : 'text-slate-800'
+                                }`}>
                                     載入上次未完成？
-                                </h3>
-                                <p className={`text-xs ${theme === 'cyber' ? 'text-slate-400' : 'text-slate-500'}`}>
+                                </h4>
+                                <p className={`text-xs mt-0.5 ${theme === 'cyber' ? 'text-slate-400' : 'text-slate-500'}`}>
                                     {new Date(recoverySnapshot.savedAt).toLocaleString('zh-HK')}
                                 </p>
                             </div>
                         </div>
-                        <p className={`text-sm mb-4 ${theme === 'cyber' ? 'text-slate-300' : 'text-slate-600'}`}>
-                            偵測到你上次未完成嘅設定。要繼續編輯定由頭開始？
-                        </p>
-                        <div className="flex gap-token-2 justify-end">
+                        <div className="flex gap-token-2">
                             <button
                                 onClick={dismissRecovery}
-                                className={`px-token-4 py-token-2 rounded-lg font-bold transition-all ${
-                                    theme === 'cyber' ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                                className={`flex-1 px-token-3 py-token-2 rounded-lg text-xs font-bold transition-all ${
+                                    theme === 'cyber'
+                                        ? 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                                 }`}
                             >
-                                🗑 從頭開始
+                                忽略
                             </button>
                             <button
                                 onClick={acceptRecovery}
-                                className={`px-token-4 py-token-2 rounded-lg font-bold transition-all text-white ${
-                                    theme === 'cyber' ? 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500' : 'bg-blue-600 hover:bg-blue-700'
+                                className={`flex-1 px-token-3 py-token-2 rounded-lg text-xs font-bold transition-all text-white ${
+                                    theme === 'cyber'
+                                        ? 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500'
+                                        : 'bg-blue-600 hover:bg-blue-700'
                                 }`}
                             >
-                                📂 載入上次
+                                📂 載入
                             </button>
                         </div>
-                    </Card>
+                        {/* Auto-dismiss countdown bar */}
+                        <div className={`mt-2 h-0.5 rounded-full overflow-hidden ${theme === 'cyber' ? 'bg-slate-800' : 'bg-slate-200'}`}>
+                            <motion.div
+                                className={`h-full ${theme === 'cyber' ? 'bg-cyan-500' : 'bg-blue-500'}`}
+                                initial={{ width: '100%' }}
+                                animate={{ width: '0%' }}
+                                transition={{ duration: 10, ease: 'linear' }}
+                            />
+                        </div>
+                    </div>
                 </motion.div>
             )}
 
@@ -1379,8 +1483,10 @@ const renderAiResult = () => (
                             <span className={`text-4xl ${theme === 'cyber' ? 'filter drop-shadow-[0_0_10px_rgba(6,182,212,0.8)]' : ''}`}>🤖</span>
                             <div className="flex flex-col">
                                 <span className={`font-black tracking-wide text-xl md:text-2xl ${
-                                    theme === 'cyber' 
+                                    theme === 'cyber'
                                     ? 'bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 drop-shadow-sm text-glow-cyan'
+                                    : theme === 'warm'
+                                    ? 'bg-clip-text text-transparent bg-gradient-to-r from-amber-500 via-orange-500 to-red-500'
                                     : 'text-slate-900'
                                 }`}>
                                     WMC TDA 教學設計輔助工具提詞器
@@ -1388,6 +1494,8 @@ const renderAiResult = () => (
                                 <span className={`tracking-wider text-lg md:text-xl font-bold mt-1 ${
                                     theme === 'cyber'
                                     ? "font-['Orbitron'] bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 drop-shadow-sm"
+                                    : theme === 'warm'
+                                    ? 'text-amber-800'
                                     : 'text-slate-600'
                                 }`}>
                                     Teaching Design Aids Prompt Builder
@@ -1402,16 +1510,23 @@ const renderAiResult = () => (
                         </p>
                     </div>
                     <div className="flex flex-col items-end gap-token-2">
-                        <button 
+                        <button
                             onClick={toggleTheme}
+                            aria-label={`切換主題（目前：${theme === 'cyber' ? '科技' : theme === 'plain' ? '簡潔' : '暖色'}）`}
                             className={`p-token-2 rounded-full transition-all duration-300 ${
-                                theme === 'cyber' 
-                                ? 'bg-slate-800 text-yellow-400 hover:bg-slate-700 border border-slate-700' 
+                                theme === 'cyber'
+                                ? 'bg-slate-800 text-yellow-400 hover:bg-slate-700 border border-slate-700'
+                                : theme === 'warm'
+                                ? 'bg-amber-100 text-amber-700 hover:bg-amber-200 border border-amber-300 shadow-sm'
                                 : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 shadow-sm'
                             }`}
-                            title={theme === 'cyber' ? "切換至簡潔模式" : "切換至科技模式"}
+                            title={
+                                theme === 'cyber' ? "切換至簡潔模式"
+                                : theme === 'plain' ? "切換至暖色模式"
+                                : "切換至科技模式"
+                            }
                         >
-                            {theme === 'cyber' ? <Sun size={20} /> : <Moon size={20} />}
+                            {theme === 'cyber' ? <Sun size={20} /> : theme === 'warm' ? <span className="text-lg">🌞</span> : <Moon size={20} />}
                         </button>
                         <div
                             className={`hidden md:flex px-token-4 py-token-2 rounded-full text-sm font-bold flex items-center gap-token-2 tracking-wider ${
@@ -1435,6 +1550,21 @@ const renderAiResult = () => (
                         >
                             <Upload size={16} />
                             匯入 JSON
+                        </button>
+                        {/* W7-8: Student Profile Bank button */}
+                        <button
+                            onClick={() => setProfileBankOpen(true)}
+                            className={`px-token-4 py-token-2 rounded-full text-sm font-bold flex items-center gap-token-2 tracking-wider transition-all ${
+                                theme === 'cyber'
+                                ? 'border border-violet-500/50 bg-violet-950/30 text-violet-400 hover:bg-violet-900/50 shadow-[0_0_10px_rgba(139,92,246,0.2)] orbitron'
+                                : theme === 'warm'
+                                ? 'bg-violet-100 text-violet-700 border border-violet-200 hover:bg-violet-200'
+                                : 'bg-violet-100 text-violet-700 border border-violet-200 hover:bg-violet-200'
+                            }`}
+                            title="學生 Profile Bank — 加密儲存個別學生 preset"
+                        >
+                            <Users size={16} />
+                            👤 Profile Bank
                         </button>
                         {/* Undo / Redo */}
                         <div className="flex gap-token-1">
@@ -1486,36 +1616,99 @@ const renderAiResult = () => (
                     </div>
                 </header>
 
-                {/* Progress Bar */}
-                <div className="mb-8 max-w-3xl mx-auto">
-                    <div className={`flex justify-between text-xs font-bold mb-2 uppercase tracking-wider ${theme === 'cyber' ? 'orbitron text-slate-500' : 'text-slate-400'}`}>
-                        <span className={step >= 1 ? (theme === 'cyber' ? "text-cyan-400 text-glow-cyan" : "text-blue-600") : ""}>基本資料</span>
-                        <span className={step >= 2 ? (theme === 'cyber' ? "text-cyan-400 text-glow-cyan" : "text-blue-600") : ""}>內容情境</span>
-                        <span className={step >= 3 ? (theme === 'cyber' ? "text-cyan-400 text-glow-cyan" : "text-blue-600") : ""}>規則設定</span>
-                        <span className={step >= 4 ? (theme === 'cyber' ? "text-cyan-400 text-glow-cyan" : "text-blue-600") : ""}>完成生成</span>
-                    </div>
-                    <div className={`h-2 rounded-full overflow-hidden ${theme === 'cyber' ? 'bg-slate-800 border border-slate-700/50' : 'bg-slate-200'}`}>
-                        <motion.div 
-                            className={`h-full ${
-                                theme === 'cyber' 
-                                ? 'bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 shadow-[0_0_10px_rgba(6,182,212,0.5)]'
-                                : 'bg-blue-600'
-                            }`}
-                            initial={{ width: "0%" }}
-                            animate={{ width: `${(step / 4) * 100}%` }}
-                            transition={{ duration: 0.3 }}
-                        />
+                {/* Tab Nav — W1-2 取代 step gate (任何 tab 隨時跳) — W3-4.1 加 warm 第三 case */}
+                <div className="mb-6 max-w-3xl mx-auto">
+                    <div className={`flex gap-token-1 p-token-1 rounded-xl border ${
+                        theme === 'cyber' ? 'border-slate-700/50 bg-slate-900/30'
+                        : theme === 'warm' ? 'border-amber-200 bg-amber-50/60'
+                        : 'border-slate-200 bg-slate-50'
+                    }`}>
+                        {[
+                            { key: 'basic', label: '基本', icon: '📋' },
+                            { key: 'content', label: '內容', icon: '📝' },
+                            { key: 'rules', label: '規則', icon: '⚙️' },
+                            { key: 'generate', label: '生成', icon: '✨' },
+                        ].map(tab => {
+                            const comp = tabCompletion[tab.key];
+                            const isActive = activeTab === tab.key;
+                            return (
+                                <button
+                                    key={tab.key}
+                                    onClick={() => setActiveTab(tab.key)}
+                                    aria-current={isActive ? 'page' : undefined}
+                                    className={`flex-1 px-token-3 py-token-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-token-2 ${
+                                        isActive
+                                            ? (theme === 'cyber'
+                                                ? 'bg-cyan-900/40 text-cyan-200 ring-1 ring-cyan-500/50 shadow-[0_0_10px_rgba(6,182,212,0.2)]'
+                                                : theme === 'warm'
+                                                ? 'bg-amber-200/80 text-amber-900 ring-1 ring-amber-400'
+                                                : 'bg-blue-100 text-blue-700 ring-1 ring-blue-300')
+                                            : (theme === 'cyber'
+                                                ? 'text-slate-400 hover:text-cyan-300 hover:bg-slate-800/50'
+                                                : theme === 'warm'
+                                                ? 'text-amber-800 hover:text-amber-900 hover:bg-amber-100'
+                                                : 'text-slate-600 hover:bg-white hover:shadow-sm')
+                                    }`}
+                                >
+                                    <span>{tab.icon}</span>
+                                    <span className={theme === 'cyber' ? 'orbitron tracking-wide' : ''}>
+                                        {tab.label}
+                                    </span>
+                                    {comp.total > 0 && (
+                                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
+                                            comp.complete
+                                                ? (theme === 'cyber' ? 'bg-emerald-900/50 text-emerald-300'
+                                                    : theme === 'warm' ? 'bg-emerald-200 text-emerald-800'
+                                                    : 'bg-emerald-100 text-emerald-700')
+                                                : isActive
+                                                    ? (theme === 'cyber' ? 'bg-cyan-800/50 text-cyan-200'
+                                                        : theme === 'warm' ? 'bg-amber-300 text-amber-900'
+                                                        : 'bg-blue-200 text-blue-700')
+                                                    : (theme === 'cyber' ? 'bg-slate-700 text-slate-400'
+                                                        : theme === 'warm' ? 'bg-amber-100 text-amber-700'
+                                                        : 'bg-slate-200 text-slate-600')
+                                        }`}>
+                                            {comp.filled}/{comp.total}
+                                        </span>
+                                    )}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 
-                {/* Wizard Card - Adjust width for steps */}
-                {step < 4 && (
+                {/* Quality Score Badge — always visible (W1-2) */}
+                <div className="mb-4 max-w-3xl mx-auto flex items-center justify-between gap-token-3">
+                    <div className={`text-xs ${theme === 'cyber' ? 'text-slate-500' : 'text-slate-400'}`}>
+                        💡 Tabs 模式：任何 tab 隨時跳。改動自動儲存。
+                    </div>
+                    <QualityScoreBadge
+                        theme={theme}
+                        score={qualityScore}
+                        onClick={() => setShowScoreDetail(prev => !prev)}
+                    />
+                </div>
+
+                {/* Wizard Card - Adjust width for tabs (W1-2: Tabs mode 取代 step gate) */}
+                {activeTab !== 'generate' && (
                     <Card theme={theme} className="min-h-[500px] flex flex-col max-w-3xl mx-auto">
-                        <div className="p-token-6 md:p-token-8 flex-1">
+                        <div className="p-token-4 md:p-token-6 flex-1">
                             <AnimatePresence mode="wait">
-                                {step === 1 && renderStep1()}
-                                {step === 2 && renderStep2()}
-                                {step === 3 && renderStep3()}
+                                {activeTab === 'basic' && (
+                                    <motion.div key="basic" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                                        {renderStep1()}
+                                    </motion.div>
+                                )}
+                                {activeTab === 'content' && (
+                                    <motion.div key="content" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                                        {renderStep2()}
+                                    </motion.div>
+                                )}
+                                {activeTab === 'rules' && (
+                                    <motion.div key="rules" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                                        {renderStep3()}
+                                    </motion.div>
+                                )}
                             </AnimatePresence>
                         </div>
 
@@ -1525,9 +1718,9 @@ const renderAiResult = () => (
                         }`}>
                             {/* Left Side: Previous Button */}
                             <div className="w-1/3 flex justify-start">
-                                {step > 1 && (
-                                    <button 
-                                        onClick={() => setStep(step - 1)}
+                                {TAB_KEYS.indexOf(activeTab) > 0 && (
+                                    <button
+                                        onClick={handlePrevTab}
                                         className={`flex items-center gap-token-2 px-token-6 py-token-3 rounded-xl font-bold transition-all ${
                                             theme === 'cyber'
                                             ? 'text-slate-400 hover:text-white hover:bg-slate-800'
@@ -1563,7 +1756,7 @@ const renderAiResult = () => (
                             {/* Right Side: Next Button */}
                             <div className="w-1/3 flex justify-end">
                                 <button 
-                                    onClick={handleNext}
+                                    onClick={handleNextTab}
                                     className={`flex items-center gap-token-2 px-token-8 py-token-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 group text-white ${
                                         theme === 'cyber'
                                         ? 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 shadow-[0_0_20px_rgba(6,182,212,0.4)]'
@@ -1579,7 +1772,7 @@ const renderAiResult = () => (
                 )}
                 
                 {/* Live Preview Panel — 任何 step 都可叫出嚟即時睇 prompt output */}
-                {previewOpen && step < 4 && (
+                {previewOpen && activeTab !== 'generate' && (
                     <motion.div
                         initial={{ opacity: 0, y: 30, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -1636,7 +1829,7 @@ const renderAiResult = () => (
                             </div>
                             {/* Preview content */}
                             {(() => {
-                                const previewText = previewTab === 'design' ? generateDesignPrompt() : generateTechPrompt();
+                                const previewText = previewTab === 'design' ? designPrompt : techPrompt;
                                 // Empty state — 當 prompt 太短時顯示引導
                                 const isEmpty = previewText.length < 200;
                                 if (isEmpty) {
@@ -1673,10 +1866,10 @@ const renderAiResult = () => (
                     </motion.div>
                 )}
 
-                {/* Step 4 Rendering (Wide Layout) */}
-                {step === 4 && (
+                {/* Generate Tab Rendering (Wide Layout) — W1-2: 由 step 4 改 activeTab === 'generate' */}
+                {activeTab === 'generate' && (
                     <>
-                        {renderStep4()}
+                        {renderStep4(formData, designPrompt, techPrompt, qualityScore)}
                         {renderAiResult()}
                     </>
                 )}
