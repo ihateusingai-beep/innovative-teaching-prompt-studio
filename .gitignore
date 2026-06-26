@@ -1,0 +1,25 @@
+# Dependencies (Phase 4: Vite + Tailwind build pipeline)
+node_modules/
+
+# Build output (Phase 4)
+dist/
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+
+# Testing (future Phase)
+coverage/
+.nyc_output/
