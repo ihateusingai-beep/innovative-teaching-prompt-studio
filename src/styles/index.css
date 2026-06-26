@@ -1,0 +1,286 @@
+/* TDA Prompt Builder v3.0 — main stylesheet
+   Tailwind pre-compiled via PostCSS + custom design tokens + legacy CSS preserved
+*/
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom CSS preserved from v2.0 single-file */
+        /* === Design Tokens (統一 spacing / shadow / transition) === */
+        :root {
+            /* Spacing scale — 8px 為基數 (phase 2.3.1) */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-6: 24px;
+            --space-8: 32px;
+            --space-12: 48px;
+            --space-16: 64px;
+
+            /* Shadow scale — 4 級 elevation (phase 2.3.2) */
+            --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+
+            /* Transition curve — 統一互動節奏 (phase 2.3.3) */
+            --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+            --transition-fast: 150ms var(--ease-out);
+            --transition-base: 250ms var(--ease-out);
+            --transition-slow: 400ms var(--ease-out);
+
+            /* Cyber theme glow */
+            --cyber-glow: 0 0 20px rgba(6,182,212,0.4);
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            overflow-x: hidden;
+            transition: background-color var(--transition-base), color var(--transition-base);
+        }
+
+        /* Phase 3.4.3: Loading skeleton pulse */
+        @keyframes skeleton-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .skeleton {
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            background-size: 200% 100%;
+            animation: skeleton-pulse 1.5s var(--ease-out) infinite;
+        }
+        body.theme-plain .skeleton {
+            background: linear-gradient(90deg, transparent, rgba(0,0,0,0.05), transparent);
+            background-size: 200% 100%;
+        }
+
+        /* Phase 3.4.1: Category button ripple effect */
+        @keyframes ripple {
+            from { transform: scale(0); opacity: 0.6; }
+            to { transform: scale(2.5); opacity: 0; }
+        }
+        .ripple-effect {
+            position: relative;
+            overflow: hidden;
+        }
+        .ripple-effect::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0);
+        }
+        .ripple-effect:active::before {
+            animation: ripple 0.6s var(--ease-out);
+        }
+
+        /* --- Cyber Theme Styles --- */
+        body.theme-cyber {
+            background-color: #020617; /* Slate 950 */
+            color: #e2e8f0; /* Slate 200 */
+        }
+
+        /* === Phase 2.3.2: Shadow utility classes === */
+        .shadow-token-sm { box-shadow: var(--shadow-sm); }
+        .shadow-token-md { box-shadow: var(--shadow-md); }
+        .shadow-token-lg { box-shadow: var(--shadow-lg); }
+        .shadow-token-xl { box-shadow: var(--shadow-xl); }
+
+        /* === Phase 2.3.3: Transition utility classes === */
+        .transition-token-fast { transition: all var(--transition-fast); }
+        .transition-token-base { transition: all var(--transition-base); }
+        .transition-token-slow { transition: all var(--transition-slow); }
+
+        /* === Phase 2.3.1: Spacing token aliases ===
+           將常用 spacing 對齊 design token 8px scale
+           視覺輸出同 Tailwind p-2/p-3/p-4 完全一致（已經係 8/12/16px），
+           只係 class name 改做 token-aligned（將來 full migration 易搵）
+
+           Migration guide:
+             p-2 → p-token-2 (8px)
+             p-3 → p-token-3 (12px)
+             p-4 → p-token-4 (16px)
+             p-6 → p-token-6 (24px)
+             gap-2 → gap-token-2 (8px)
+             gap-3 → gap-token-3 (12px)
+             space-y-4 → space-y-token-4 (16px)
+             etc.
+
+           Current migrated (selective swap 2026-06-26):
+             - Category buttons: p-3 → p-token-3
+             - Live preview textarea: p-4 → p-token-4
+             - CoachMark modal: p-6 → p-token-6
+
+           Future work: full sed replace via CI script，保留 visual 100% identical.
+
+           ✓ Done 2026-06-26: Full sed migration applied (248 replacements via /tmp/tda_spacing_migrate.py).
+             Remaining: p-5 (intentional, 20px 唔係 8px scale).
+        */
+        .p-token-1 { padding: var(--space-1); }
+        .p-token-2 { padding: var(--space-2); }
+        .p-token-3 { padding: var(--space-3); }
+        .p-token-4 { padding: var(--space-4); }
+        .p-token-6 { padding: var(--space-6); }
+        .p-token-8 { padding: var(--space-8); }
+
+        .px-token-1 { padding-left: var(--space-1); padding-right: var(--space-1); }
+        .px-token-2 { padding-left: var(--space-2); padding-right: var(--space-2); }
+        .px-token-3 { padding-left: var(--space-3); padding-right: var(--space-3); }
+        .px-token-4 { padding-left: var(--space-4); padding-right: var(--space-4); }
+
+        .py-token-1 { padding-top: var(--space-1); padding-bottom: var(--space-1); }
+        .py-token-2 { padding-top: var(--space-2); padding-bottom: var(--space-2); }
+        .py-token-3 { padding-top: var(--space-3); padding-bottom: var(--space-3); }
+        .py-token-4 { padding-top: var(--space-4); padding-bottom: var(--space-4); }
+
+        .m-token-1 { margin: var(--space-1); }
+        .m-token-2 { margin: var(--space-2); }
+        .m-token-3 { margin: var(--space-3); }
+        .m-token-4 { margin: var(--space-4); }
+        .m-token-6 { margin: var(--space-6); }
+
+        .gap-token-1 { gap: var(--space-1); }
+        .gap-token-2 { gap: var(--space-2); }
+        .gap-token-3 { gap: var(--space-3); }
+        .gap-token-4 { gap: var(--space-4); }
+        .gap-token-6 { gap: var(--space-6); }
+
+        .space-y-token-1 > * + * { margin-top: var(--space-1); }
+        .space-y-token-2 > * + * { margin-top: var(--space-2); }
+        .space-y-token-3 > * + * { margin-top: var(--space-3); }
+        .space-y-token-4 > * + * { margin-top: var(--space-4); }
+        .space-y-token-6 > * + * { margin-top: var(--space-6); }
+
+        /* Cyber Grid Background */
+        .cyber-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200vw;
+            height: 200vh;
+            background-image: 
+                linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+            animation: grid-move 20s linear infinite;
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        body.theme-cyber .cyber-grid {
+            opacity: 1;
+        }
+
+        @keyframes grid-move {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(40px) translateZ(-200px); }
+        }
+
+        /* Vignette Effect */
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, transparent 50%, #020617 100%);
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        body.theme-cyber .vignette {
+            opacity: 1;
+        }
+
+        /* Scrollbar - Conditional styling via CSS variables or specific overrides */
+        body.theme-cyber textarea::-webkit-scrollbar-track { background: #0f172a; border-radius: 4px; }
+        body.theme-cyber textarea::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; border: 1px solid #06b6d4; }
+        body.theme-cyber textarea::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
+
+        body.theme-plain textarea::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        body.theme-plain textarea::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        body.theme-plain textarea::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        textarea::-webkit-scrollbar { width: 8px; }
+
+        /* Holographic Gradient Animation */
+        @keyframes gradient-xy {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .animate-holo {
+            background-size: 200% 200%;
+            animation: gradient-xy 3s ease infinite;
+        }
+
+        /* Text Glows - Only in Cyber Mode */
+        body.theme-cyber .text-glow-cyan {
+            text-shadow: 0 0 5px rgba(6, 182, 212, 0.5), 0 0 10px rgba(6, 182, 212, 0.3);
+        }
+        body.theme-cyber .text-glow-purple {
+            text-shadow: 0 0 5px rgba(168, 85, 247, 0.5), 0 0 10px rgba(168, 85, 247, 0.3);
+        }
+
+        /* Tech Borders - Cyber Mode */
+        .tech-border {
+            position: relative;
+            background: rgba(15, 23, 42, 0.6); 
+            border: 1px solid rgba(6, 182, 212, 0.3); 
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        /* Tech Input - Cyber Mode */
+        .tech-input {
+            background: rgba(30, 41, 59, 0.5); 
+            border: 1px solid #334155;
+            color: #ecfeff;
+            transition: all 0.3s ease;
+        }
+        .tech-input:focus {
+            border-color: #06b6d4;
+            box-shadow: 0 0 8px rgba(6, 182, 212, 0.4);
+            background: rgba(30, 41, 59, 0.8);
+        }
+
+        /* --- Plain Theme Styles --- */
+        body.theme-plain {
+            background-color: #f8fafc; /* Slate 50 */
+            color: #1e293b; /* Slate 800 */
+        }
+
+        .plain-border {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+        }
+
+        .plain-input {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            color: #334155;
+            transition: all 0.3s ease;
+        }
+        .plain-input:focus {
+            border-color: #3b82f6; /* Blue 500 */
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            outline: none;
+        }
+
+        .orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+        .mono {
+            font-family: 'Share Tech Mono', monospace;
+        }
