@@ -164,7 +164,7 @@ const ONBOARDING_STEPS = ['templates', 'step1', 'step2', 'step3', 'step4'];
 
 export function App() {
     const s = useAppState();
-    const { step, setStep, toggleTheme, copiedDesign, copiedTech, showScoreDetail, setShowScoreDetail, expandedSections, setExpandedSections, previewOpen, setPreviewOpen, previewTab, setPreviewTab, theme, setTheme, onboardingStep, onboardingActive, setOnboardingActive, activeSuggestionField, setActiveSuggestionField, pendingSuggestion, setPendingSuggestion, aiGenerating, aiResult, aiError, showApiSettings, setShowApiSettings, formData, setFormData, updateField, toggleSelection, handleExampleChange, addExample, removeExample, handleRuleChange, addRule, removeRule, userTemplates, geminiApiKey, setGeminiApiKey, fileInputRef, lastSavedAt, recoverySnapshot, acceptRecovery, dismissRecovery, canUndo, canRedo, pushHistory, undo, redo, handleCopyDesign, handleCopyTech, handleExport, handleGeminiGenerate, handleSaveTemplate, handleLoadTemplate, handleDeleteTemplate, handleImportJSON, handleExportJSON, handleGetSuggestions, handleSelectSuggestion, handleCoachNext, handleCoachSkip, handleNext, handlePrev, handleReset, designPrompt, techPrompt, qualityScore, categories, subjects, builtinTemplates, triggerFileInput, showGameStyle, showExamples } = s;
+    const { step, setStep, toggleTheme, copiedDesign, copiedTech, showScoreDetail, setShowScoreDetail, expandedSections, setExpandedSections, previewOpen, setPreviewOpen, previewTab, setPreviewTab, theme, setTheme, onboardingStep, onboardingActive, setOnboardingActive, activeSuggestionField, setActiveSuggestionField, pendingSuggestion, setPendingSuggestion, aiGenerating, aiResult, aiError, showApiSettings, setShowApiSettings, formData, setFormData, updateField, toggleSelection, handleExampleChange, addExample, removeExample, handleRuleChange, addRule, removeRule, userTemplates, geminiApiKey, setGeminiApiKey, fileInputRef, lastSavedAt, recoverySnapshot, acceptRecovery, dismissRecovery, canUndo, canRedo, pushHistory, undo, redo, handleCopyDesign, handleCopyTech, handleExport, handleGeminiGenerate, handleSaveTemplate, handleLoadTemplate, handleDeleteTemplate, handleImportJSON, handleExportJSON, handleGetSuggestions, handleSelectSuggestion, handleCoachNext, handleCoachSkip, handleNext, handlePrev, handleReset, designPrompt, techPrompt, qualityScore, categories, subjects, builtinTemplates, triggerJSONImport, showGameStyle, showExamples } = s;
 const renderStep1 = () => (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-token-4">
         {/* === Sub-section 0: 範本庫（快速開始） === */}
@@ -1425,7 +1425,7 @@ const renderAiResult = () => (
                             Schema v{SCHEMA_VERSION}
                         </div>
 <button
-                            onClick={triggerFileInput}
+                            onClick={triggerJSONImport}
                             className={`px-token-4 py-token-2 rounded-full text-sm font-bold flex items-center gap-token-2 tracking-wider transition-all ${
                                 theme === 'cyber'
                                 ? 'border border-emerald-500/50 bg-emerald-950/30 text-emerald-400 hover:bg-emerald-900/50 shadow-[0_0_10px_rgba(16,185,129,0.2)] orbitron'

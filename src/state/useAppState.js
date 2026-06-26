@@ -297,7 +297,7 @@ export const useAppState = () => {
     }, [setFormData, pushHistory, clearAutosave]);
 
     // === File input trigger ===
-    const triggerFileInput = useCallback(() => {
+    const triggerJSONImport = useCallback(() => {
         if (fileInputRef.current) {
             fileInputRef.current.click();
         }
@@ -389,7 +389,7 @@ export const useAppState = () => {
         categories,
         subjects,
         builtinTemplates: BUILTIN_TEMPLATES,
-        triggerFileInput,
+        triggerJSONImport,
         showGameStyle: formData.category === '教學遊戲',
         showExamples: ['教學遊戲', '教學工具', '實驗模擬'].includes(formData.category),
     };
