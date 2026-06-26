@@ -2,22 +2,47 @@
 
 **為 SEN 教師設計嘅 prompt 生成器**：3 分鐘填表 → 自動產生工程師級 prompt → 貼去 AI（Gemini / Claude / Lovable / v0）→ 生成教學工具 HTML。
 
-![version](https://img.shields.io/badge/version-v2.0-blue)
-![size](https://img.shields.io/badge/size-~268KB-green)
+![version](https://img.shields.io/badge/version-v3.0-blue)
+![size](https://img.shields.io/badge/size-~410KB_(129KB_gz)-green)
 ![zero-backend](https://img.shields.io/badge/backend-zero-orange)
+![offline](https://img.shields.io/badge/offline-ready-brightgreen)
 
 ---
 
 ## 🚀 Quick Start
 
-1. **下載** `index.html` 呢個 file
+### For 老師 (Users)
+
+1. **下載** `dist/index.html` 呢個 file
 2. **雙擊打開** — 喺 browser 開（Chrome / Edge / Safari / Firefox）
 3. **填表** 4 個 step（基本資料 / 內容情境 / 規則設定 / 完成生成）
 4. **複製 Part 1** → 貼去 Gemini / Claude → 問「構思呢個教學工具」
 5. **複製 Part 2** → 貼去同一個 AI → 問「生成 HTML」
 6. **下載 / 複製 HTML** — 完成！
 
-**零安裝、零後端、零帳號、零資料外洩**。
+**零安裝、零後端、零帳號、零資料外洩、零網絡依賴**（v3.0 build 後所有 JS/CSS inline 入 HTML）。
+
+### For 開發者 (Developers)
+
+```bash
+# 1. 安裝 dependency
+npm install
+
+# 2. 開發模式 (HMR)
+npm run dev
+# → http://127.0.0.1:5173
+
+# 3. Production build (single-file IIFE)
+npm run build
+# → dist/index.html (~410KB, 129KB gzipped)
+
+# 4. Smoke test build
+open -a "Google Chrome" "file://$(pwd)/dist/index.html"
+# Or serve:
+python3 -m http.server 8765 --bind 0.0.0.0 --directory dist
+```
+
+**Note**: `index.html` (root) 係 Vite dev shell — **唔好 distribute 呢個 file**。Always distribute `dist/index.html`。
 
 ---
 
@@ -136,44 +161,75 @@
 
 ## 🛠 技術細節
 
-| Component | Version |
-|-----------|---------|
-| React | 18.2.0 |
-| Tailwind CSS | 3.4.x (CDN) |
-| Framer Motion | 10.16.4 |
-| Lucide React | 0.292.0 |
-| Babel Standalone | 7.23.10 |
-| Docx | 7.8.2 |
+### Tech Stack (v3.0)
 
-**Single file deploy**: 整個 app 喺一個 `index.html` (4421 lines, ~268KB)
+| Component | Version | Purpose |
+|-----------|---------|---------|
+| React | 18.2 | UI framework |
+| Vite | 5.4 | Build tool + ESM bundler |
+| vite-plugin-singlefile | latest | Inline JS/CSS/asset into single HTML |
+| **Terser** | 5.x | **Minifier (NOT esbuild — see gotchas below)** |
+| Tailwind CSS | 3.4 (PostCSS) | Utility-first CSS |
+| Framer Motion | latest | Animations |
+| Lucide React | 0.292 | Icons (tree-shaken) |
+| Docx | latest | Word export (CN font) |
+
+### 部署格式
+
+整個 app 喺單個 `dist/index.html` (~410KB, 129KB gzipped)
 - ✅ file:// 直接打開 work
-- ✅ 唔需要 server / build step / npm install
+- ✅ 唔需要 server / hosting / CDN
+- ✅ 完全 offline-ready（所有 JS / CSS inline）
 - ✅ Email / USB / Google Drive share
 - ✅ GitHub Pages deploy
+- ✅ 唔需要 npm install 用嚟用
+
+### 開發格式 (modular)
+
+Source 喺 `src/` — modular structure for maintainability:
+```
+src/
+├── data/        # Schema, scorer, suggestions, templates, sen-a11y map
+├── utils/       # clipboard, docx, gemini, storage, time
+├── prompts/     # Prompt generators (pure functions)
+├── hooks/       # useFormData, useAutosave, useUndoRedo, useLocalStorage
+├── state/       # useAppState (centralized App state + handlers)
+├── components/  # UI primitives + modals + widgets
+├── styles/      # Tailwind + design tokens
+├── App.jsx      # Pure render — useAppState() + renderStep1-4
+└── main.jsx     # React mount entry
+```
+
+詳細分工見 [`AGENTS.md`](./AGENTS.md)。
 
 ---
 
 ## 📋 System Requirements
 
+### For 老師 (users)
 - **Browser**: Chrome 90+ / Edge 90+ / Safari 14+ / Firefox 88+
 - **OS**: Windows / macOS / Linux / iPad / Android tablet
-- **Internet**: 第一次 load 需要（load 啲 CDN library），之後可以 offline 用（瀏覽器 cache）
-- **JSX runtime**: Classic（避免 jsx-runtime bare specifier — file:// 限制）
+- **Internet**: **完全唔需要**（v3.0 build 後所有 JS/CSS inline 入 HTML）
+- **Storage**: localStorage 啟用（auto-save 用）
+
+### For 開發者 (developers)
+- **Node.js**: 18+ (Vite 5 requirement)
+- **npm**: 9+
+- **Browser**: 同上
 
 ---
 
 ## 🐛 Troubleshooting
 
 ### 開 file 後空白頁？
+- ✅ 確認你打開嘅係 **`dist/index.html`** (唔係 root `index.html`，嗰個係 Vite dev shell)
 - ✅ 確認 browser JS 冇 disable
 - ✅ 試 Chrome / Edge（最穩）
 - ✅ 撳 DevTools Console（F12）睇 error message
 
 ### 「Failed to resolve module specifier 'react/jsx-runtime'」？
-- ✅ 唔會出現 — 我哋用 Babel classic runtime override
-
-### 「cdn.tailwindcss.com should not be used in production」？
-- ✅ 已知 warning — single-file trade-off。Phase 4 (v3.0) 會用 Tailwind build precompile 移除
+- ✅ v3.0 build 已 fix — Vite `jsxRuntime: 'classic'` 直接 precompile JSX
+- ⚠️ 如果你睇到呢個 error，build 過程出咗事 — `git pull` + `npm install` + `npm run build` 重試
 
 ### Auto-save 唔 work？
 - ✅ Check 唔係 incognito / private mode（localStorage 喺 private mode 唔 persist）
@@ -184,13 +240,35 @@
 - ✅ Internet 唔穩 → retry
 - ✅ Prompt 觸發 safety filter → 改寫 prompt 用更中性的字眼
 
+### 開發者 troubleshooting
+
+#### Build error: 「Expected pattern to be a non-empty string」
+- `vite-plugin-singlefile` 嘅 `inlinePattern` 用 string patterns 而唔係 regex
+- ✅ 已 fix 喺 `vite.config.js` — 用 string array (e.g. `['.css', '.js']`) 或者直接 omit (默認 inline 所有 static assets)
+
+#### Build error: 某 callback `ReferenceError: X is not defined` 喺 production runtime
+- **Mangle name collision** — esbuild minifier 將唔同 module 入面同名 callback mangle 到同一個 short name
+- ✅ 用 `build.minify: 'terser'` + `mangle.reserved` list (已喺 `vite.config.js` `MANGLE_RESERVED`)
+- ⚠️ **新增 hook return value 或 useAppState callback 時必須更新呢個 list**
+
+#### Console error: 「'X' is not exported by 'src/data/scorer.js'」
+- 預設 export vs named export 唔啱
+- `src/data/scorer.js` 用 `export default promptScorer`
+- Import 要係 `import promptScorer from '../data/scorer.js'` (唔需要 `{}`)
+
 ---
 
 ## 📜 License & Credits
 
 Built by **Ken Cheng** for SEN teachers in Hong Kong.
 
-**v2.0 stable release** (2026-06-26). Phase 4 (Vite build pipeline) deferred to v3.0.
+**v3.0 stable release** (2026-06-26) — Vite single-file IIFE build pipeline:
+- Modular source (`src/`) for maintainability
+- Single-file output (`dist/index.html`, ~410KB / 129KB gzipped) for distribution
+- All CDN dependencies eliminated — fully offline-ready
+- Terser minifier with `mangle.reserved` list (prevents cross-module name collision)
+
+See [`AGENTS.md`](./AGENTS.md) for development workflow + locked decisions.
 
 ---
 
