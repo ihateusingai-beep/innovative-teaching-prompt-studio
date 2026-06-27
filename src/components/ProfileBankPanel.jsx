@@ -85,20 +85,13 @@ export const ProfileBankPanel = ({
     const fileInputRef = useRef(null);
 
     // === Theme tokens ===
-    const cardBg = theme === 'cyber' ? 'bg-slate-900 border-cyan-500/30'
-                  : theme === 'warm' ? 'bg-white border-amber-300'
+    const cardBg = theme === 'warm' ? 'bg-white border-amber-300'
                   : 'bg-white border-slate-300';
-    const textPri = theme === 'cyber' ? 'text-slate-200' : theme === 'warm' ? 'text-amber-900' : 'text-slate-800';
-    const textSec = theme === 'cyber' ? 'text-slate-400' : theme === 'warm' ? 'text-amber-700' : 'text-slate-600';
-    const inputBorder = theme === 'cyber' ? 'border-slate-700 bg-slate-800/50 text-cyan-100'
-                       : theme === 'warm' ? 'border-amber-300 bg-white text-amber-900'
-                       : 'border-slate-300 bg-white text-slate-800';
-    const btnPri = theme === 'cyber' ? 'bg-cyan-500 text-slate-900 hover:bg-cyan-400'
-                  : theme === 'warm' ? 'bg-amber-500 text-white hover:bg-amber-600'
-                  : 'bg-blue-600 text-white hover:bg-blue-700';
-    const btnSec = theme === 'cyber' ? 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                  : theme === 'warm' ? 'bg-amber-100 text-amber-800 hover:bg-amber-200'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200';
+    const textPri = theme === 'warm' ? 'text-amber-900' : 'text-slate-800';
+    const textSec = theme === 'warm' ? 'text-amber-700' : 'text-slate-600';
+    const inputBorder = 'border-slate-300 bg-white text-slate-800';
+    const btnPri = 'bg-blue-600 text-white hover:bg-blue-700';
+    const btnSec = 'bg-slate-100 text-slate-700 hover:bg-slate-200';
 
     const wrapperClass = asModal
         ? 'fixed inset-0 z-[90] flex items-center justify-center bg-black/60 backdrop-blur-sm p-token-4'
@@ -265,8 +258,7 @@ export const ProfileBankPanel = ({
     const renderGate = () => (
         <div className="space-y-token-4">
             <div className={`p-token-3 rounded-lg border ${
-                theme === 'cyber' ? 'bg-cyan-900/20 border-cyan-500/30 text-cyan-100'
-                : theme === 'warm' ? 'bg-amber-50 border-amber-300 text-amber-800'
+                theme === 'warm' ? 'bg-amber-50 border-amber-300 text-amber-800'
                 : 'bg-blue-50 border-blue-200 text-blue-800'
             }`}>
                 <div className="flex items-start gap-token-2">
@@ -323,8 +315,7 @@ export const ProfileBankPanel = ({
 
             {gateError && (
                 <div className={`p-token-3 rounded-lg text-sm ${
-                    theme === 'cyber' ? 'bg-red-900/30 border border-red-500/40 text-red-200'
-                    : theme === 'warm' ? 'bg-red-50 border border-red-200 text-red-700'
+                    theme === 'warm' ? 'bg-red-50 border border-red-200 text-red-700'
                     : 'bg-red-50 border border-red-200 text-red-700'
                 }`}>
                     ❌ {gateError}
@@ -352,8 +343,7 @@ export const ProfileBankPanel = ({
         <div className="space-y-token-4">
             {/* Toolbar */}
             <div className={`flex flex-wrap gap-token-2 p-token-3 rounded-lg border ${
-                theme === 'cyber' ? 'border-slate-700 bg-slate-800/30'
-                : theme === 'warm' ? 'border-amber-200 bg-amber-50/40'
+                theme === 'warm' ? 'border-amber-200 bg-amber-50/40'
                 : 'border-slate-200 bg-slate-50'
             }`}>
                 <button
@@ -383,7 +373,7 @@ export const ProfileBankPanel = ({
                 </button>
                 <button
                     onClick={() => { lock(); setView('gate'); }}
-                    className={`px-token-3 py-token-2 rounded-lg text-sm font-bold flex items-center gap-token-2 ${theme === 'cyber' ? 'bg-red-900/40 text-red-300 hover:bg-red-900/60' : 'bg-red-50 text-red-700 hover:bg-red-100'}`}
+                    className={`px-token-3 py-token-2 rounded-lg text-sm font-bold flex items-center gap-token-2 ${'bg-red-50 text-red-700 hover:bg-red-100'}`}
                     title="Lock vault (清 key，但唔清 vault data)"
                 >
                     <Lock size={14} />
@@ -405,8 +395,7 @@ export const ProfileBankPanel = ({
                 </label>
                 {profiles.length === 0 ? (
                     <div className={`p-token-6 text-center text-sm rounded-lg border-2 border-dashed ${
-                        theme === 'cyber' ? 'border-slate-700 text-slate-500'
-                        : theme === 'warm' ? 'border-amber-300 text-amber-700'
+                        theme === 'warm' ? 'border-amber-300 text-amber-700'
                         : 'border-slate-300 text-slate-500'
                     }`}>
                         <div className="text-3xl mb-2">👤</div>
@@ -419,8 +408,7 @@ export const ProfileBankPanel = ({
                             <div
                                 key={p.id}
                                 className={`p-token-3 rounded-lg border ${
-                                    theme === 'cyber' ? 'border-slate-700 bg-slate-800/40'
-                                    : theme === 'warm' ? 'border-amber-200 bg-amber-50/40'
+                                    theme === 'warm' ? 'border-amber-200 bg-amber-50/40'
                                     : 'border-slate-200 bg-white'
                                 }`}
                             >
@@ -459,7 +447,7 @@ export const ProfileBankPanel = ({
                                         </button>
                                         <button
                                             onClick={() => setDeleteCandidate(p)}
-                                            className={`p-token-2 rounded-lg ${theme === 'cyber' ? 'text-red-400 hover:bg-red-900/30' : theme === 'warm' ? 'text-red-600 hover:bg-red-100' : 'text-red-600 hover:bg-red-50'}`}
+                                            className={`p-token-2 rounded-lg ${theme === 'warm' ? 'text-red-600 hover:bg-red-100' : 'text-red-600 hover:bg-red-50'}`}
                                             title="刪除"
                                         >
                                             <Trash2 size={14} />
@@ -474,7 +462,7 @@ export const ProfileBankPanel = ({
 
             {/* Apply confirm dialog */}
             {applyCandidate && (
-                <div className={`p-token-3 rounded-lg border-2 ${theme === 'cyber' ? 'border-amber-500/50 bg-amber-900/20' : theme === 'warm' ? 'border-orange-400 bg-orange-50' : 'border-orange-300 bg-orange-50'}`}>
+                <div className={`p-token-3 rounded-lg border-2 ${theme === 'warm' ? 'border-orange-400 bg-orange-50' : 'border-orange-300 bg-orange-50'}`}>
                     <p className={`text-sm font-bold mb-2 ${textPri}`}>
                         ✨ 套用 Profile「{applyCandidate.name}」？
                     </p>
@@ -494,7 +482,7 @@ export const ProfileBankPanel = ({
 
             {/* Delete confirm dialog */}
             {deleteCandidate && (
-                <div className={`p-token-3 rounded-lg border-2 ${theme === 'cyber' ? 'border-red-500/50 bg-red-900/20' : theme === 'warm' ? 'border-red-400 bg-red-50' : 'border-red-300 bg-red-50'}`}>
+                <div className={`p-token-3 rounded-lg border-2 ${theme === 'warm' ? 'border-red-400 bg-red-50' : 'border-red-300 bg-red-50'}`}>
                     <p className={`text-sm font-bold mb-2 ${textPri}`}>
                         ⚠️ 確認刪除 Profile「{deleteCandidate.name}」？
                     </p>
@@ -505,7 +493,7 @@ export const ProfileBankPanel = ({
                         <button onClick={() => setDeleteCandidate(null)} className={`px-token-3 py-token-1.5 rounded-lg text-xs ${btnSec}`}>
                             取消
                         </button>
-                        <button onClick={handleDeleteConfirm} className={`px-token-3 py-token-1.5 rounded-lg text-xs ${theme === 'cyber' ? 'bg-red-500 text-white hover:bg-red-400' : 'bg-red-600 text-white hover:bg-red-700'}`}>
+                        <button onClick={handleDeleteConfirm} className={`px-token-3 py-token-1.5 rounded-lg text-xs ${'bg-red-600 text-white hover:bg-red-700'}`}>
                             🗑 刪除
                         </button>
                     </div>
@@ -520,8 +508,7 @@ export const ProfileBankPanel = ({
         return (
             <div className="space-y-token-4">
                 <div className={`p-token-3 rounded-lg border ${
-                    theme === 'cyber' ? 'bg-cyan-900/20 border-cyan-500/30 text-cyan-100'
-                    : theme === 'warm' ? 'bg-amber-50 border-amber-300 text-amber-800'
+                    theme === 'warm' ? 'bg-amber-50 border-amber-300 text-amber-800'
                     : 'bg-blue-50 border-blue-200 text-blue-800'
                 }`}>
                     <div className="text-sm">
@@ -574,12 +561,8 @@ export const ProfileBankPanel = ({
                                 }}
                                 className={`p-token-2 rounded-lg text-xs font-medium transition-all border text-left ${
                                     editForm.senTypes.includes(label)
-                                        ? (theme === 'cyber'
-                                            ? 'border-emerald-500 bg-emerald-900/30 text-emerald-200 ring-1 ring-emerald-500'
-                                            : 'border-emerald-500 bg-emerald-50 text-emerald-700 ring-1 ring-emerald-500')
-                                        : (theme === 'cyber'
-                                            ? 'border-slate-700 bg-slate-800/50 text-slate-400 hover:border-emerald-500/40'
-                                            : 'border-slate-200 bg-white text-slate-600 hover:border-emerald-300')
+                                        ? ('border-emerald-500 bg-emerald-50 text-emerald-700 ring-1 ring-emerald-500')
+                                        : ('border-slate-200 bg-white text-slate-600 hover:border-emerald-300')
                                 }`}
                             >
                                 {editForm.senTypes.includes(label) && <Check size={12} className="inline mr-1" />}
@@ -632,15 +615,14 @@ export const ProfileBankPanel = ({
             >
                 {/* Header */}
                 <div className="flex items-center justify-between mb-token-4">
-                    <h3 className={`text-lg font-bold flex items-center gap-token-2 ${theme === 'cyber' ? 'text-cyan-200 orbitron' : textPri}`}>
+                    <h3 className={`text-lg font-bold flex items-center gap-token-2 ${textPri}`}>
                         <Users size={20} />
                         👤 學生 Profile Bank
                     </h3>
                     <div className="flex items-center gap-token-2">
                         {!isLocked && (
                             <span className={`text-xs px-token-2 py-0.5 rounded-full ${
-                                theme === 'cyber' ? 'bg-emerald-900/50 text-emerald-300'
-                                : 'bg-emerald-100 text-emerald-700'
+                                'bg-emerald-100 text-emerald-700'
                             }`}>
                                 🔓 已解鎖
                             </span>
@@ -662,5 +644,4 @@ export const ProfileBankPanel = ({
                 {view === 'list' && (editingId ? renderEdit() : renderList())}
             </div>
         </div>
-    );
-};
+    );};

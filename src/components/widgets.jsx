@@ -8,24 +8,16 @@ import { Card } from './ui.jsx';
 // Click to open QualityScoreDetail modal
 // W3-4.1: 加 warm third case (amber palette)
 const scoreColor = (grade, theme) => {
-    if (grade === 'S' || grade === 'A') return theme === 'cyber'
-        ? 'bg-emerald-900/40 text-emerald-300 border-emerald-500/50'
-        : theme === 'warm'
+    if (grade === 'S' || grade === 'A') return theme === 'warm'
         ? 'bg-emerald-100 text-emerald-800 border-emerald-400'
         : 'bg-emerald-100 text-emerald-700 border-emerald-500';
-    if (grade === 'B') return theme === 'cyber'
-        ? 'bg-cyan-900/40 text-cyan-300 border-cyan-500/50'
-        : theme === 'warm'
+    if (grade === 'B') return theme === 'warm'
         ? 'bg-amber-100 text-amber-800 border-amber-400'
         : 'bg-cyan-100 text-cyan-700 border-cyan-500';
-    if (grade === 'C') return theme === 'cyber'
-        ? 'bg-amber-900/40 text-amber-300 border-amber-500/50'
-        : theme === 'warm'
+    if (grade === 'C') return theme === 'warm'
         ? 'bg-orange-100 text-orange-800 border-orange-400'
         : 'bg-amber-100 text-amber-700 border-amber-500';
-    return theme === 'cyber'
-        ? 'bg-slate-800/60 text-slate-400 border-slate-600/50'
-        : theme === 'warm'
+    return theme === 'warm'
         ? 'bg-orange-50 text-orange-700 border-orange-300'
         : 'bg-slate-100 text-slate-600 border-slate-400';
 };
@@ -61,29 +53,29 @@ export const QualityScoreDetail = ({ theme, score, onClose }) => {
                 initial={{ scale: 0.9 }}
                 animate={{ scale: 1 }}
                 onClick={e => e.stopPropagation()}
-                className={`w-full max-w-md p-6 rounded-2xl ${theme === 'cyber' ? 'tech-border bg-slate-900' : 'plain-border bg-white'}`}
+                className={`w-full max-w-md p-6 rounded-2xl ${'plain-border bg-white'}`}
             >
-                <h3 className={`text-lg font-bold mb-4 flex items-center gap-2 ${theme === 'cyber' ? 'text-cyan-200 orbitron' : 'text-slate-800'}`}>
-                    <Star size={20} className={theme === 'cyber' ? 'text-cyan-400' : 'text-blue-600'} />
+                <h3 className={`text-lg font-bold mb-4 flex items-center gap-2 ${'text-slate-800'}`}>
+                    <Star size={20} className={'text-blue-600'} />
                     品質評分詳情
                 </h3>
-                <div className={`text-4xl font-bold mb-4 text-center ${theme === 'cyber' ? 'text-cyan-300 orbitron' : 'text-blue-700'}`}>
+                <div className={`text-4xl font-bold mb-4 text-center ${'text-blue-700'}`}>
                     {score.grade} · {score.total}/100
                 </div>
                 <div className="space-y-3 mb-4">
                     {categories.map(cat => (
-                        <div key={cat.key} className={`flex items-center justify-between p-token-3 rounded-lg ${theme === 'cyber' ? 'bg-slate-800/40' : 'bg-slate-50'}`}>
-                            <span className={`text-sm font-bold ${theme === 'cyber' ? 'text-slate-200' : 'text-slate-700'}`}>
+                        <div key={cat.key} className={`flex items-center justify-between p-token-3 rounded-lg ${'bg-slate-50'}`}>
+                            <span className={`text-sm font-bold ${'text-slate-700'}`}>
                                 {cat.icon} {cat.label}
                             </span>
                             <div className="flex items-center gap-2">
-                                <div className={`w-32 h-2 rounded-full overflow-hidden ${theme === 'cyber' ? 'bg-slate-700' : 'bg-slate-200'}`}>
+                                <div className={`w-32 h-2 rounded-full overflow-hidden ${'bg-slate-200'}`}>
                                     <div
                                         className={`h-full transition-all ${scoreColor(score.grade, theme).split(' ')[0]}`}
                                         style={{ width: `${score[cat.key] || 0}%` }}
                                     ></div>
                                 </div>
-                                <span className={`text-sm font-bold w-10 text-right ${theme === 'cyber' ? 'text-cyan-300' : 'text-blue-700'}`}>
+                                <span className={`text-sm font-bold w-10 text-right ${'text-blue-700'}`}>
                                     {score[cat.key] || 0}
                                 </span>
                             </div>
@@ -91,11 +83,11 @@ export const QualityScoreDetail = ({ theme, score, onClose }) => {
                     ))}
                 </div>
                 {score.suggestions && score.suggestions.length > 0 && (
-                    <div className={`p-token-3 rounded-lg ${theme === 'cyber' ? 'bg-amber-900/20 border border-amber-500/30' : 'bg-amber-50 border border-amber-200'}`}>
-                        <p className={`text-xs font-bold mb-1 ${theme === 'cyber' ? 'text-amber-300' : 'text-amber-700'}`}>
+                    <div className={`p-token-3 rounded-lg ${'bg-amber-50 border border-amber-200'}`}>
+                        <p className={`text-xs font-bold mb-1 ${'text-amber-700'}`}>
                             💡 改善建議
                         </p>
-                        <ul className={`text-xs space-y-1 ${theme === 'cyber' ? 'text-slate-300' : 'text-slate-600'}`}>
+                        <ul className={`text-xs space-y-1 ${'text-slate-600'}`}>
                             {score.suggestions.map((s, i) => (
                                 <li key={i}>• {s}</li>
                             ))}
@@ -104,7 +96,7 @@ export const QualityScoreDetail = ({ theme, score, onClose }) => {
                 )}
                 <button
                     onClick={onClose}
-                    className={`w-full mt-4 px-4 py-2 rounded-lg font-bold ${theme === 'cyber' ? 'bg-cyan-500 text-slate-900' : 'bg-blue-600 text-white'}`}
+                    className={`w-full mt-4 px-4 py-2 rounded-lg font-bold ${'bg-blue-600 text-white'}`}
                 >
                     知道了
                 </button>
@@ -117,31 +109,29 @@ export const QualityScoreDetail = ({ theme, score, onClose }) => {
 export const TemplateCard = ({ theme, template, onLoad, onDelete, isUser }) => (
     <div
         className={`p-token-4 rounded-xl border transition-all hover:scale-[1.02] ${
-            theme === 'cyber'
-            ? 'bg-slate-800/40 border-slate-700 hover:border-cyan-500/50 hover:bg-slate-800/70'
-            : 'bg-white border-slate-200 hover:border-blue-400 hover:shadow-md'
+            'bg-white border-slate-200 hover:border-blue-400 hover:shadow-md'
         }`}
     >
         <div className="flex items-start justify-between mb-2">
             <div className="flex items-center gap-2">
                 <span className="text-xl">{template.icon}</span>
-                <h4 className={`text-sm font-bold ${theme === 'cyber' ? 'text-cyan-200' : 'text-slate-800'}`}>
+                <h4 className={`text-sm font-bold ${'text-slate-800'}`}>
                     {template.name}
                 </h4>
                 {isUser && (
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${theme === 'cyber' ? 'bg-purple-900/40 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${'bg-purple-100 text-purple-700'}`}>
                         自訂
                     </span>
                 )}
             </div>
         </div>
-        <p className={`text-xs mb-3 line-clamp-2 ${theme === 'cyber' ? 'text-slate-400' : 'text-slate-600'}`}>
+        <p className={`text-xs mb-3 line-clamp-2 ${'text-slate-600'}`}>
             {template.description}
         </p>
         <div className="flex gap-2">
             <button
                 onClick={() => onLoad(template)}
-                className={`flex-1 px-token-3 py-token-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1 ${theme === 'cyber' ? 'bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}
+                className={`flex-1 px-token-3 py-token-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1 ${'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}
             >
                 <FileText size={12} />
                 載入
@@ -149,7 +139,7 @@ export const TemplateCard = ({ theme, template, onLoad, onDelete, isUser }) => (
             {isUser && onDelete && (
                 <button
                     onClick={() => onDelete(template.id)}
-                    className={`px-token-2 py-token-1.5 rounded-lg text-xs ${theme === 'cyber' ? 'bg-red-900/30 text-red-300 hover:bg-red-900/50' : 'bg-red-100 text-red-700 hover:bg-red-200'}`}
+                    className={`px-token-2 py-token-1.5 rounded-lg text-xs ${'bg-red-100 text-red-700 hover:bg-red-200'}`}
                     title="刪除 template"
                 >
                     <Trash2 size={12} />
@@ -165,16 +155,16 @@ export const SuggestionPanel = ({ theme, field, candidates, onSelect, onClose })
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -8 }}
-        className={`mt-2 p-token-3 rounded-lg border ${theme === 'cyber' ? 'bg-slate-800/60 border-cyan-500/40' : 'bg-blue-50 border-blue-300'}`}
+        className={`mt-2 p-token-3 rounded-lg border ${'bg-blue-50 border-blue-300'}`}
     >
         <div className="flex justify-between items-center mb-2">
-            <span className={`text-xs font-bold flex items-center gap-1 ${theme === 'cyber' ? 'text-cyan-300' : 'text-blue-700'}`}>
+            <span className={`text-xs font-bold flex items-center gap-1 ${'text-blue-700'}`}>
                 <Sparkles size={12} />
                 AI 建議 ({candidates.length})
             </span>
             <button
                 onClick={onClose}
-                className={`text-xs ${theme === 'cyber' ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
+                className={`text-xs ${'text-slate-500 hover:text-slate-700'}`}
                 aria-label="關閉"
             >
                 ✕
@@ -185,10 +175,10 @@ export const SuggestionPanel = ({ theme, field, candidates, onSelect, onClose })
                 <button
                     key={i}
                     onClick={() => onSelect(c)}
-                    className={`w-full text-left p-token-2 rounded-lg text-xs transition-colors ${theme === 'cyber' ? 'bg-slate-700/50 hover:bg-slate-700 text-slate-200' : 'bg-white hover:bg-blue-100 text-slate-700'}`}
+                    className={`w-full text-left p-token-2 rounded-lg text-xs transition-colors ${'bg-white hover:bg-blue-100 text-slate-700'}`}
                 >
                     <div className="flex items-start gap-2">
-                        <span className={`flex-shrink-0 ${theme === 'cyber' ? 'text-cyan-400' : 'text-blue-600'}`}>{i + 1}.</span>
+                        <span className={`flex-shrink-0 ${'text-blue-600'}`}>{i + 1}.</span>
                         <span className="flex-1">{c.text}</span>
                     </div>
                 </button>

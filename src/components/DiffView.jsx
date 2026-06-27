@@ -18,33 +18,25 @@ export const DiffView = ({ textA, textB, labelA = 'A', labelB = 'B', theme, mode
     const stats = useMemo(() => diffStats(ops), [ops]);
 
     // Theme tokens
-    const addBg = theme === 'cyber'
-        ? 'bg-emerald-900/30 text-emerald-200 border-l-2 border-emerald-500'
-        : theme === 'warm'
+    const addBg = theme === 'warm'
         ? 'bg-emerald-50 text-emerald-900 border-l-2 border-emerald-500'
         : 'bg-emerald-50 text-emerald-900 border-l-2 border-emerald-500';
 
-    const delBg = theme === 'cyber'
-        ? 'bg-red-900/30 text-red-200 border-l-2 border-red-500 line-through opacity-80'
-        : theme === 'warm'
+    const delBg = theme === 'warm'
         ? 'bg-red-50 text-red-900 border-l-2 border-red-400 line-through opacity-80'
         : 'bg-red-50 text-red-900 border-l-2 border-red-400 line-through opacity-80';
 
-    const eqBg = theme === 'cyber'
-        ? 'text-slate-300'
-        : theme === 'warm'
+    const eqBg = theme === 'warm'
         ? 'text-amber-900'
         : 'text-slate-700';
 
-    const headerBg = theme === 'cyber'
-        ? 'bg-slate-900/60 border-slate-700'
-        : theme === 'warm'
+    const headerBg = theme === 'warm'
         ? 'bg-amber-100 border-amber-300'
         : 'bg-slate-100 border-slate-300';
 
-    const statsText = theme === 'cyber' ? 'text-slate-400' : theme === 'warm' ? 'text-amber-800' : 'text-slate-600';
+    const statsText = theme === 'warm' ? 'text-amber-800' : 'text-slate-600';
 
-    const containerBg = theme === 'cyber' ? 'bg-slate-950' : theme === 'warm' ? 'bg-amber-50/30' : 'bg-slate-50';
+    const containerBg = theme === 'warm' ? 'bg-amber-50/30' : 'bg-slate-50';
 
     // Render a single op row
     const renderRow = (op, idx) => {
@@ -62,15 +54,15 @@ export const DiffView = ({ textA, textB, labelA = 'A', labelB = 'B', theme, mode
     };
 
     return (
-        <div className={`rounded-lg border overflow-hidden ${theme === 'cyber' ? 'border-slate-700' : theme === 'warm' ? 'border-amber-300' : 'border-slate-300'}`}>
+        <div className={`rounded-lg border overflow-hidden ${theme === 'warm' ? 'border-amber-300' : 'border-slate-300'}`}>
             {/* Header — labels + stats */}
             <div className={`flex items-center justify-between px-token-3 py-token-2 border-b text-xs font-bold ${headerBg}`}>
                 <div className="flex items-center gap-token-2 flex-wrap">
-                    <span className={`px-token-2 py-0.5 rounded ${theme === 'cyber' ? 'bg-slate-800 text-slate-300' : theme === 'warm' ? 'bg-white text-amber-900' : 'bg-white text-slate-700'}`}>
+                    <span className={`px-token-2 py-0.5 rounded ${theme === 'warm' ? 'bg-white text-amber-900' : 'bg-white text-slate-700'}`}>
                         A: {labelA}
                     </span>
                     <span className={statsText}>vs</span>
-                    <span className={`px-token-2 py-0.5 rounded ${theme === 'cyber' ? 'bg-slate-800 text-slate-300' : theme === 'warm' ? 'bg-white text-amber-900' : 'bg-white text-slate-700'}`}>
+                    <span className={`px-token-2 py-0.5 rounded ${theme === 'warm' ? 'bg-white text-amber-900' : 'bg-white text-slate-700'}`}>
                         B: {labelB}
                     </span>
                 </div>
@@ -98,5 +90,4 @@ export const DiffView = ({ textA, textB, labelA = 'A', labelB = 'B', theme, mode
                 )}
             </div>
         </div>
-    );
-};
+    );};

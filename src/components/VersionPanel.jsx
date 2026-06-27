@@ -70,20 +70,13 @@ export const VersionPanel = ({
     };
 
     // Theme tokens
-    const cardBg = theme === 'cyber' ? 'bg-slate-900 border-cyan-500/30'
-                  : theme === 'warm' ? 'bg-white border-amber-300'
+    const cardBg = theme === 'warm' ? 'bg-white border-amber-300'
                   : 'bg-white border-slate-300';
-    const textPri = theme === 'cyber' ? 'text-slate-200' : theme === 'warm' ? 'text-amber-900' : 'text-slate-800';
-    const textSec = theme === 'cyber' ? 'text-slate-400' : theme === 'warm' ? 'text-amber-700' : 'text-slate-600';
-    const inputBorder = theme === 'cyber' ? 'border-slate-700 bg-slate-800/50 text-cyan-100'
-                       : theme === 'warm' ? 'border-amber-300 bg-white text-amber-900'
-                       : 'border-slate-300 bg-white text-slate-800';
-    const btnPri = theme === 'cyber' ? 'bg-cyan-500 text-slate-900 hover:bg-cyan-400'
-                  : theme === 'warm' ? 'bg-amber-500 text-white hover:bg-amber-600'
-                  : 'bg-blue-600 text-white hover:bg-blue-700';
-    const btnSec = theme === 'cyber' ? 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                  : theme === 'warm' ? 'bg-amber-100 text-amber-800 hover:bg-amber-200'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200';
+    const textPri = theme === 'warm' ? 'text-amber-900' : 'text-slate-800';
+    const textSec = theme === 'warm' ? 'text-amber-700' : 'text-slate-600';
+    const inputBorder = 'border-slate-300 bg-white text-slate-800';
+    const btnPri = 'bg-blue-600 text-white hover:bg-blue-700';
+    const btnSec = 'bg-slate-100 text-slate-700 hover:bg-slate-200';
 
     const Wrapper = asModal ? 'div' : 'div';
     const wrapperClass = asModal
@@ -98,7 +91,7 @@ export const VersionPanel = ({
             >
                 {/* Header */}
                 <div className="flex items-center justify-between mb-token-4">
-                    <h3 className={`text-lg font-bold flex items-center gap-token-2 ${theme === 'cyber' ? 'text-cyan-200 orbitron' : textPri}`}>
+                    <h3 className={`text-lg font-bold flex items-center gap-token-2 ${textPri}`}>
                         <History size={20} />
                         📚 Prompt 版本管理
                     </h3>
@@ -114,7 +107,7 @@ export const VersionPanel = ({
                 </div>
 
                 {/* Save new version */}
-                <div className={`mb-token-4 p-token-3 rounded-lg border ${theme === 'cyber' ? 'border-slate-700 bg-slate-800/30' : theme === 'warm' ? 'border-amber-200 bg-amber-50/40' : 'border-slate-200 bg-slate-50'}`}>
+                <div className={`mb-token-4 p-token-3 rounded-lg border ${theme === 'warm' ? 'border-amber-200 bg-amber-50/40' : 'border-slate-200 bg-slate-50'}`}>
                     <label className={`block text-xs font-bold mb-2 ${textSec}`}>儲存當前 prompt 為新版本</label>
                     <div className="flex gap-token-2">
                         <input
@@ -146,7 +139,7 @@ export const VersionPanel = ({
 
                 {/* Compare 2 versions */}
                 {versions.length >= 2 && (
-                    <div className={`mb-token-4 p-token-3 rounded-lg border ${theme === 'cyber' ? 'border-slate-700 bg-slate-800/30' : theme === 'warm' ? 'border-amber-200 bg-amber-50/40' : 'border-slate-200 bg-slate-50'}`}>
+                    <div className={`mb-token-4 p-token-3 rounded-lg border ${theme === 'warm' ? 'border-amber-200 bg-amber-50/40' : 'border-slate-200 bg-slate-50'}`}>
                         <label className={`block text-xs font-bold mb-2 flex items-center gap-token-2 ${textSec}`}>
                             <GitCompare size={14} />
                             比較兩個版本
@@ -206,7 +199,7 @@ export const VersionPanel = ({
                         已儲存版本 ({versions.length})
                     </label>
                     {versions.length === 0 ? (
-                        <div className={`p-token-6 text-center text-sm rounded-lg border-2 border-dashed ${theme === 'cyber' ? 'border-slate-700 text-slate-500' : theme === 'warm' ? 'border-amber-300 text-amber-700' : 'border-slate-300 text-slate-500'}`}>
+                        <div className={`p-token-6 text-center text-sm rounded-lg border-2 border-dashed ${theme === 'warm' ? 'border-amber-300 text-amber-700' : 'border-slate-300 text-slate-500'}`}>
                             <div className="text-3xl mb-2">📚</div>
                             <p>仲未儲存任何版本</p>
                             <p className="text-xs mt-1 opacity-70">填完 form 後喺上面輸入標籤 + 撳「儲存」</p>
@@ -216,7 +209,7 @@ export const VersionPanel = ({
                             {versions.map(v => (
                                 <div
                                     key={v.id}
-                                    className={`p-token-3 rounded-lg border flex items-center justify-between gap-token-2 ${theme === 'cyber' ? 'border-slate-700 bg-slate-800/40' : theme === 'warm' ? 'border-amber-200 bg-amber-50/40' : 'border-slate-200 bg-white'}`}
+                                    className={`p-token-3 rounded-lg border flex items-center justify-between gap-token-2 ${theme === 'warm' ? 'border-amber-200 bg-amber-50/40' : 'border-slate-200 bg-white'}`}
                                 >
                                     <div className="flex-1 min-w-0">
                                         <div className={`text-sm font-bold truncate ${textPri}`}>{v.label}</div>
@@ -240,7 +233,7 @@ export const VersionPanel = ({
                                                     onDelete(v.id);
                                                 }
                                             }}
-                                            className={`p-token-2 rounded-lg ${theme === 'cyber' ? 'text-red-400 hover:bg-red-900/30' : theme === 'warm' ? 'text-red-600 hover:bg-red-100' : 'text-red-600 hover:bg-red-50'}`}
+                                            className={`p-token-2 rounded-lg ${theme === 'warm' ? 'text-red-600 hover:bg-red-100' : 'text-red-600 hover:bg-red-50'}`}
                                             title="刪除版本"
                                         >
                                             <Trash2 size={14} />
@@ -254,7 +247,7 @@ export const VersionPanel = ({
 
                 {/* Restore confirm dialog */}
                 {restoreCandidate && (
-                    <div className={`mt-token-4 p-token-3 rounded-lg border-2 ${theme === 'cyber' ? 'border-amber-500/50 bg-amber-900/20' : theme === 'warm' ? 'border-orange-400 bg-orange-50' : 'border-orange-300 bg-orange-50'}`}>
+                    <div className={`mt-token-4 p-token-3 rounded-lg border-2 ${theme === 'warm' ? 'border-orange-400 bg-orange-50' : 'border-orange-300 bg-orange-50'}`}>
                         <p className={`text-sm font-bold mb-2 ${textPri}`}>
                             ⚠️ 確認 Restore 版本「{restoreCandidate.label}」？
                         </p>
@@ -273,5 +266,4 @@ export const VersionPanel = ({
                 )}
             </div>
         </Wrapper>
-    );
-};
+    );};
