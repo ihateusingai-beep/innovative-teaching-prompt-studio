@@ -13,6 +13,7 @@ import { QualityScoreBadge, QualityScoreDetail, TemplateCard, SuggestionPanel } 
 import { VersionPanel } from './components/VersionPanel.jsx';
 import { DiffView } from './components/DiffView.jsx';
 import { ProfileBankPanel } from './components/ProfileBankPanel.jsx';
+import personalLogo from '../assets/personal_logo.png';
 
 const categories = [
     { value: "教學工具", label: "📚 教學工具", icon: BookOpen },
@@ -1165,7 +1166,7 @@ const renderStep4 = (formData, designPrompt, techPrompt, qualityScore) => (
                     }`}
                     title={geminiApiKey ? 'AI API 已設定' : '設定 Gemini API key'}
                 >
-                    <Bot size={16} />
+                    <img src={personalLogo} alt="NT-D" className="h-4 w-4" />
                     <span className="hidden sm:inline">{geminiApiKey ? '✓ API' : '⚙️ API'}</span>
                 </button>
                 <button
@@ -1241,9 +1242,9 @@ const renderAiResult = () => (
     <Card theme={theme} className="mt-4 p-token-4">
         <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-token-2">
-                <Bot size={18} className={theme === 'cyber' ? 'text-purple-400' : 'text-purple-600'} />
+                <img src={personalLogo} alt="NT-D" className={`h-5 w-5 ${theme === 'cyber' ? '' : ''}`} />
                 <h3 className={`text-sm font-bold ${theme === 'cyber' ? 'text-purple-200 orbitron' : 'text-slate-800'}`}>
-                    🤖 Gemini 生成嘅 HTML
+                    NT-D Gemini 生成嘅 HTML
                 </h3>
             </div>
             <button
@@ -1489,7 +1490,7 @@ const renderAiResult = () => (
                                     ? 'bg-clip-text text-transparent bg-gradient-to-r from-amber-500 via-orange-500 to-red-500'
                                     : 'text-slate-900'
                                 }`}>
-                                    WMC TDA 教學設計輔助工具提詞器
+                                    特教 Prompt Studio
                                 </span>
                                 <span className={`tracking-wider text-lg md:text-xl font-bold mt-1 ${
                                     theme === 'cyber'
@@ -1498,7 +1499,7 @@ const renderAiResult = () => (
                                     ? 'text-amber-800'
                                     : 'text-slate-600'
                                 }`}>
-                                    Teaching Design Aids Prompt Builder
+                                    SEN Prompt Studio · 特教版
                                 </span>
                             </div>
                         </h1>
@@ -1506,7 +1507,7 @@ const renderAiResult = () => (
                             theme === 'cyber' ? 'text-slate-400' : 'text-slate-500'
                         }`}>
                             <Zap size={16} className="text-yellow-400" />
-                            3 分鐘設計專屬教材：輸入需求，自動生成工程師級的開發指令。
+                            3 分鐘將 SEN 學生需要轉成 AI prompt — Gemini / Claude / Lovable / v0 都用得。
                         </p>
                     </div>
                     <div className="flex flex-col items-end gap-token-2">
@@ -1536,7 +1537,7 @@ const renderAiResult = () => (
                         }`}
                             title={`JSON Schema 版本 v${SCHEMA_VERSION}（決定 import 時嘅 migration 行為）`}
                         >
-                            <Bot size={16} />
+                            <img src={personalLogo} alt="NT-D" className="h-4 w-4" />
                             Schema v{SCHEMA_VERSION}
                         </div>
 <button
@@ -1922,54 +1923,42 @@ const renderAiResult = () => (
                         Lovable (不能分享) <ExternalLink size={14} />
                     </a>
 
-                    {/* GitHub Link */}
-                    <a href="https://github.com/" target="_blank" rel="noopener noreferrer" className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex items-center gap-2 ${
-                        theme === 'cyber'
-                        ? 'border-zinc-500/30 bg-zinc-900/20 text-zinc-300 hover:bg-zinc-500/20 hover:text-zinc-100'
-                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-black shadow-sm'
-                    }`}>
-                        GitHub <Github size={14} />
-                    </a>
+                    {/* GitHub link 已移除 — placeholder link，冇指向特定 repo 留低冇意思 */}
                 </div>
 
                 {/* Footer */}
                 <footer className={`mt-6 py-token-6 text-center text-xs font-medium tracking-widest ${
                     theme === 'cyber' ? 'text-slate-600 orbitron' : 'text-slate-400'
                 }`}>
-                    © 2025 WMC designed by Ken Cheng | Created with Gemini Script & Tailwind CSS
+                    © 2026 特教 Prompt Studio · designed by Ken Cheng
                 </footer>
 
                 {/* Floating Action Button (FAB) */}
                 <div className="fixed bottom-6 right-6 z-50">
                     {/* FAB conditional render — 按 formData.fabStyle 切換風格，預覽生成工具嘅效果 */}
                     {formData.fabStyle === "cyber" && (
-                        <a
-                            href="https://chengky-bot.github.io/kencheng-homepage/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={`flex items-center gap-token-2 px-token-4 py-token-2 rounded-full border backdrop-blur-md transition-all hover:scale-105 group ${
+                        <div
+                            className={`flex items-center gap-token-2 px-token-4 py-token-2 rounded-full border backdrop-blur-md transition-all group ${
                                 theme === 'cyber'
-                                ? 'border-white/20 bg-gradient-to-r from-cyan-600/80 via-blue-600/80 to-purple-600/80 animate-holo text-white shadow-[0_0_15px_rgba(6,182,212,0.5)] hover:shadow-[0_0_25px_rgba(6,182,212,0.8)]'
-                                : 'bg-white border-slate-200 text-slate-700 shadow-lg hover:shadow-xl'
+                                ? 'border-white/20 bg-gradient-to-r from-cyan-600/80 via-blue-600/80 to-purple-600/80 animate-holo text-white shadow-[0_0_15px_rgba(6,182,212,0.5)]'
+                                : 'bg-white border-slate-200 text-slate-700 shadow-lg'
                             }`}>
                             <Monitor size={20} className={theme === 'cyber' ? "group-hover:animate-pulse" : ""} />
                             <span className="font-bold text-sm tracking-wide text-shadow-sm">{formData.teacherName ? `${formData.teacherName} 設計` : 'Ken Cheng 設計'}</span>
-                            <img src="https://i.imgur.com/OQwyeIV.png" alt="Ken Cheng Signature" className="h-6 w-auto ml-1" />
-                        </a>
+                            {/* Personal logo — 用 ES module import，Vite dev server + build 都識處理 */}
+                            <img src={personalLogo} alt="NT-D Emblem" className="h-6 w-auto ml-1" />
+                        </div>
                     )}
                     {formData.fabStyle === "minimal" && (
-                        <a
-                            href="https://chengky-bot.github.io/kencheng-homepage/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={`flex items-center gap-token-2 px-token-4 py-token-2 rounded-full border transition-all hover:scale-105 group ${
+                        <div
+                            className={`flex items-center gap-token-2 px-token-4 py-token-2 rounded-full border transition-all group ${
                                 theme === 'cyber'
-                                ? 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-700/80 hover:text-white'
-                                : 'bg-white border-slate-200 text-slate-700 shadow-lg hover:shadow-xl'
+                                ? 'bg-slate-800/80 border-slate-700 text-slate-300'
+                                : 'bg-white border-slate-200 text-slate-700 shadow-lg'
                             }`}>
                             <Monitor size={18} className={theme === 'cyber' ? "group-hover:animate-pulse" : ""} />
                             <span className="font-medium text-sm tracking-wide">{formData.teacherName ? `${formData.teacherName} 設計` : 'Ken Cheng 設計'}</span>
-                        </a>
+                        </div>
                     )}
                     {/* formData.fabStyle === "off" → 完全唔 render */}
                 </div>

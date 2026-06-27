@@ -237,7 +237,7 @@ ${formData.fabStyle === "cyber" ? `    * **🏷️ 懸浮標籤 (FAB) — Cyber 
         - 位置：右下角固定 (Fixed)。
         - 樣式：使用彩虹般的全息色 (holographic/iridescent)，隨視角或時間微變，外框與文字，半透明材質，營造未來感。帶有電腦型 (Monitor) 圖示。
         - 內容：「WMC ${formData.teacherName || 'TDA'} 設計」。
-        - 額外元素：旁邊加一張 Ken Cheng 簽名 PNG (https://i.imgur.com/OQwyeIV.png) 製造個人品牌感。` :
+        - 額外元素：旁邊加一張 Ken Cheng 簽名 PNG (./assets/personal_logo.png) 製造個人品牌感。` :
 formData.fabStyle === "minimal" ? `    * **🏷️ 懸浮標籤 (FAB) — Minimal 簡約風格**:
         - 位置：右下角固定 (Fixed)。
         - 樣式：白底、淺灰邊框、簡約陰影；hover 時輕微 scale (1.05)。帶有電腦型 (Monitor) 圖示。
