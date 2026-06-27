@@ -1480,22 +1480,18 @@ const renderAiResult = () => (
                 {/* Header */}
                 <header className="mb-8 text-center md:text-left flex flex-col md:flex-row md:items-start justify-between gap-token-4 relative">
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-black flex items-start gap-token-3 justify-center md:justify-start">
-                            <span className={`text-4xl ${theme === 'cyber' ? 'filter drop-shadow-[0_0_10px_rgba(6,182,212,0.8)]' : ''}`}>🤖</span>
+                         <h1 className="text-2xl md:text-3xl font-black flex items-start gap-token-3 justify-center md:justify-start">
+                            <img src={personalLogo} alt="NT-D" className="h-10 w-10 mt-1" />
                             <div className="flex flex-col">
-                                <span className={`font-black tracking-wide text-xl md:text-2xl ${
-                                    theme === 'cyber'
-                                    ? 'bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 drop-shadow-sm text-glow-cyan'
-                                    : theme === 'warm'
+                                <span className={`font-black tracking-tight text-xl md:text-2xl ${
+                                    theme === 'warm'
                                     ? 'bg-clip-text text-transparent bg-gradient-to-r from-amber-500 via-orange-500 to-red-500'
-                                    : 'text-slate-900'
+                                    : 'gradient-text'
                                 }`}>
                                     特教 Prompt Studio
                                 </span>
-                                <span className={`tracking-wider text-lg md:text-xl font-bold mt-1 ${
-                                    theme === 'cyber'
-                                    ? "font-['Orbitron'] bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 drop-shadow-sm"
-                                    : theme === 'warm'
+                                <span className={`tracking-tight text-lg md:text-xl font-bold mt-1 ${
+                                    theme === 'warm'
                                     ? 'text-amber-800'
                                     : 'text-slate-600'
                                 }`}>
@@ -1504,7 +1500,7 @@ const renderAiResult = () => (
                             </div>
                         </h1>
                         <p className={`mt-3 font-medium pl-0 md:pl-[3.5rem] flex items-center gap-token-2 ${
-                            theme === 'cyber' ? 'text-slate-400' : 'text-slate-500'
+                            theme === 'warm' ? 'text-amber-700' : 'text-slate-500'
                         }`}>
                             <Zap size={16} className="text-yellow-400" />
                             3 分鐘將 SEN 學生需要轉成 AI prompt — Gemini / Claude / Lovable / v0 都用得。
@@ -1513,21 +1509,18 @@ const renderAiResult = () => (
                     <div className="flex flex-col items-end gap-token-2">
                         <button
                             onClick={toggleTheme}
-                            aria-label={`切換主題（目前：${theme === 'cyber' ? '科技' : theme === 'plain' ? '簡潔' : '暖色'}）`}
+                            aria-label={`切換主題（目前：${theme === 'plain' ? '簡潔' : '暖色'}）`}
                             className={`p-token-2 rounded-full transition-all duration-300 ${
-                                theme === 'cyber'
-                                ? 'bg-slate-800 text-yellow-400 hover:bg-slate-700 border border-slate-700'
-                                : theme === 'warm'
+                                theme === 'warm'
                                 ? 'bg-amber-100 text-amber-700 hover:bg-amber-200 border border-amber-300 shadow-sm'
                                 : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 shadow-sm'
                             }`}
                             title={
-                                theme === 'cyber' ? "切換至簡潔模式"
-                                : theme === 'plain' ? "切換至暖色模式"
-                                : "切換至科技模式"
+                                theme === 'plain' ? "切換至暖色模式"
+                                : "切換至簡潔模式"
                             }
                         >
-                            {theme === 'cyber' ? <Sun size={20} /> : theme === 'warm' ? <span className="text-lg">🌞</span> : <Moon size={20} />}
+                            {theme === 'plain' ? <Moon size={20} /> : <Sun size={20} />}
                         </button>
                         <div
                             className={`hidden md:flex px-token-4 py-token-2 rounded-full text-sm font-bold flex items-center gap-token-2 tracking-wider ${

@@ -1,382 +1,349 @@
-/* TDA Prompt Builder v3.1 — main stylesheet
+/* TDA Prompt Builder v3.2 — main stylesheet
    Tailwind pre-compiled via PostCSS + custom design tokens + legacy CSS preserved
 
-   W3-4 additions:
-     - 3rd theme 'warm' (amber/orange, primary school friendly)
-     - Radius scale token (sm/md/lg/xl/full)
-     - Inter + JetBrains Mono font swap
-     - Focus-visible ring global rule (WCAG 2.1 AA)
+   v3.2 theme overhaul:
+     - Default theme 'plain' (Vercel/Linear-inspired: light mesh gradient + floating cards)
+     - 'cyber' theme REMOVED from active rotation (CSS kept for backward compat, all rules now noop)
+     - 'warm' theme retained for primary school / low-stimulus environment
+     - 3-way toggle cycle: plain ↔ warm (cyber now aliases to plain)
+
+   Token system unchanged (8px spacing / 4-level shadow / 250ms ease / radius scale).
 */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Custom CSS preserved from v2.0 single-file */
-        /* === Design Tokens (統一 spacing / shadow / transition / radius) === */
-        :root {
-            /* Spacing scale — 8px 為基數 (phase 2.3.1) */
-            --space-1: 4px;
-            --space-2: 8px;
-            --space-3: 12px;
-            --space-4: 16px;
-            --space-6: 24px;
-            --space-8: 32px;
-            --space-12: 48px;
-            --space-16: 64px;
+/* === Design Tokens === */
+:root {
+    /* Spacing scale — 8px 為基數 */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-12: 48px;
+    --space-16: 64px;
 
-            /* Shadow scale — 4 級 elevation (phase 2.3.2) */
-            --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
-            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
-            --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+    /* Shadow scale */
+    --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+    --shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.06), 0 2px 4px -1px rgba(15, 23, 42, 0.04);
+    --shadow-lg: 0 12px 24px -6px rgba(15, 23, 42, 0.08), 0 4px 8px -2px rgba(15, 23, 42, 0.04);
+    --shadow-xl: 0 24px 48px -12px rgba(15, 23, 42, 0.12), 0 8px 16px -4px rgba(15, 23, 42, 0.04);
 
-            /* Transition curve — 統一互動節奏 (phase 2.3.3) */
-            --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-            --transition-fast: 150ms var(--ease-out);
-            --transition-base: 250ms var(--ease-out);
-            --transition-slow: 400ms var(--ease-out);
+    /* Transition */
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --transition-fast: 150ms var(--ease-out);
+    --transition-base: 250ms var(--ease-out);
+    --transition-slow: 400ms var(--ease-out);
 
-            /* === Phase 3.4: Radius scale (W3-4.3) === */
-            --radius-sm: 6px;
-            --radius-md: 10px;
-            --radius-lg: 14px;
-            --radius-xl: 20px;
-            --radius-full: 9999px;
+    /* Radius */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
+    --radius-full: 9999px;
 
-            /* === Phase 3.4: Focus ring (WCAG 2.1 AA, W3-4.5) === */
-            --focus-ring: 0 0 0 3px rgba(6, 182, 212, 0.5);
-            --focus-ring-warm: 0 0 0 3px rgba(245, 158, 11, 0.5);
+    /* Focus ring */
+    --focus-ring: 0 0 0 3px rgba(124, 58, 237, 0.4);
+    --focus-ring-warm: 0 0 0 3px rgba(245, 158, 11, 0.5);
 
-            /* Cyber theme glow */
-            --cyber-glow: 0 0 20px rgba(6,182,212,0.4);
-        }
+    /* v3.2 — accent system */
+    --accent-primary: #7c3aed;       /* violet 600 */
+    --accent-secondary: #06b6d4;     /* cyan 500 */
+    --accent-grad: linear-gradient(135deg, #7c3aed 0%, #06b6d4 50%, #ec4899 100%);
+}
 
-        body {
-            /* Phase 3.4 font swap (W3-4.2): Inter 為主體，Noto Sans TC 中文 fallback，JetBrains Mono for code */
-            font-family: 'Inter', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            overflow-x: hidden;
-            transition: background-color var(--transition-base), color var(--transition-base);
-        }
+body {
+    font-family: 'Inter', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    overflow-x: hidden;
+    transition: background-color var(--transition-base), color var(--transition-base);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
 
-        /* === Phase 3.4: Focus-visible ring global (WCAG 2.1 AA, W3-4.5) === */
-        *:focus { outline: none; }
-        *:focus-visible {
-            outline: 2px solid #06b6d4;
-            outline-offset: 2px;
-            transition: outline-offset var(--transition-fast);
-        }
-        body.theme-warm *:focus-visible {
-            outline-color: #f59e0b;
-        }
-        body.theme-plain *:focus-visible {
-            outline-color: #2563eb;
-        }
+/* === v3.2: Plain Theme — DEFAULT (Light mesh gradient + floating cards)
+   Vercel/Linear-inspired: off-white base, subtle multi-color mesh blobs in header area,
+   white floating cards with soft shadow. */
+body.theme-plain,
+body.theme-cyber /* alias — cyber retained for backward compat, same look */ {
+    background-color: #fafafa;
+    color: #0f172a; /* slate 900 */
+    position: relative;
+    min-height: 100vh;
+}
 
-        /* === Phase 3.4: Radius utility classes (W3-4.3) === */
-        .radius-token-sm { border-radius: var(--radius-sm); }
-        .radius-token-md { border-radius: var(--radius-md); }
-        .radius-token-lg { border-radius: var(--radius-lg); }
-        .radius-token-xl { border-radius: var(--radius-xl); }
-        .radius-token-full { border-radius: var(--radius-full); }
+/* Mesh gradient blobs — fixed background layer behind content */
+body.theme-plain::before,
+body.theme-cyber::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 12% 8%, rgba(124, 58, 237, 0.18) 0%, transparent 45%),
+        radial-gradient(circle at 88% 18%, rgba(6, 182, 212, 0.16) 0%, transparent 50%),
+        radial-gradient(circle at 70% 92%, rgba(236, 72, 153, 0.12) 0%, transparent 50%),
+        radial-gradient(circle at 8% 88%, rgba(59, 130, 246, 0.14) 0%, transparent 45%);
+    filter: blur(20px);
+}
 
-        /* Phase 3.4.3: Loading skeleton pulse */
-        @keyframes skeleton-pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        .skeleton {
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-            background-size: 200% 100%;
-            animation: skeleton-pulse 1.5s var(--ease-out) infinite;
-        }
-        body.theme-plain .skeleton {
-            background: linear-gradient(90deg, transparent, rgba(0,0,0,0.05), transparent);
-            background-size: 200% 100%;
-        }
+/* Subtle grid overlay for tactile feel */
+body.theme-plain::after,
+body.theme-cyber::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+        linear-gradient(rgba(15, 23, 42, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(15, 23, 42, 0.025) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(circle at 50% 0%, black 0%, transparent 70%);
+    -webkit-mask-image: radial-gradient(circle at 50% 0%, black 0%, transparent 70%);
+}
 
-        /* Phase 3.4.1: Category button ripple effect */
-        @keyframes ripple {
-            from { transform: scale(0); opacity: 0.6; }
-            to { transform: scale(2.5); opacity: 0; }
-        }
-        .ripple-effect {
-            position: relative;
-            overflow: hidden;
-        }
-        .ripple-effect::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
-            opacity: 0;
-            pointer-events: none;
-            transform: scale(0);
-        }
-        .ripple-effect:active::before {
-            animation: ripple 0.6s var(--ease-out);
-        }
+/* === Focus ring === */
+*:focus { outline: none; }
+*:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+    transition: outline-offset var(--transition-fast);
+}
+body.theme-warm *:focus-visible {
+    outline-color: #f59e0b;
+}
 
-        /* --- Cyber Theme Styles --- */
-        body.theme-cyber {
-            background-color: #020617; /* Slate 950 */
-            color: #e2e8f0; /* Slate 200 */
-        }
+/* === v3.2: Glass card — primary widget style (was tech-border in cyber) === */
+.glass-card {
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(12px) saturate(140%);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    box-shadow: var(--shadow-md);
+    border-radius: var(--radius-lg);
+    transition: all var(--transition-base);
+}
+.glass-card:hover {
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(124, 58, 237, 0.18);
+}
 
-        /* === Phase 2.3.2: Shadow utility classes === */
-        .shadow-token-sm { box-shadow: var(--shadow-sm); }
-        .shadow-token-md { box-shadow: var(--shadow-md); }
-        .shadow-token-lg { box-shadow: var(--shadow-lg); }
-        .shadow-token-xl { box-shadow: var(--shadow-xl); }
+/* === v3.2: Tech-border alias — keep class name for backward compat === */
+.tech-border {
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(12px) saturate(140%);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    box-shadow: var(--shadow-md);
+    border-radius: var(--radius-lg);
+    transition: all 0.3s ease;
+}
 
-        /* === Phase 2.3.3: Transition utility classes === */
-        .transition-token-fast { transition: all var(--transition-fast); }
-        .transition-token-base { transition: all var(--transition-base); }
-        .transition-token-slow { transition: all var(--transition-slow); }
+/* === v3.2: Tech-input alias — light style === */
+.tech-input,
+.glass-input {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(15, 23, 42, 0.1);
+    color: #0f172a;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-base);
+}
+.tech-input:focus,
+.glass-input:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+    background: #ffffff;
+    outline: none;
+}
 
-        /* === Phase 2.3.1: Spacing token aliases ===
-           將常用 spacing 對齊 design token 8px scale
-           視覺輸出同 Tailwind p-2/p-3/p-4 完全一致（已經係 8/12/16px），
-           只係 class name 改做 token-aligned（將來 full migration 易搵）
+/* === Plain border alias (existing class) === */
+.plain-border {
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: var(--shadow-md);
+    border-radius: var(--radius-lg);
+    transition: all var(--transition-base);
+}
 
-           Migration guide:
-             p-2 → p-token-2 (8px)
-             p-3 → p-token-3 (12px)
-             p-4 → p-token-4 (16px)
-             p-6 → p-token-6 (24px)
-             gap-2 → gap-token-2 (8px)
-             gap-3 → gap-token-3 (12px)
-             space-y-4 → space-y-token-4 (16px)
-             etc.
+.plain-input {
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    color: #1e293b;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-base);
+}
+.plain-input:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+    outline: none;
+}
 
-           Current migrated (selective swap 2026-06-26):
-             - Category buttons: p-3 → p-token-3
-             - Live preview textarea: p-4 → p-token-4
-             - CoachMark modal: p-6 → p-token-6
+/* === v3.2: Gradient text utility (for hero title) === */
+.gradient-text {
+    background: var(--accent-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+}
 
-           Future work: full sed replace via CI script，保留 visual 100% identical.
+/* === v3.2: Glow / cyber effects — kept for backward compat but noop === */
+.text-glow-cyan { text-shadow: none; }
+.text-glow-purple { text-shadow: none; }
+.cyber-glow { box-shadow: none; }
 
-           ✓ Done 2026-06-26: Full sed migration applied (248 replacements via /tmp/tda_spacing_migrate.py).
-             Remaining: p-5 (intentional, 20px 唔係 8px scale).
-        */
-        .p-token-1 { padding: var(--space-1); }
-        .p-token-2 { padding: var(--space-2); }
-        .p-token-3 { padding: var(--space-3); }
-        .p-token-4 { padding: var(--space-4); }
-        .p-token-6 { padding: var(--space-6); }
-        .p-token-8 { padding: var(--space-8); }
+/* === Radius utility classes === */
+.radius-token-sm { border-radius: var(--radius-sm); }
+.radius-token-md { border-radius: var(--radius-md); }
+.radius-token-lg { border-radius: var(--radius-lg); }
+.radius-token-xl { border-radius: var(--radius-xl); }
+.radius-token-full { border-radius: var(--radius-full); }
 
-        .px-token-1 { padding-left: var(--space-1); padding-right: var(--space-1); }
-        .px-token-2 { padding-left: var(--space-2); padding-right: var(--space-2); }
-        .px-token-3 { padding-left: var(--space-3); padding-right: var(--space-3); }
-        .px-token-4 { padding-left: var(--space-4); padding-right: var(--space-4); }
+/* === Loading skeleton pulse === */
+@keyframes skeleton-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+.skeleton {
+    background: linear-gradient(90deg, transparent, rgba(15, 23, 42, 0.04), transparent);
+    background-size: 200% 100%;
+    animation: skeleton-pulse 1.5s var(--ease-out) infinite;
+}
 
-        .py-token-1 { padding-top: var(--space-1); padding-bottom: var(--space-1); }
-        .py-token-2 { padding-top: var(--space-2); padding-bottom: var(--space-2); }
-        .py-token-3 { padding-top: var(--space-3); padding-bottom: var(--space-3); }
-        .py-token-4 { padding-top: var(--space-4); padding-bottom: var(--space-4); }
+/* === Ripple effect === */
+@keyframes ripple {
+    from { transform: scale(0); opacity: 0.6; }
+    to { transform: scale(2.5); opacity: 0; }
+}
+.ripple-effect {
+    position: relative;
+    overflow: hidden;
+}
+.ripple-effect::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, rgba(124, 58, 237, 0.2) 0%, transparent 70%);
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0);
+}
+.ripple-effect:active::before {
+    animation: ripple 0.6s var(--ease-out);
+}
 
-        .m-token-1 { margin: var(--space-1); }
-        .m-token-2 { margin: var(--space-2); }
-        .m-token-3 { margin: var(--space-3); }
-        .m-token-4 { margin: var(--space-4); }
-        .m-token-6 { margin: var(--space-6); }
+/* === Cyber grid + vignette + holographic — DEPRECATED in v3.2 (noop) === */
+.cyber-grid { display: none; }
+.vignette { display: none; }
+.animate-holo { animation: none; }
 
-        .gap-token-1 { gap: var(--space-1); }
-        .gap-token-2 { gap: var(--space-2); }
-        .gap-token-3 { gap: var(--space-3); }
-        .gap-token-4 { gap: var(--space-4); }
-        .gap-token-6 { gap: var(--space-6); }
+/* === Shadow utility classes === */
+.shadow-token-sm { box-shadow: var(--shadow-sm); }
+.shadow-token-md { box-shadow: var(--shadow-md); }
+.shadow-token-lg { box-shadow: var(--shadow-lg); }
+.shadow-token-xl { box-shadow: var(--shadow-xl); }
 
-        .space-y-token-1 > * + * { margin-top: var(--space-1); }
-        .space-y-token-2 > * + * { margin-top: var(--space-2); }
-        .space-y-token-3 > * + * { margin-top: var(--space-3); }
-        .space-y-token-4 > * + * { margin-top: var(--space-4); }
-        .space-y-token-6 > * + * { margin-top: var(--space-6); }
+/* === Transition utility classes === */
+.transition-token-fast { transition: all var(--transition-fast); }
+.transition-token-base { transition: all var(--transition-base); }
+.transition-token-slow { transition: all var(--transition-slow); }
 
-        /* Cyber Grid Background */
-        .cyber-grid {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 200vw;
-            height: 200vh;
-            background-image: 
-                linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px);
-            background-size: 40px 40px;
-            transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
-            animation: grid-move 20s linear infinite;
-            z-index: -1;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-        }
-        
-        body.theme-cyber .cyber-grid {
-            opacity: 1;
-        }
+/* === Spacing tokens === */
+.p-token-1 { padding: var(--space-1); }
+.p-token-2 { padding: var(--space-2); }
+.p-token-3 { padding: var(--space-3); }
+.p-token-4 { padding: var(--space-4); }
+.p-token-6 { padding: var(--space-6); }
+.p-token-8 { padding: var(--space-8); }
 
-        @keyframes grid-move {
-            0% { transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px); }
-            100% { transform: perspective(500px) rotateX(60deg) translateY(40px) translateZ(-200px); }
-        }
+.px-token-1 { padding-left: var(--space-1); padding-right: var(--space-1); }
+.px-token-2 { padding-left: var(--space-2); padding-right: var(--space-2); }
+.px-token-3 { padding-left: var(--space-3); padding-right: var(--space-3); }
+.px-token-4 { padding-left: var(--space-4); padding-right: var(--space-4); }
 
-        /* Vignette Effect */
-        .vignette {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, transparent 50%, #020617 100%);
-            z-index: -1;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-        }
-        body.theme-cyber .vignette {
-            opacity: 1;
-        }
+.py-token-1 { padding-top: var(--space-1); padding-bottom: var(--space-1); }
+.py-token-2 { padding-top: var(--space-2); padding-bottom: var(--space-2); }
+.py-token-3 { padding-top: var(--space-3); padding-bottom: var(--space-3); }
+.py-token-4 { padding-top: var(--space-4); padding-bottom: var(--space-4); }
 
-        /* Scrollbar - Conditional styling via CSS variables or specific overrides */
-        body.theme-cyber textarea::-webkit-scrollbar-track { background: #0f172a; border-radius: 4px; }
-        body.theme-cyber textarea::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; border: 1px solid #06b6d4; }
-        body.theme-cyber textarea::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
+.m-token-1 { margin: var(--space-1); }
+.m-token-2 { margin: var(--space-2); }
+.m-token-3 { margin: var(--space-3); }
+.m-token-4 { margin: var(--space-4); }
+.m-token-6 { margin: var(--space-6); }
 
-        body.theme-plain textarea::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
-        body.theme-plain textarea::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        body.theme-plain textarea::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        
-        textarea::-webkit-scrollbar { width: 8px; }
+.gap-token-1 { gap: var(--space-1); }
+.gap-token-2 { gap: var(--space-2); }
+.gap-token-3 { gap: var(--space-3); }
+.gap-token-4 { gap: var(--space-4); }
+.gap-token-6 { gap: var(--space-6); }
 
-        /* Holographic Gradient Animation */
-        @keyframes gradient-xy {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .animate-holo {
-            background-size: 200% 200%;
-            animation: gradient-xy 3s ease infinite;
-        }
+.space-y-token-1 > * + * { margin-top: var(--space-1); }
+.space-y-token-2 > * + * { margin-top: var(--space-2); }
+.space-y-token-3 > * + * { margin-top: var(--space-3); }
+.space-y-token-4 > * + * { margin-top: var(--space-4); }
+.space-y-token-6 > * + * { margin-top: var(--space-6); }
 
-        /* Text Glows - Only in Cyber Mode */
-        body.theme-cyber .text-glow-cyan {
-            text-shadow: 0 0 5px rgba(6, 182, 212, 0.5), 0 0 10px rgba(6, 182, 212, 0.3);
-        }
-        body.theme-cyber .text-glow-purple {
-            text-shadow: 0 0 5px rgba(168, 85, 247, 0.5), 0 0 10px rgba(168, 85, 247, 0.3);
-        }
+/* === Orbitron — retained for backward compat (header may still use orbitron class) === */
+.orbitron {
+    font-family: 'Inter', 'Noto Sans TC', sans-serif; /* overridden — was Orbitron */
+    letter-spacing: -0.01em;
+}
+.mono {
+    font-family: 'Share Tech Mono', monospace;
+}
 
-        /* Tech Borders - Cyber Mode */
-        .tech-border {
-            position: relative;
-            background: rgba(15, 23, 42, 0.6); 
-            border: 1px solid rgba(6, 182, 212, 0.3); 
-            box-shadow: 0 0 15px rgba(6, 182, 212, 0.1);
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-        }
-        
-        /* Tech Input - Cyber Mode */
-        .tech-input {
-            background: rgba(30, 41, 59, 0.5); 
-            border: 1px solid #334155;
-            color: #ecfeff;
-            transition: all 0.3s ease;
-        }
-        .tech-input:focus {
-            border-color: #06b6d4;
-            box-shadow: 0 0 8px rgba(6, 182, 212, 0.4);
-            background: rgba(30, 41, 59, 0.8);
-        }
+/* === WARM THEME (low-stimulus, primary school) === */
+body.theme-warm {
+    background-color: #fffbeb;
+    color: #451a03;
+    position: relative;
+    min-height: 100vh;
+}
 
-        /* --- Plain Theme Styles --- */
-        body.theme-plain {
-            background-color: #f8fafc; /* Slate 50 */
-            color: #1e293b; /* Slate 800 */
-        }
+body.theme-warm .plain-border,
+body.theme-warm .warm-border,
+body.theme-warm .glass-card,
+body.theme-warm .tech-border {
+    background: #ffffff;
+    border: 1px solid #fde68a;
+    box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.08), 0 2px 4px -1px rgba(245, 158, 11, 0.04);
+}
 
-        .plain-border {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            transition: all 0.3s ease;
-        }
+body.theme-warm .plain-input,
+body.theme-warm .warm-input,
+body.theme-warm .tech-input,
+body.theme-warm .glass-input {
+    background: #fffef9;
+    border: 1px solid #fcd34d;
+    color: #451a03;
+}
+body.theme-warm .plain-input:focus,
+body.theme-warm .warm-input:focus,
+body.theme-warm .tech-input:focus,
+body.theme-warm .glass-input:focus {
+    border-color: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25);
+    outline: none;
+}
 
-        .plain-input {
-            background: #ffffff;
-            border: 1px solid #cbd5e1;
-            color: #334155;
-            transition: all 0.3s ease;
-        }
-        .plain-input:focus {
-            border-color: #3b82f6; /* Blue 500 */
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-            outline: none;
-        }
+body.theme-warm textarea::-webkit-scrollbar-track { background: #fef3c7; border-radius: 4px; }
+body.theme-warm textarea::-webkit-scrollbar-thumb { background: #fcd34d; border-radius: 4px; border: 1px solid #f59e0b; }
+body.theme-warm textarea::-webkit-scrollbar-thumb:hover { background: #f59e0b; }
 
-        .orbitron {
-            font-family: 'Orbitron', sans-serif;
-        }
-        .mono {
-            font-family: 'Share Tech Mono', monospace;
-        }
+/* === Scrollbar (default light) === */
+textarea::-webkit-scrollbar { width: 8px; }
+textarea::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.04); border-radius: 4px; }
+textarea::-webkit-scrollbar-thumb { background: rgba(15, 23, 42, 0.18); border-radius: 4px; }
+textarea::-webkit-scrollbar-thumb:hover { background: rgba(124, 58, 237, 0.5); }
 
-        /* === Phase 3.4.3: WARM THEME (W3-4.1) ===
-           暖色主題 — 適合 primary school 低刺激環境
-           Amber / Orange palette，柔光，避免 cyber 嘅 neon blue 高對比
-        */
-        body.theme-warm {
-            background-color: #fffbeb; /* Amber 50 */
-            color: #451a03; /* Amber 950 */
-        }
-
-        /* Warm Card/Border — cream + soft amber */
-        body.theme-warm .plain-border,
-        body.theme-warm .warm-border {
-            background: #ffffff;
-            border: 1px solid #fde68a; /* Amber 200 */
-            box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.08), 0 2px 4px -1px rgba(245, 158, 11, 0.04);
-            transition: all 0.3s ease;
-        }
-
-        /* Warm Input */
-        body.theme-warm .plain-input,
-        body.theme-warm .warm-input {
-            background: #fffef9;
-            border: 1px solid #fcd34d; /* Amber 300 */
-            color: #451a03;
-            transition: all 0.3s ease;
-        }
-        body.theme-warm .plain-input:focus,
-        body.theme-warm .warm-input:focus {
-            border-color: #f59e0b; /* Amber 500 */
-            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25);
-            outline: none;
-        }
-
-        /* Warm scrollbar */
-        body.theme-warm textarea::-webkit-scrollbar-track { background: #fef3c7; border-radius: 4px; }
-        body.theme-warm textarea::-webkit-scrollbar-thumb { background: #fcd34d; border-radius: 4px; border: 1px solid #f59e0b; }
-        body.theme-warm textarea::-webkit-scrollbar-thumb:hover { background: #f59e0b; }
-
-        /* Disable cyber grid + vignette in warm (低刺激) */
-        body.theme-warm .cyber-grid,
-        body.theme-warm .vignette {
-            opacity: 0 !important;
-        }
-
-        /* === Phase 3.4: Smooth font rendering === */
-        body {
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            text-rendering: optimizeLegibility;
-        }
-
-        /* === Phase 3.4: Mono font helper (W3-4.2 — JetBrains Mono for code) === */
-        .font-mono-token {
-            font-family: 'JetBrains Mono', 'Share Tech Mono', monospace;
-            font-feature-settings: 'liga' 0, 'calt' 0;
-        }
+/* === Mono font helper === */
+.font-mono-token {
+    font-family: 'JetBrains Mono', 'Share Tech Mono', monospace;
+    font-feature-settings: 'liga' 0, 'calt' 0;
+}

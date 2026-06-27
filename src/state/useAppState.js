@@ -100,13 +100,12 @@ export const useAppState = () => {
     });
     const [previewOpen, setPreviewOpen] = useState(false);
     const [previewTab, setPreviewTab] = useState("design");
-    const [theme, setTheme] = useState('cyber');
-    // 3-way cycle: cyber → plain → warm → cyber (W3-4.1)
+    const [theme, setTheme] = useState('plain');
+    // v3.2: 2-way cycle plain ↔ warm (cyber theme classes retained as noop aliases)
     const toggleTheme = useCallback(() => {
         setTheme(prev => {
-            if (prev === 'cyber') return 'plain';
             if (prev === 'plain') return 'warm';
-            return 'cyber';
+            return 'plain';
         });
     }, []);
     const [onboardingStep, setOnboardingStep] = useState(null);
