@@ -2008,7 +2008,7 @@ const renderAiResult = () => (
 
 
                 {/* Extra Links Above Footer */}
-                {/* v3.3.2: 9 個 AI platform links (6 active + 3 新增 — qwen/manus/genspark/豆包 + base44/emergent/v0/gemini/lovable) — flex-wrap 自動換行 */}
+                {/* v3.3.3: 10 個 AI platform links (10 active — base44 / emergent / v0 / gemini / lovable / bolt.new / qwen / manus / genspark / 豆包) — flex-wrap 自動換行，唔加描述只係 platform name */}
                 <div className="mt-12 flex flex-wrap justify-center gap-token-3">
                     {/* Base44 Link */}
                     <a href="https://base44.com/" target="_blank" rel="noopener noreferrer" className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex items-center gap-2 ${
@@ -2053,6 +2053,15 @@ const renderAiResult = () => (
                         : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-pink-600 shadow-sm'
                     }`}>
                         Lovable <ExternalLink size={14} />
+                    </a>
+
+                    {/* Bolt.new Link — v3.3.3 新增 — AI app builder (StackBlitz WebContainer) */}
+                    <a href="https://bolt.new/" target="_blank" rel="noopener noreferrer" className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex items-center gap-2 ${
+                        theme === 'cyber'
+                        ? 'border-orange-500/30 bg-orange-900/20 text-orange-300 hover:bg-orange-500/20 hover:text-orange-100'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-orange-600 shadow-sm'
+                    }`}>
+                        Bolt.new <ExternalLink size={14} />
                     </a>
 
                     {/* Qwen Link — v3.3.1 新增 */}

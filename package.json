@@ -1,6 +1,6 @@
 {
   "name": "innovative-teaching-prompt-studio",
-  "version": "3.3.2",
+  "version": "3.3.3",
   "description": "Innovative Teaching Prompt Studio (創意教學 Prompt Studio) — single-file React app for SEN teachers to generate structured AI prompts (Gemini / Claude / Lovable / v0)",
   "private": true,
   "type": "module",
