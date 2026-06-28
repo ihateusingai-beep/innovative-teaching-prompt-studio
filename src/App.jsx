@@ -15,6 +15,15 @@ import { DiffView } from './components/DiffView.jsx';
 import { ProfileBankPanel } from './components/ProfileBankPanel.jsx';
 import personalLogo from '../assets/personal_logo.png';
 
+// === Feature flags ===
+// GEMINI_DIRECT_GENERATE_ENABLED: 控制 Gemini API 直接生成 HTML 嘅 UI 嘅顯隱
+//   false → 隱藏：API settings button + 直接生成 HTML button + AI Result panel
+//   true  → 顯示（原有 Gemini 直接 generate → download HTML 嘅 user flow）
+// 暫時隱藏原因（v3.2.3）：Gemini API 嘅 UX（API key 設定、錯誤處理、result 預覽）
+// 仲未構思清楚，要重新設計過 workflow 先 re-enable。
+// 將來 re-enable：將 flag 改 true 即可，state / handler / utils/gemini.js 全部保留。
+const GEMINI_DIRECT_GENERATE_ENABLED = false;
+
 const categories = [
     { value: "教學工具", label: "📚 教學工具", icon: BookOpen },
     { value: "教學遊戲", label: "🎮 教學遊戲", icon: Gamepad2 },
@@ -1173,6 +1182,8 @@ const renderStep4 = (formData, designPrompt, techPrompt, qualityScore) => (
                     <History size={16} />
                     <span className="hidden sm:inline">📚 版本 ({promptVersions.versions.length})</span>
                 </button>
+                {GEMINI_DIRECT_GENERATE_ENABLED && (
+                <>
                 <button
                     onClick={() => setShowApiSettings(true)}
                     className={`px-token-3 py-token-2 rounded-lg flex items-center gap-token-2 text-sm font-bold transition-all border shadow-sm ${
@@ -1213,6 +1224,8 @@ const renderStep4 = (formData, designPrompt, techPrompt, qualityScore) => (
                 >
                     {aiGenerating ? '⏳ 生成中...' : '🚀 直接生成 HTML'}
                 </button>
+                </>
+                )}
                  <button
                     onClick={handleExportJSON}
                     className={`px-token-3 py-token-2 rounded-lg flex items-center gap-token-2 text-sm font-bold transition-all border shadow-sm ${
@@ -1926,7 +1939,7 @@ const renderAiResult = () => (
                 {activeTab === 'generate' && (
                     <>
                         {renderStep4(formData, designPrompt, techPrompt, qualityScore)}
-                        {renderAiResult()}
+                        {GEMINI_DIRECT_GENERATE_ENABLED && renderAiResult()}
                     </>
                 )}
 
