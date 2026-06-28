@@ -6,10 +6,11 @@
     <title>創意教學 Prompt Studio</title>
 
     <!--
-        Innovative Teaching Prompt Studio v3.10.0 — Vite build pipeline
+        Innovative Teaching Prompt Studio v3.11.0 — Vite build pipeline
         - All JS / CSS inlined into single HTML file (via vite-plugin-singlefile)
         - Zero CDN runtime deps (React / Framer / Lucide / Tailwind all bundled)
         - file:// works (pure client-side)
+        - v3.11.0: client-side auth gate (SHA-256 password hash, lpf-workbench pattern)
     -->
 
     <!-- Google Fonts (預先 CDN load — build-time 唔處理 webfont) -->
@@ -17,15 +18,199 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700;900&family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
     <!-- Tailwind CSS (build-time compiled via PostCSS) -->
+
+    <!-- Auth gate (inline single-file friendly — adapted from lpf-workbench _modules/auth-gate.js) -->
+    <script>
+    /* auth-gate inline — Innovative Teaching Prompt Studio v3.11.0
+     * SHA-256 client-side password gate. sessionStorage scoped.
+     * Pattern reference: https://github.com/kencheng-cc/curriculum (lpf-workbench.html)
+     *
+     * Differences from lpf-workbench version:
+     *  - No #pw=<hash> URL auto-login (avoids conflict with React hash-router routes).
+     *  - React renders into #root while #protected-root is [hidden] — React/Framer
+     *    Motion handle the visible→hidden→visible transition gracefully.
+     */
+    (function () {
+      'use strict';
+      // === CONFIG ===
+      var PASSWORD_HASH = 'd78d6239fd1ed08019182be3b473ede3ac5f51bcf9adb0ea53238d07f9640f19';
+      var STORAGE_KEY = 'itps_auth_v1';
+      var STORAGE_KIND = 'session'; // 'session' = tab close locks; 'local' = persist
+      // === END CONFIG ===
+
+      function store() {
+        try { return STORAGE_KIND === 'local' ? window.localStorage : window.sessionStorage; }
+        catch (e) { return null; }
+      }
+      function isUnlocked() {
+        var s = store();
+        return s && s.getItem(STORAGE_KEY) === '1';
+      }
+      function markUnlocked() {
+        var s = store();
+        if (s) s.setItem(STORAGE_KEY, '1');
+      }
+      function unlock() {
+        var root = document.getElementById('protected-root');
+        if (root) root.removeAttribute('hidden');
+        var overlay = document.getElementById('auth-gate-overlay');
+        if (overlay) overlay.parentNode.removeChild(overlay);
+        document.documentElement.removeAttribute('data-auth-pending');
+      }
+      function showError(msg) {
+        var err = document.getElementById('auth-gate-error');
+        if (err) { err.textContent = msg; err.style.display = 'block'; }
+      }
+      function lock() {
+        var root = document.getElementById('protected-root');
+        if (root) root.setAttribute('hidden', '');
+        document.documentElement.setAttribute('data-auth-pending', '1');
+      }
+      function sha256Hex(text) {
+        return crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
+          .then(function (buf) {
+            var bytes = new Uint8Array(buf);
+            var hex = '';
+            for (var i = 0; i < bytes.length; i++) hex += (bytes[i] < 16 ? '0' : '') + bytes[i].toString(16);
+            return hex;
+          });
+      }
+      function attachForm() {
+        var form = document.getElementById('auth-gate-form');
+        if (!form) return;
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          var input = document.getElementById('auth-gate-input');
+          if (!input) return;
+          var pw = input.value || '';
+          sha256Hex(pw).then(function (h) {
+            if (h === PASSWORD_HASH) {
+              markUnlocked();
+              unlock();
+              // Trigger a layout recalc in case Framer Motion needs it.
+              setTimeout(function () {
+                window.dispatchEvent(new Event('resize'));
+              }, 100);
+            } else {
+              showError('密碼唔啱。再試多次。');
+              input.value = '';
+              input.focus();
+            }
+          }).catch(function () {
+            // Fallback if SubtleCrypto unavailable
+            if (pw === PASSWORD_HASH) { markUnlocked(); unlock(); }
+            else showError('密碼唔啱。再試多次。');
+          });
+        });
+      }
+      function injectStyles() {
+        if (document.getElementById('auth-gate-style')) return;
+        var css = ''
+          + 'html[data-auth-pending] body { overflow: hidden; }'
+          + '#auth-gate-overlay {'
+          + '  position: fixed; inset: 0; z-index: 2147483647;'
+          + '  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);'
+          + '  color: #e2e8f0;'
+          + '  display: flex; align-items: center; justify-content: center;'
+          + '  padding: 1rem;'
+          + '  font-family: -apple-system, BlinkMacSystemFont, "PingFang HK", "Helvetica Neue", sans-serif;'
+          + '}'
+          + '#auth-gate-card {'
+          + '  background: rgba(15, 23, 42, 0.85);'
+          + '  border: 1px solid rgba(148, 163, 184, 0.25);'
+          + '  border-radius: 1rem;'
+          + '  padding: 2rem;'
+          + '  max-width: 26rem; width: 100%;'
+          + '  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);'
+          + '  backdrop-filter: blur(12px);'
+          + '}'
+          + '#auth-gate-card h1 { font-size: 1.25rem; font-weight: 600; margin: 0 0 0.25rem; color: #f1f5f9; }'
+          + '#auth-gate-card p { font-size: 0.875rem; color: #94a3b8; margin: 0 0 1.25rem; }'
+          + '#auth-gate-card label { display: block; font-size: 0.75rem; color: #cbd5e1; margin-bottom: 0.4rem; letter-spacing: 0.04em; text-transform: uppercase; }'
+          + '#auth-gate-input {'
+          + '  width: 100%; box-sizing: border-box;'
+          + '  background: rgba(15, 23, 42, 0.6);'
+          + '  color: #f1f5f9;'
+          + '  border: 1px solid rgba(148, 163, 184, 0.35);'
+          + '  border-radius: 0.5rem;'
+          + '  padding: 0.7rem 0.9rem; font-size: 1rem;'
+          + '  font-family: ui-monospace, "SF Mono", Menlo, monospace;'
+          + '  outline: none;'
+          + '}'
+          + '#auth-gate-input:focus { border-color: #38bdf8; box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18); }'
+          + '#auth-gate-submit {'
+          + '  width: 100%; margin-top: 0.9rem;'
+          + '  background: linear-gradient(135deg, #06b6d4 0%, #0ea5e9 100%);'
+          + '  color: white; font-weight: 600; font-size: 0.95rem;'
+          + '  border: none; border-radius: 0.5rem;'
+          + '  padding: 0.7rem 1rem; cursor: pointer;'
+          + '  transition: transform 0.1s;'
+          + '}'
+          + '#auth-gate-submit:hover { transform: translateY(-1px); }'
+          + '#auth-gate-submit:active { transform: translateY(0); }'
+          + '#auth-gate-error {'
+          + '  display: none; margin-top: 0.8rem;'
+          + '  color: #fca5a5; font-size: 0.85rem;'
+          + '}'
+          + '#auth-gate-foot { margin-top: 1.1rem; padding-top: 0.9rem; border-top: 1px solid rgba(148, 163, 184, 0.15); font-size: 0.7rem; color: #64748b; line-height: 1.5; }';
+        var s = document.createElement('style');
+        s.id = 'auth-gate-style';
+        s.appendChild(document.createTextNode(css));
+        document.head.appendChild(s);
+      }
+      function injectOverlay() {
+        if (document.getElementById('auth-gate-overlay')) return;
+        var overlay = document.createElement('div');
+        overlay.id = 'auth-gate-overlay';
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.setAttribute('aria-labelledby', 'auth-gate-title');
+        overlay.innerHTML = ''
+          + '<form id="auth-gate-form" autocomplete="off">'
+          +   '<div id="auth-gate-card">'
+          +     '<h1 id="auth-gate-title">🔒 創意教學 Prompt Studio</h1>'
+          +     '<p>呢個係私人工作台，請輸入密碼繼續。</p>'
+          +     '<label for="auth-gate-input">Password</label>'
+          +     '<input id="auth-gate-input" type="password" name="pw" autocomplete="current-password" autofocus required />'
+          +     '<button id="auth-gate-submit" type="submit">解鎖</button>'
+          +     '<div id="auth-gate-error"></div>'
+          +     '<div id="auth-gate-foot">Client-side gate — <code>View Source</code> 會睇到 hash，唔係真 security。Casual visitor gate 而已。</div>'
+          +   '</div>'
+          + '</form>';
+        (document.body || document.documentElement).appendChild(overlay);
+      }
+      function init() {
+        lock();
+        if (isUnlocked()) { unlock(); return; }
+        injectStyles();
+        injectOverlay();
+        attachForm();
+        var input = document.getElementById('auth-gate-input');
+        if (input) input.focus();
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
+    </script>
 </head>
 <body class="selection:bg-cyan-500 selection:text-white transition-colors duration-500">
     <!-- Background Elements (Only visible in Cyber theme) -->
     <div class="cyber-grid"></div>
     <div class="vignette"></div>
 
-    <div id="root"></div>
+    <!-- Protected content wrapper — auth gate hides by default, reveals on password success -->
+    <div id="protected-root" hidden>
+        <div id="root"></div>
+    </div>
 
-    <!-- Main app entry — bundled into single IIFE -->
+    <!-- Main app entry — bundled into single IIFE.
+         Vite single-file plugin inlines this script body. React renders into
+         #root inside the (initially hidden) #protected-root. On successful
+         unlock(), the gate removes `hidden` and React stays mounted. Framer
+         Motion / IntersectionObserver handle the visibility transition. -->
     <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>
