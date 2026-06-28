@@ -206,12 +206,17 @@ const getInitialFormData = () => ({
     // v3.2.4: 拎走「個別化學習報告」rule（a/b/c 三段），改由下面 personalizedReport module 控制
     rules: defaultRules.map(r => ({ ...r })),
     // v3.2.4: 個別化學習報告模組 — 抽起做獨立 toggle 控制
+    // v3.2.5: 加 d 段「親師溝通格式」4 個 sub-toggle (深化 b 段視覺化)
     // 預設全開（最 comprehensive），對齊舊 default 行為
     personalizedReport: {
         enabled: true,            // master toggle — 完全關閉 = 唔 inject 呢段 rule
         showData: true,           // a. 個別化與數據化
         showVisualization: true,  // b. 可視化與兒童友善設計
         showGrowthMindset: true,  // c. 正向語言與建設性建議
+        showParentPDF: true,         // d1. 可列印 PDF 摘要
+        showParentQR: true,          // d2. QR code 畀家長
+        showNewsletter: true,        // d3. 每週／每月學習電子報
+        showTeacherReflection: true, // d4. 教師反思 prompt
     },
 });
 

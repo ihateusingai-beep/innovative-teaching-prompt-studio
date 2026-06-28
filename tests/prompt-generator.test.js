@@ -50,11 +50,16 @@ const fullFormData = {
         { text: 'rule 3', __isDefault: false },
     ],
     // v3.2.4: 個別化學習報告模組 — default 全開（最 comprehensive）
+    // v3.2.5: 加 d 段「親師溝通格式」4 sub-toggle default 全開
     personalizedReport: {
         enabled: true,
         showData: true,
         showVisualization: true,
         showGrowthMindset: true,
+        showParentPDF: true,
+        showParentQR: true,
+        showNewsletter: true,
+        showTeacherReflection: true,
     },
 };
 
@@ -82,11 +87,16 @@ const minimalFormData = {
     value: [],
     rules: [],
     // v3.2.4: personalizedReport 模組 default 全關（minimalFormData 唔需要）
+    // v3.2.5: d 段 4 sub-toggle 全部 false（minimalFormData 唔需要）
     personalizedReport: {
         enabled: false,
         showData: false,
         showVisualization: false,
         showGrowthMindset: false,
+        showParentPDF: false,
+        showParentQR: false,
+        showNewsletter: false,
+        showTeacherReflection: false,
     },
 };
 
@@ -477,5 +487,90 @@ describe('v3.2.4 — Personalized Report module', () => {
         const customIdx = design.indexOf('MY CUSTOM RULE');
         expect(composedIdx).toBeGreaterThan(-1);
         expect(customIdx).toBeGreaterThan(composedIdx);
+    });
+});
+
+// === v3.2.5: d 段「親師溝通格式」4 sub-toggle 集成 ===
+
+describe('v3.2.5 — d 段親師溝通格式 sub-toggles', () => {
+    const fixtureWithAllD = () => ({
+        ...fullFormData,
+        personalizedReport: {
+            enabled: true,
+            showData: true,
+            showVisualization: true,
+            showGrowthMindset: true,
+            showParentPDF: true,
+            showParentQR: true,
+            showNewsletter: true,
+            showTeacherReflection: true,
+        },
+    });
+
+    it('default 全開 — Design prompt 包含 a/b/c + d1/d2/d3/d4', () => {
+        const design = generateDesignPrompt(fixtureWithAllD());
+        expect(design).toContain('a. 個別化與數據化');
+        expect(design).toContain('b. 可視化');
+        expect(design).toContain('c. 正向語言');
+        expect(design).toContain('d1.');
+        expect(design).toContain('d2.');
+        expect(design).toContain('d3.');
+        expect(design).toContain('d4.');
+    });
+
+    it('關 d1 (其他 d 段開) — 只有 d2/d3/d4 注入', () => {
+        const formData = fixtureWithAllD();
+        formData.personalizedReport.showParentPDF = false;
+        const design = generateDesignPrompt(formData);
+        expect(design).toContain('d2.');
+        expect(design).toContain('d3.');
+        expect(design).toContain('d4.');
+        expect(design).not.toContain('d1.');
+    });
+
+    it('關全部 d 段 (a/b/c 開) — 唔注入 d1-d4', () => {
+        const formData = fixtureWithAllD();
+        formData.personalizedReport.showParentPDF = false;
+        formData.personalizedReport.showParentQR = false;
+        formData.personalizedReport.showNewsletter = false;
+        formData.personalizedReport.showTeacherReflection = false;
+        const design = generateDesignPrompt(formData);
+        expect(design).toContain('a. 個別化');
+        expect(design).toContain('b. 可視化');
+        expect(design).toContain('c. 正向語言');
+        expect(design).not.toContain('d1.');
+        expect(design).not.toContain('d2.');
+        expect(design).not.toContain('d3.');
+        expect(design).not.toContain('d4.');
+    });
+
+    it('順序驗證: a → b → c → d1 → d2 → d3 → d4', () => {
+        const design = generateDesignPrompt(fixtureWithAllD());
+        const order = ['a. 個別化', 'b. 可視化', 'c. 正向語言', 'd1.', 'd2.', 'd3.', 'd4.'];
+        const indices = order.map(marker => design.indexOf(marker));
+        indices.forEach(idx => expect(idx).toBeGreaterThan(-1));
+        for (let i = 1; i < indices.length; i++) {
+            expect(indices[i]).toBeGreaterThan(indices[i - 1]);
+        }
+    });
+
+    it('backward compat: 舊 v3.2.4 JSON 冇 d 段 field — 當 enabled=true 其他 d 段默認注入', () => {
+        // 模擬 migrateFormData forward-fill 後但冇 d 段嘅 config
+        const formData = {
+            ...fullFormData,
+            personalizedReport: {
+                enabled: true,
+                showData: true,
+                showVisualization: true,
+                showGrowthMindset: true,
+                // 冇 d 段 field (舊 v3.2.4 shape)
+            },
+        };
+        const design = generateDesignPrompt(formData);
+        // composePersonalizedReportRule 入面 `!== false` default 開 → d 段全部應該 inject
+        expect(design).toContain('d1.');
+        expect(design).toContain('d2.');
+        expect(design).toContain('d3.');
+        expect(design).toContain('d4.');
     });
 });

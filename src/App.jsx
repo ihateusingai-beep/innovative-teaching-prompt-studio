@@ -1047,7 +1047,7 @@ const renderStep3 = () => (
                                 ? (theme === 'cyber' ? 'bg-amber-500' : 'bg-amber-600')
                                 : (theme === 'cyber' ? 'bg-slate-700' : 'bg-slate-300')
                             }`}
-                            title={formData.personalizedReport?.enabled !== false ? '已啟用 — 3 段 rule 會注入 prompt' : '已關閉 — 唔會注入任何 rule'}
+                            title={formData.personalizedReport?.enabled !== false ? '已啟用 — 7 段 rule 會注入 prompt' : '已關閉 — 唔會注入任何 rule'}
                         >
                             <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
                                 formData.personalizedReport?.enabled !== false ? 'translate-x-6' : 'translate-x-1'
@@ -1055,12 +1055,17 @@ const renderStep3 = () => (
                         </button>
                     </div>
 
-                    {/* Sub-toggles: a/b/c 三段 — 跟 master toggle 啟用狀態 */}
+                    {/* Sub-toggles: a/b/c 三段 + d 段「親師溝通」4 個 sub-features — 跟 master toggle 啟用狀態 */}
                     <div className={`mt-3 ml-2 space-y-2 ${formData.personalizedReport?.enabled === false ? 'opacity-40 pointer-events-none' : ''}`}>
                         {[
                             { key: 'showData', label: 'a. 個別化與數據化', desc: '答對率、最熟練／需加強項目、錯誤模式分析' },
                             { key: 'showVisualization', label: 'b. 可視化與兒童友善', desc: '長條圖／進度條、大字體、Emoji 圖示' },
                             { key: 'showGrowthMindset', label: 'c. 正向語言與建議', desc: '成長型思維措辭、具體可操作建議' },
+                            // v3.2.5: d 段「親師溝通格式」— 深化 b 段視覺化嘅延伸
+                            { key: 'showParentPDF', label: 'd1. 可列印 PDF 摘要', desc: 'A4 一頁格式：學生頭像 + 數據 + 長條圖 + 教師／家長欄' },
+                            { key: 'showParentQR', label: 'd2. QR code 畀家長', desc: '掃描即睇答題 timeline + 情緒 emoji 日誌 + 家長回饋' },
+                            { key: 'showNewsletter', label: 'd3. 班級學習電子報', desc: 'MVP 學生榜 + 需關注名單 + 班級趨勢 + 教學建議' },
+                            { key: 'showTeacherReflection', label: 'd4. 教師反思 prompt', desc: 'KWL 反思框架：知道 / 想知 / 學到（摺疊筆記欄）' },
                         ].map(sub => (
                             <div key={sub.key} className="flex items-center justify-between py-1">
                                 <div className="flex-1 min-w-0 pr-3">

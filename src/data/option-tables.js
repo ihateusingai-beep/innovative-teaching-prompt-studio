@@ -55,9 +55,9 @@ const defaultRules = [
 ];
 
 // === Personalized Report Module ===
-// v3.2.4: 由原 defaultRules 抽出嘅 3 段 rule 內容
-// generator 用呢 3 段根據 formData.personalizedReport.{showData,showVisualization,showGrowthMindset}
-// 動態 compose rule text 注入 prompt
+// v3.2.4: 由原 defaultRules 抽出嘅 3 段 rule 內容 (a/b/c)
+// v3.2.5: 加 d 段「親師溝通格式」— 深化 b 段視覺化嘅延伸（家長/老師 export + 反思）
+// generator 用呢幾段根據 formData.personalizedReport.* 動態 compose rule text 注入 prompt
 // 設計：每段都係 closed spec（user 列嘅 spec），老師唔應該改文字，
 // 只能 toggle on/off — 因此獨立成 module 唔混入 free-form rules editor
 const personalizedReportSections = {
@@ -76,6 +76,40 @@ a. 個別化與數據化
 以成長型思維（growth mindset）措辭：強調「努力」「進步」「小專家」「再試一次就更厲害」
 提供 1–2 條具體、可操作的建議（例如：「你可以每天練習 3 次『7 的分解』，就像搭積木一樣！」）
 避免負面標籤（如「你不會」「錯誤太多」）`,
+
+    // v3.2.5: d 段「親師溝通格式」— 深化 b 段視覺化嘅延伸
+    // 4 sub-features 各自獨立 toggle，老師按需要揀
+    showParentPDF: `d1. 可列印 PDF 摘要（A4 格式）
+提供「列印 / 下載 PDF」按鈕，輸出 A4 一頁格式嘅學習摘要：
+- 頂部：學生頭像 / 姓名 / 班別 / 日期
+- 中段：本週學習數據（答對率、平均嘗試次數、完成時間）＋長條圖視覺化
+- 「🌟 最熟練項目」3 項 ＋「💡 需加強項目」3 項（短句 + emoji）
+- 底部：教師留言欄（手寫／打字）、家長簽名欄、班主任蓋章欄
+PDF 使用簡單 CSS print media query，唔需要 server-side rendering`,
+
+    showParentQR: `d2. QR code 畀家長（互動重播）
+每份報告頁面右上角自動加 QR code（純 client-side 用 qrcode.js CDN）：
+- 掃描後開啟「互動重播」頁面（家長手機可用）
+- 顯示學生本週答題 timeline（每題答對／答錯 + 用時 + 嘗試次數）
+- 包含「情緒表情符號日誌」（學生喺每個關卡揀嘅情緒 emoji）
+- 提供「家長回饋」文字輸入框（儲存去 localStorage，老師下次登入可睇）
+QR code 內容為 data URL（base64 PNG），唔需要 hosting`,
+
+    showNewsletter: `d3. 每週／每月學習電子報（班級摘要）
+提供「生成電子報」按鈕，自動彙總全班學生數據生成可發佈摘要：
+- 頂部：班別 / 週次 / 主題
+- 「🏆 MVP 學生榜」：本週答對率最高 3 位（匿名化處理，例如「進步火箭 🚀：小明、小美、小玲」）
+- 「📋 需關注名單」：持續犯同一類錯誤嘅學生（顯示錯誤模式摘要，唔顯示姓名）
+- 「📈 班級整體趨勢」：本週 vs 上週答對率對比長條圖
+- 「💡 本週教學建議」：根據錯誤模式自動生成 2-3 條教學調整建議
+輸出格式：HTML 頁面（可列印）+ 可複製 Markdown（貼去學校網頁／家長群組）`,
+
+    showTeacherReflection: `d4. 教師反思 prompt（專業成長）
+報告頁面底部加「教師反思」section（摺疊展開），3 條引導反思 prompt：
+- K（What I Knew）: 「呢週我已經知道學生掌握咗咩？」
+- W（What I Wonder）: 「我想再了解學生邊方面？邊啲錯誤模式反映更深層概念誤解？」
+- L（What I Learned）: 「呢週教學過程我自己學到咗咩？下次會點調整？」
+反思 prompt 旁提供「填寫筆記」textarea（純 localStorage 儲存），畀老師記低專業成長日誌`,
 };
 
 // Compose 一段完整嘅 rule text 根據 toggle 狀態
@@ -85,6 +119,8 @@ a. 個別化與數據化
 //   - sub-toggle 開 → concat 對應 section (段間空一行分隔)
 // 老師 custom rules 入面如果有「個別化學習報告」相關嘅，已經 __isDefault: false 會
 // 被 generator 保留（唔會 dup）
+// v3.2.5: 加 4 個 d 段 sub-toggle (showParentPDF/showParentQR/showNewsletter/showTeacherReflection)
+// 全部 default true（comprehensive），對齊舊 default 行為
 export const composePersonalizedReportRule = (config) => {
     if (!config || typeof config !== 'object') return null;
     if (config.enabled === false) return null;
@@ -92,6 +128,11 @@ export const composePersonalizedReportRule = (config) => {
     if (config.showData !== false) parts.push(personalizedReportSections.showData.trimEnd());
     if (config.showVisualization !== false) parts.push(personalizedReportSections.showVisualization.trimEnd());
     if (config.showGrowthMindset !== false) parts.push(personalizedReportSections.showGrowthMindset.trimEnd());
+    // d 段：親師溝通格式 — 順序 PDF → QR → Newsletter → Reflection
+    if (config.showParentPDF !== false) parts.push(personalizedReportSections.showParentPDF.trimEnd());
+    if (config.showParentQR !== false) parts.push(personalizedReportSections.showParentQR.trimEnd());
+    if (config.showNewsletter !== false) parts.push(personalizedReportSections.showNewsletter.trimEnd());
+    if (config.showTeacherReflection !== false) parts.push(personalizedReportSections.showTeacherReflection.trimEnd());
     if (parts.length === 0) return null;
     // 段間用 \n\n (一個空行) — trimEnd 確保唔會有 3 個 newline
     return parts.join('\n\n');
