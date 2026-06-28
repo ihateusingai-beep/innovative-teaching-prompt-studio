@@ -7,6 +7,8 @@
 - **v3.6.0** Path B.1 — Design system tokens (spacing/radius/elevation/motion/colors/gradients/typography)
 - **v3.7.0** Path B.2 — Theme variant helpers (cardClass/buttonClass/pillClass/etc.) + 12 multi-line ternary collapsed
 - **v3.8.0** Path B.3 — Design system primitives (GlassCard/GlassButton/GlassInput/Pill/ToggleSwitch/SegmentedControl)
+- **v3.9.0** Path B.4 — Adopt `<ToggleSwitch>` primitive in App.jsx (4 inline toggle button patterns → primitive, 10 role="switch" toggles render on 規則 tab)
+- **v3.10.0** Path B.5 — Collapse 63 remaining multi-line split `theme === 'cyber'` ternary to plain branch via outer-ternary parser (App.jsx -198 lines / -17.6%, bundle -18.42KB / -2.9%, 181/181 tests pass, 10 toggles + FAB SegmentedControl verified desktop + iPhone 12)
 
 ## Background (original — kept for reference)
 
