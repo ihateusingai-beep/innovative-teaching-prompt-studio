@@ -1,6 +1,14 @@
 # Next Sprint Planning — v3.4+ Direction
 
-## Background
+## ✅ Completed Sprints (2026-06-28)
+
+- **v3.4.0** Path A — App.jsx conditionals: 181 → 63 (single-line collapsed, multi-line split left)
+- **v3.5.0** Path C — Mobile responsive: tab bar `hidden sm:inline` for mobile icon-only
+- **v3.6.0** Path B.1 — Design system tokens (spacing/radius/elevation/motion/colors/gradients/typography)
+- **v3.7.0** Path B.2 — Theme variant helpers (cardClass/buttonClass/pillClass/etc.) + 12 multi-line ternary collapsed
+- **v3.8.0** Path B.3 — Design system primitives (GlassCard/GlassButton/GlassInput/Pill/ToggleSwitch/SegmentedControl)
+
+## Background (original — kept for reference)
 
 v3.3 sprint (Modern UI Redesign) 完成：
 - styles/index.css 重組 tokens + 玻璃 utilities + animations

@@ -14,7 +14,7 @@ import { VersionPanel } from './components/VersionPanel.jsx';
 import { DiffView } from './components/DiffView.jsx';
 import { ProfileBankPanel } from './components/ProfileBankPanel.jsx';
 import personalLogo from '../assets/personal_logo.png';
-import { mutedTextClass, pillClass, toggleClass, cardClass } from './design-system/index.js';
+import { mutedTextClass, pillClass, toggleClass, cardClass, ToggleSwitch } from './design-system/index.js';
 
 // === Feature flags ===
 // GEMINI_DIRECT_GENERATE_ENABLED: 控制 Gemini API 直接生成 HTML 嘅 UI 嘅顯隱
@@ -986,18 +986,13 @@ const renderStep3 = () => (
                             <div className={`text-xs ${'text-slate-500'}`}>包含字體大小 (6級) 與 語音速度 (6級) 調整功能</div>
                         </div>
                     </div>
-                    <button
-                        onClick={() => updateField('includePreferenceSettings', !formData.includePreferenceSettings)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                            formData.includePreferenceSettings 
-                            ? ('bg-blue-600') 
-                            : ('bg-slate-300')
-                        }`}
-                    >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                            formData.includePreferenceSettings ? 'translate-x-6' : 'translate-x-1'
-                        }`} />
-                    </button>
+                    <ToggleSwitch
+                        theme={theme}
+                        on={!!formData.includePreferenceSettings}
+                        onChange={(next) => updateField('includePreferenceSettings', next)}
+                        size="md"
+                        ariaLabel="啟用偏好設定"
+                    />
                 </div>
                 
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
@@ -1012,18 +1007,13 @@ const renderStep3 = () => (
                             <div className={`text-xs ${'text-slate-500'}`}>若開啟，Part 2 會注入「生成單一 HTML 檔案 + Gemini 美學風格」指令。關閉則 prompt 由 AI 自由決定 stack / output。</div>
                         </div>
                     </div>
-                    <button
-                        onClick={() => updateField('useGeminiStyle', !formData.useGeminiStyle)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                            formData.useGeminiStyle
-                            ? ('bg-purple-600')
-                            : ('bg-slate-300')
-                        }`}
-                    >
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                            formData.useGeminiStyle ? 'translate-x-6' : 'translate-x-1'
-                        }`} />
-                    </button>
+                    <ToggleSwitch
+                        theme={theme}
+                        on={!!formData.useGeminiStyle}
+                        onChange={(next) => updateField('useGeminiStyle', next)}
+                        size="md"
+                        ariaLabel="啟用 Gemini 風格輸出"
+                    />
                 </div>
 
                 {/* v3.2.4: 個別化學習報告模組 — 由 3.1 default rule 抽出嚟做獨立 toggle 控制 */}
@@ -1041,19 +1031,13 @@ const renderStep3 = () => (
                                 <div className={`text-xs ${'text-slate-500'}`}>完成任務後嘅學習報告：包含學習數據、視覺化、與成長型思維建議</div>
                             </div>
                         </div>
-                        <button
-                            onClick={() => updateField('personalizedReport', { ...formData.personalizedReport, enabled: !formData.personalizedReport?.enabled })}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                                formData.personalizedReport?.enabled !== false
-                                ? ('bg-amber-600')
-                                : ('bg-slate-300')
-                            }`}
-                            title={formData.personalizedReport?.enabled !== false ? '已啟用 — 7 段 rule 會注入 prompt' : '已關閉 — 唔會注入任何 rule'}
-                        >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                formData.personalizedReport?.enabled !== false ? 'translate-x-6' : 'translate-x-1'
-                            }`} />
-                        </button>
+                        <ToggleSwitch
+                            theme={theme}
+                            on={formData.personalizedReport?.enabled !== false}
+                            onChange={(next) => updateField('personalizedReport', { ...formData.personalizedReport, enabled: next })}
+                            size="md"
+                            ariaLabel="啟用個別化學習報告模組"
+                        />
                     </div>
 
                     {/* Sub-toggles: a/b/c 三段 + d 段「親師溝通」4 個 sub-features — 跟 master toggle 啟用狀態 */}
@@ -1073,21 +1057,16 @@ const renderStep3 = () => (
                                     <div className={`text-xs font-bold ${'text-slate-700'}`}>{sub.label}</div>
                                     <div className={`text-[10px] ${'text-slate-500'}`}>{sub.desc}</div>
                                 </div>
-                                <button
-                                    onClick={() => updateField('personalizedReport', {
+                                <ToggleSwitch
+                                    theme={theme}
+                                    on={formData.personalizedReport?.[sub.key] !== false}
+                                    onChange={(next) => updateField('personalizedReport', {
                                         ...formData.personalizedReport,
-                                        [sub.key]: !(formData.personalizedReport?.[sub.key] !== false),
+                                        [sub.key]: next,
                                     })}
-                                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none flex-none ${
-                                        formData.personalizedReport?.[sub.key] !== false
-                                        ? ('bg-amber-500')
-                                        : ('bg-slate-300')
-                                    }`}
-                                >
-                                    <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                                        formData.personalizedReport?.[sub.key] !== false ? 'translate-x-5' : 'translate-x-1'
-                                    }`} />
-                                </button>
+                                    size="sm"
+                                    ariaLabel={`啟用 ${sub.label}`}
+                                />
                             </div>
                         ))}
                     </div>
