@@ -102,6 +102,13 @@ function extractDefaultImport(content) {
 let hasError = false;
 const files = walk(SRC);
 
+// Known component names defined in this project that happen to collide
+// with lucide-react icon names. Skip them in icon guard check.
+const KNOWN_LOCAL_COMPONENTS = new Set([
+    'Tag',     // dynamic HTML tag in GlassCard (button vs div)
+    'Pill',    // design-system primitive (overlaps with lucide Pill icon)
+]);
+
 for (const file of files) {
     const rel = relative(ROOT, file);
     const content = readFileSync(file, 'utf-8');
@@ -115,6 +122,7 @@ for (const file of files) {
     for (const tag of jsxTags) {
         if (SKIP_PATTERNS.test(tag)) continue;
         if (allImports.has(tag)) continue;
+        if (KNOWN_LOCAL_COMPONENTS.has(tag)) continue;
         // Check if it's a lucide-react icon — that's the critical case
         if (LUCIDE_EXPORTS.has(tag)) {
             console.error(`[check:icons] ❌ ${rel}: JSX uses <${tag} /> but icon is NOT imported from lucide-react`);
