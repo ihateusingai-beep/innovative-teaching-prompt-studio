@@ -50,13 +50,20 @@ export const useFormData = () => {
     const handleRuleChange = useCallback((index, value) => {
         setFormData(prev => {
             const newRules = [...prev.rules];
-            newRules[index] = value;
+            // W9-10 #6: 老師一改 default rule text，__isDefault 自動變 false
+            // 等 generator 可以 filter 出「真正 user 自訂」嘅 rules
+            const existing = newRules[index];
+            if (typeof existing === 'object' && existing !== null && existing.__isDefault) {
+                newRules[index] = { text: value, __isDefault: false };
+            } else {
+                newRules[index] = { text: value };
+            }
             return { ...prev, rules: newRules };
         });
     }, []);
 
     const addRule = useCallback(() => {
-        setFormData(prev => ({ ...prev, rules: [...prev.rules, ""] }));
+        setFormData(prev => ({ ...prev, rules: [...prev.rules, { text: "" }] }));
     }, []);
 
     const removeRule = useCallback((index) => {

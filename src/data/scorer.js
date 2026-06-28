@@ -77,7 +77,9 @@ const promptScorer = (data) => {
     }
 
     // 4. Rules 具體度
-    const filledRules = (data.rules || []).filter(r => r && r.trim()).length;
+    // W9-10 #6: rules 形狀 {text, __isDefault}？要做 normalize
+    const normalizeRuleText = (r) => typeof r === 'string' ? r : (r?.text || '');
+    const filledRules = (data.rules || []).filter(r => normalizeRuleText(r).trim()).length;
     let rulesScore = 0;
     if (filledRules >= 3) rulesScore = 15;
     else if (filledRules >= 1) rulesScore = 8;

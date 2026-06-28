@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 
+
 // Reserved names that must NOT be mangled.
 // 防止 esbuild minifier 將不同 module 入面同名 callback mangle 到同一個 short name
 // (例如 useAutosave.acceptRecovery 同 useAppState.triggerJSONImport 都 mangle 做 'bi')
@@ -23,6 +24,12 @@ const MANGLE_RESERVED = [
     'handleNextTab', 'handlePrevTab', 'handleReset',
     'confirmReplace', 'confirmAppend', 'cancelSuggestion', 'saveApiKey',
     'setTab', 'tabCompletion', 'toggleSection',
+    // W9-10 Q3: inline warning banner queue
+    'warnings', 'pushWarning', 'dismissWarning',
+    // W9-10 #6: rules object shape helpers
+    'normalizeRule', 'normalizeRuleText', 'exportRules',
+    // W9-10 #5: option tables
+    'defaultRules',
     'updateField', 'toggleSelection', 'handleExampleChange', 'addExample', 'removeExample',
     'handleRuleChange', 'addRule', 'removeRule',
     'MAX_USER_TEMPLATES', 'TAB_KEYS',

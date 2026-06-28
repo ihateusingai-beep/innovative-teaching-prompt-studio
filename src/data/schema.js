@@ -1,3 +1,5 @@
+import { defaultRules } from './option-tables.js';
+
 const SCHEMA_VERSION = 2;
 
 // === Schema definitions for JSON migration ===
@@ -46,6 +48,20 @@ const FIELD_TRANSFORMS = {
             return value[0];
         }
         return value;
+    },
+    // W9-10 #6: rules 由 string[] 升級去 {text, __isDefault}[]
+    // 舊 import 可能係 string，自動 normalize 入 object shape（標記為 user 自訂）
+    // 新 shape (object with .text) 維持不變（avoid round-trip warning noise）
+    rules: (value) => {
+        if (!Array.isArray(value)) return value;
+        // 如果全部都已經係 {text, ...} object shape，唔好 trigger warning (round-trip stable)
+        const allAlreadyObjects = value.every(r => typeof r === 'object' && r !== null && typeof r.text === 'string');
+        if (allAlreadyObjects) return value; // pass through, 唔 warn
+        return value.map(r => {
+            if (typeof r === 'string') return { text: r, __isDefault: false };
+            if (typeof r === 'object' && r !== null && typeof r.text === 'string') return r;
+            return null;
+        }).filter(Boolean);
     },
 };
 
@@ -151,21 +167,21 @@ const migrateFormData = (input) => {
 const getInitialFormData = () => ({
     teacherName: "",
     toolName: "",
-    category: "教學遊戲", 
-    subjectCategory: "語文", 
-    subjectCustomInput: "", 
-    gameStyle: "扭蛋機 (Gachapon)",  // v2 起係 string（單選），v1 係 array [已修正] 
-    gameStyleCustomInput: "", 
-    interactionType: ["點擊 (Click)"], 
-    interactionCustomInput: "", 
-    learningDiversity: [], 
+    category: "教學遊戲",
+    subjectCategory: "語文",
+    subjectCustomInput: "",
+    gameStyle: "扭蛋機 (Gachapon)",  // v2 起係 string（單選），v1 係 array [已修正]
+    gameStyleCustomInput: "",
+    interactionType: ["點擊 (Click)"],
+    interactionCustomInput: "",
+    learningDiversity: [],
     includePreferenceSettings: true, // Default to true
     useGeminiStyle: true, // 控制 output format（單一 HTML 檔 + Gemini 風格生成指令），唔係揀 AI model
     fabStyle: "cyber", // New: 生成出嚟嘅 HTML 工具右下角 FAB 風格（cyber holographic / minimal / off）
     examples: [
         { text: "", level: "初階", count: 10, mechanism: "3選1答案" },
         { text: "", level: "中階", count: 10, mechanism: "4選1答案" },
-        { text: "", level: "高階", count: 10, mechanism: "輸入文字 (Text Input)" } 
+        { text: "", level: "高階", count: 10, mechanism: "輸入文字 (Text Input)" }
     ],
     grade: "小學二年級 (P2)",
     senLevel: "輕度 (Mild)",
@@ -179,24 +195,11 @@ const getInitialFormData = () => ({
     ],
     purpose: "",
     context: "",
-    value: ["堅毅"], 
-    rules: [`在右上角加上學習儀表版功能,讓學生能夠自我檢測, 成績要能存在本機`, "答對時給予 提示音及對應的知識理論，為何該答案是正確", "首頁輸入框提示：請輸入你的名字開始遊戲： 例如：小明, 行動按鈕：開始遊戲",
-"增加一個 自學模式，用戶能自行設定問題給自己, 例子(x - y) 然後自行解答。",
-`「個別化學習報告頁面」，需符合以下原則：
-a. 個別化與數據化
-顯示具體學習數據，例如：答對題數／總題數、平均嘗試次數、完成時間（若適用）
-標示「最熟練項目」與「需加強項目」（例如：最易／最難的數字、詞彙或題型）
-數據需基於學生實際互動行為（如錯誤模式、重試次數）而非僅二元對錯
-b. 可視化與兒童友善設計
-使用簡易長條圖、圓餅圖或進度條呈現關鍵數據，避免複雜座標軸
-採用柔和配色、大字體、Emoji 或插畫風格圖示（如🌟、💡、🚀）
-避免文字密集，多用圖示與留白，確保低年級學生能一眼理解
-c. 正向語言與建設性建議
-以成長型思維（growth mindset）措辭：強調「努力」「進步」「小專家」「再試一次就更厲害」
-提供 1–2 條具體、可操作的建議（例如：「你可以每天練習 3 次『7 的分解』，就像搭積木一樣！」）
-避免負面標籤（如「你不會」「錯誤太多」）`,
-"🎉 慶祝特效: 任務完成時觸發 canvas-confetti（特效只會觸發一次，重置後才會再次觸發）。"
-    ]
+    value: ["堅毅"],
+    // W9-10 #6: rules 用 object array，加 __isDefault flag
+    // generator 會 filter 掉 __isDefault: true 而老師未改過嘅 entry，避免 default noise 入 prompt
+    // 老師一改 text (即使加個句號)，__isDefault 會由 useFormData.handleRuleChange 自動清返 false
+    rules: defaultRules.map(r => ({ ...r })),
 });
 
 export { SCHEMA_VERSION, FORM_SCHEMA, FIELD_RENAMES, FIELD_TRANSFORMS, matchesType, migrateFormData, getInitialFormData };

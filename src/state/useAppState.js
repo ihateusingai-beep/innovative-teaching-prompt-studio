@@ -120,6 +120,17 @@ export const useAppState = () => {
     // Recovery snackbar 狀態 — 用嚟 auto-dismiss
     const [recoveryDismissed, setRecoveryDismissed] = useState(false);
 
+    // Inline warning banner queue — W9-10 Q3: 取代 alert() 阻住 UI
+    // Each item: { id, severity: 'info'|'warning'|'error', title, messages: [] }
+    const [warnings, setWarnings] = useState([]);
+    const pushWarning = useCallback((severity, title, messages) => {
+        const id = 'w_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+        setWarnings(prev => [...prev, { id, severity, title, messages: messages || [] }]);
+    }, []);
+    const dismissWarning = useCallback((id) => {
+        setWarnings(prev => prev.filter(w => w.id !== id));
+    }, []);
+
     // === Persistent storage hooks ===
     const [userTemplates, setUserTemplates] = useLocalStorage('TDA_USER_TEMPLATES_V1', []);
     const [geminiApiKey, setGeminiApiKey] = useLocalStorage('TDA_GEMINI_API_KEY_V1', '');
@@ -359,16 +370,16 @@ export const useAppState = () => {
                     pushHistory();
                     setFormData(cleanFormData);
                     if (__warnings && __warnings.length > 0) {
-                        alert('⚠️ Import 警告：\n' + __warnings.join('\n'));
+                        pushWarning('warning', '匯入完成（' + __warnings.length + ' 項警告）', __warnings);
                     }
                 }
             } catch (err) {
-                alert('❌ JSON 解析失敗：' + err.message);
+                pushWarning('error', 'JSON 解析失敗', [err.message]);
             }
         };
         reader.readAsText(file);
         event.target.value = ''; // Reset so same file can be re-imported
-    }, [formData, setFormData, pushHistory]);
+    }, [formData, setFormData, pushHistory, pushWarning]);
 
     // === Confirm replace/append dialog handlers ===
     const confirmReplace = useCallback(() => {
@@ -376,10 +387,10 @@ export const useAppState = () => {
         pushHistory();
         setFormData(pendingSuggestion.data);
         if (pendingSuggestion.warnings && pendingSuggestion.warnings.length > 0) {
-            alert('⚠️ Import 警告：\n' + pendingSuggestion.warnings.join('\n'));
+            pushWarning('warning', '匯入完成（' + pendingSuggestion.warnings.length + ' 項警告）', pendingSuggestion.warnings);
         }
         setPendingSuggestion(null);
-    }, [pendingSuggestion, pushHistory, setFormData]);
+    }, [pendingSuggestion, pushHistory, setFormData, pushWarning]);
 
     const confirmAppend = useCallback(() => {
         if (!pendingSuggestion || pendingSuggestion.type !== 'import') return;
@@ -401,10 +412,10 @@ export const useAppState = () => {
             return merged;
         });
         if (pendingSuggestion.warnings && pendingSuggestion.warnings.length > 0) {
-            alert('⚠️ Import 警告：\n' + pendingSuggestion.warnings.join('\n'));
+            pushWarning('warning', '合併匯入完成（' + pendingSuggestion.warnings.length + ' 項警告）', pendingSuggestion.warnings);
         }
         setPendingSuggestion(null);
-    }, [pendingSuggestion, pushHistory, setFormData]);
+    }, [pendingSuggestion, pushHistory, setFormData, pushWarning]);
 
     const cancelSuggestion = useCallback(() => {
         setPendingSuggestion(null);
@@ -412,9 +423,13 @@ export const useAppState = () => {
 
     // === JSON export ===
     const handleExportJSON = useCallback(() => {
+        // W9-10 #6: export 時 strip 走 rules 嘅 __isDefault metadata
+        // 老師 share 嘅 JSON 唔應該洩漏 internal flags
+        const exportRules = (formData.rules || []).map(r => typeof r === 'string' ? r : (r?.text || ''));
         const payload = {
             __schema_version: 2,
             ...formData,
+            rules: exportRules,
         };
         const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
@@ -435,7 +450,8 @@ export const useAppState = () => {
 
     const applySuggestion = useCallback((field, text) => {
         if (field === 'rules') {
-            const newRules = [...formData.rules, text];
+            // W9-10 #6: AI 建議加入嘅 rule 預設係 user 自訂（非 default）
+            const newRules = [...formData.rules, { text, __isDefault: false }];
             updateField('rules', newRules);
         } else if (field === 'examples') {
             const newExamples = [...formData.examples, {
@@ -453,7 +469,8 @@ export const useAppState = () => {
 
     const handleSelectSuggestion = useCallback((candidate) => {
         if (activeSuggestionField === 'rules') {
-            const newRules = [...formData.rules, candidate.text];
+            // W9-10 #6: AI 建議加入嘅 rule 預設係 user 自訂（非 default）
+            const newRules = [...formData.rules, { text: candidate.text, __isDefault: false }];
             updateField('rules', newRules);
         } else if (activeSuggestionField === 'examples') {
             const newExamples = [...formData.examples, {
@@ -509,11 +526,11 @@ export const useAppState = () => {
         if (result && result.cleanFormData) {
             setFormData(result.cleanFormData);
             if (result.warnings && result.warnings.length > 0) {
-                alert('⚠️ 載入警告：\n' + result.warnings.join('\n'));
+                pushWarning('warning', '載入 recovery（' + result.warnings.length + ' 項警告）', result.warnings);
             }
         }
         setRecoveryDismissed(true);
-    }, [acceptRecovery, setFormData]);
+    }, [acceptRecovery, setFormData, pushWarning]);
 
     // === W5-6: Restore version (set formData + push history) ===
     const restoreVersion = useCallback((version) => {
@@ -546,10 +563,12 @@ export const useAppState = () => {
                     }
                 }
             }
-            // customNotes → append to rules as a comment-like rule
+            // customNotes → append to rules as a comment-like rule (W9-10 #6: wrap 為 user rule)
             if (profile.customNotes && profile.customNotes.trim()) {
                 const noteLine = `[Profile 備註：${profile.name}] ${profile.customNotes.trim()}`;
-                merged.rules = Array.isArray(merged.rules) ? [...merged.rules, noteLine] : [noteLine];
+                merged.rules = Array.isArray(merged.rules)
+                    ? [...merged.rules, { text: noteLine, __isDefault: false }]
+                    : [{ text: noteLine, __isDefault: false }];
             }
             return merged;
         });
@@ -619,6 +638,10 @@ export const useAppState = () => {
         recoverySnapshot,
         acceptRecovery: handleAcceptRecovery,
         dismissRecovery,
+        // W9-10 Q3: inline warning banner queue (取代 alert())
+        warnings,
+        pushWarning,
+        dismissWarning,
         // Undo / Redo
         canUndo,
         canRedo,

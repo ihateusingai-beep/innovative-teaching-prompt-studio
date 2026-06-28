@@ -1,47 +1,26 @@
 // === Lookup tables ===
-// W3-4+ 發現：呢啲 option array 原本入面喺 same file 內，後來 refactor 移走咗但 generator 入面仲 reference。
-// 為咗唔 create circular dep（App.jsx 已經 import 呢啲 array 嚟做 UI），
-// 我哋喺度 inline 重建一份簡化版（只係用嚟拎 desc）。
-// 完整版 (UI 用) 喺 App.jsx 度 — 我哋呢度只係 fallback prompt-context。
+// W9-10 #5: 抽出去 data/option-tables.js 做 single source of truth
+// App.jsx + generators.jsx 兩邊 import 同一份，避免 drift
+import {
+    senTypeOptions,
+    accessibilityOptions,
+    learningDiversityOptions,
+} from '../data/option-tables.js';
 
-const senTypeOptions = [
-    { id: "adhd", label: "ADHD 專注力不足/過度活躍", desc: "短任務、清晰指示、減少干擾、加入動態操作" },
-    { id: "asd", label: "ASD 自閉症譜系", desc: "視覺時間表、避免抽象比喻、固定流程、減少感官過載" },
-    { id: "dyslexia", label: "讀寫困難 (Dyslexia)", desc: "易讀字型 (OpenDyslexic / Noto Sans TC)、大行距、語音輔助" },
-    { id: "dyscalculia", label: "數學障礙 (Dyscalculia)", desc: "具體教具圖示、分步驟拆解、避開抽象數字符號" },
-    { id: "id", label: "智障 / 認知發展遲緩", desc: "簡化詞彙、圖卡為主、重複練習、生活化情境" },
-    { id: "hearing", label: "聽障", desc: "視覺為主、字幕、手語影片空間、避純音訊反饋" },
-    { id: "visual", label: "視障", desc: "高對比、大字體、語音導航、避純視覺線索" },
-    { id: "physical", label: "肢體傷殘", desc: "大點擊區域、鍵盤導航、減少精細動作" },
-    { id: "speech", label: "語言障礙", desc: "圖卡替代口語、文字輸入、避用語音評估" },
-    { id: "behavioral", label: "情緒行為問題", desc: "正向強化、清楚後果、避免懲罰、社交故事" },
-];
-
-const accessibilityOptions = [
-    { id: "contrast", label: "色彩對比 (WCAG AA 4.5:1)", desc: "文字/背景對比 ≥ 4.5:1，重要元素用高對比色塊" },
-    { id: "keyboard", label: "鍵盤導航 (Keyboard)", desc: "全部功能可用 Tab/Enter/Esc/方向鍵操作，focus 樣式清晰" },
-    { id: "screenReader", label: "Screen Reader 友善", desc: "語意化 HTML (button/nav/main)、aria-label、alt 文字" },
-    { id: "reducedMotion", label: "減少動畫 (Reduced Motion)", desc: "respect prefers-reduced-motion，避 auto-play 動畫" },
-    { id: "tts", label: "TTS 廣東話支援", desc: "Web Speech API lang='zh-HK'，所有文字內容可朗讀" },
-    { id: "fontSize", label: "可調字體大小", desc: "提供 6 級字體調節（14/16/18/22/26/32px）" },
-    { id: "highContrast", label: "高對比模式切換", desc: "提供 toggle 一鍵切到純黑白高對比配色" },
-    { id: "captions", label: "字幕 / 視覺替代", desc: "所有音效配視覺替代（圖示/震動/文字），照顧聽障" },
-];
-
-const learningDiversityOptions = [
-    { label: "簡化內容 (Simplify Content)", desc: "使用簡單詞彙、短句，避免冗長說明；一次只教一個概念。" },
-    { label: "多感官輸入 (Multi-sensory)", desc: "結合圖片、聲音、動作、觸覺等多管道刺激，提升理解與記憶。" },
-    { label: "結構化與重複 (Structure & Repetition)", desc: "提供清晰步驟、固定流程與反覆練習機會。" },
-    { label: "即時回饋與獎勵 (Instant Feedback)", desc: "每完成一步即給予肯定（聲音、動畫、貼紙等），增強動機。" },
-    { label: "視覺輔助 (Visual Aids)", desc: "使用圖卡、流程圖、顏色區分、大字體、高對比界面。" },
-    { label: "生活化內容 (Real-life Context)", desc: "教學連結日常生活（如購物、交通、衛生），提升實用性。" },
-    { label: "語音朗讀題目 (TTS Question - HK)", desc: "題目提供廣東話語音朗讀功能。" },
-    { label: "語音朗讀答案 (TTS Answer - HK)", desc: "答案提供廣東話語音朗讀功能。" },
-    { label: "視覺提示 (Visual Cues)", desc: "加入箭頭、色塊、進度條等視覺提示。" },
-];
+import promptScorer from '../data/scorer.js';
 
 export const generateDesignPrompt = (formData) => {
-    const rulesList = formData.rules.filter(r => r.trim() !== "").map((r, i) => `${i + 1}. ${r}`).join("\n    ");
+    // W9-10 #6: rules 由 string[] → {text, __isDefault}[] object array
+    // 老師改過嘅 rule (__isDefault: false) 全部注入 prompt
+    // 未改過嘅 default rule filter 走，避免 default noise + 慳 token
+    const normalizeRule = (r) => typeof r === 'string' ? r : (r?.text || '');
+    const userRules = formData.rules.filter(r => {
+        const text = normalizeRule(r);
+        if (!text || !text.trim()) return false;
+        if (typeof r === 'object' && r !== null && r.__isDefault === true) return false; // skip 走未改 default
+        return true;
+    });
+    const rulesList = userRules.map((r, i) => `${i + 1}. ${normalizeRule(r)}`).join("\n    ");
     const examplesList = formData.examples.filter(ex => ex.text.trim() !== "").map((ex, i) => `* [${ex.level}] (${ex.mechanism}) ${ex.text} (請生成 ${ex.count || 10} 題近似題目)`).join("\n    ");
     const isGame = formData.category === "教學遊戲";
     
@@ -82,8 +61,16 @@ export const generateDesignPrompt = (formData) => {
         : "*（無 — 老師未指定 a11y 維度，請用通用 WCAG 2.1 AA 標準設計）*";
 
     const valuesStr = formData.value.length > 0 ? formData.value.join("、") : "無";
+
+    // W9-10 #3: Quality warning block — 將 scorer 嘅 missing-field suggestions 注入 prompt 開頭
+    // 等 AI 收到 prompt 就知邊啲位資料唔齊，可能需要喺 output 主動提示老師
+    // 只喺評分 < good（< 60）時注入，避免高分 prompt 都有冗長 warning block
+    const quality = promptScorer(formData);
+    const qualityWarning = quality.total < 60 && quality.suggestions.length > 0
+        ? `\n# 0. ⚠️ Prompt 質素提示 (Quality Notice)\n**本 prompt 評分為 ${quality.total}/100（${quality.gradeLabel}）**。以下欄位未完善，AI 收到後請喺最終回應頂部主動提示老師補完，但唔好因為資料未齊而拒絕生成：\n${quality.suggestions.map(s => `* **${s.message}** — ${s.detail}。${s.improvement ? `\n  → ${s.improvement}` : ''}`).join('\n')}\n\n---\n\n`
+        : '';
     
-    let prompt = `# 1. 角色設定 (Role)
+    let prompt = `${qualityWarning}# 1. 角色設定 (Role)
 你是一位擁有 15 年經驗的「資深前端工程師」與「教育科技（EdTech）UX 專家」，專注於為小學生至中學生（具特殊教育需求的學習者）設計直觀、高互動性且符合無障礙標準（WCAG 2.1）的網頁學習工具。你擅長使用 HTML5、CSS3 與 Vanilla JavaScript 開發輕量、響應式、無需外部依賴的應用，並偏好運用 Emoji、CSS 動畫、正向回饋機制 與多感官提示（如顏色、聲音、點擊動效）來提升學習動機與參與度。
 
 你的任務是協助教育工作者（如教師或課程設計者）打造一個在桌機與行動裝置上皆直觀易用的線上學習平台。請以顧問式口吻，具批判性及建設性思考角度，不要盲目服從，找到設計的邏輯問題、設計盲點，請特別從以下角度進行批判性檢視：
@@ -94,27 +81,11 @@ export const generateDesignPrompt = (formData) => {
 • **無障礙 (a11y) 具體實作檢核**：色彩對比 ≥ 4.5:1、鍵盤導航 (Tab/Enter/Esc)、focus 樣式清晰、screen reader 友善（語意化 HTML + aria-label）、所有功能可純鍵盤完成。
 • **SEN 適配性**：學生實際使用時的情緒與認知負荷（唔好只睇功能齊唔齊）。
 
-分以下四部分回應：
-一.  核心設計原則：說明 3–4 項針對下文
-# 2. 專案參數配置 (Configuration)
-# 3. 設計與教育原則 (Design & Pedagogical Principles)
-# 4. 智能教學邏輯 (AI Scaffolding Logic)
-# 5. 遊戲化結算系統 (Game Over & Report)
-的關鍵 UX/UI 原則
-
-二.  畫面結構建議：針對
-# 2. 專案參數配置 (Configuration)
-# 3. 設計與教育原則 (Design & Pedagogical Principles)
-# 4. 智能教學邏輯 (AI Scaffolding Logic)
-# 5. 遊戲化結算系統 (Game Over & Report)
-，描述其響應式佈局、導航邏輯與視覺層級，並強調如何透過留白、大按鈕、柔和配色與字體選擇提升可讀性與舒適度。
-
-三.  互動活動範例：
-根據# 2. 專案參數配置 (Configuration)
-提供 1–2 個具體、可立即實作的互動活動設計（例如「拖放分類」或「點擊消除答題」），無障礙考量（如鍵盤導航支援）、以及如何呈現正向回饋（如答錯不懲罰、多次嘗試加分等成長型思維機制）。
-
-四、提供「高保真文字版介面藍圖」：
-以結構化文字（搭配 Emoji、縮排、區塊標示）模擬關鍵畫面（如遊戲主畫面、結算報告頁）的佈局、元件位置與互動狀態，並標註設計意圖（如「此處使用大按鈕確保觸控準確性」）。
+**請按以下結構逐一回應**（每節都要有實質內容，唔好淨係列標題）：
+1. 針對 # 3 嘅 5 大原則，逐項講解點樣落地（包含針對 # 1 設定嘅具體做法）
+2. 針對 # 4 智能教學邏輯：描述三階回應嘅觸發條件 + 實際輸出範例
+3. 針對 # 5 結算系統：說明「個別化報告」嘅 data points + 視覺化建議
+4. 最後提供「高保真文字版介面藍圖」：用 Emoji + 縮排模擬關鍵畫面嘅佈局，並標註設計意圖（例如「此處用大按鈕確保觸控準確性」）
 
 ****「以下為專案配置，請據此分析」
 
@@ -131,7 +102,7 @@ ${isGame ? `* **遊戲模式需求**：請生成 **三種遊戲模式**，每種
 ${examplesList ? `* **範例題目 (Example Questions)**：\n    ${examplesList}` : ""}
 * **核心用途**：${formData.purpose}
 * **目標學生年級**：${formData.grade}
-* **支援需求 (SEN Support)**：${formData.senLevel}
+* **支援程度 (SEN Level)**：${formData.senLevel}
     * *邏輯設定：「中度」需更多視覺輔助、少字多圖、詞彙簡單；「輕度」可包含較多文字說明。*
 ${senTypesList ? `* **SEN 類型 (SEN Type) — 必須針對性調整設計**：
     ${senTypesList}
@@ -217,37 +188,41 @@ export const generateTechPrompt = (formData) => {
         - **功能一**：字體大小（6級）：小小的(14px)｜小一點(16px)｜剛剛好(18px)｜大一點(22px)｜大大的(26px)｜超～大(32px)。
         - **功能二**：說話速度（6級）：0.5｜0.6｜0.7｜0.8｜0.9｜1.0（倍速），標題：「說話速度」，輔助視覺：左側標註 🐢「慢慢說」，右側標註 🐇「快快說」。`;
 
-    let prompt = `根據你的建議，
+    // W9-10 #9: 重述 Part 1 context，避免 AI 淨 copy Part 2 時冇 setting context
+    const part2Context = `# 0. Part 1 Context Recap
+承接 Part 1 嘅設定（同學類型：${formData.senTypes.length > 0 ? formData.senTypes.join('、') : '一般學生'}；範疇：${formData.category}；學科：${formData.subjectCategory}；SEN Level：${formData.senLevel}）。
+以下係將 Part 1 嘅教學設計落地嘅技術規格。
+`;
 
+    let prompt = `${part2Context}
 # 6. 技術規格 (Technical Stack):
-${formData.useGeminiStyle ? "請生成一個完整的**單一 HTML 檔案** ，並包含以下技術實作：" : ""}
+${formData.useGeminiStyle ? `請生成一個完整的**單一 HTML 檔案**，用瀏覽器直接打開 (\`file://\`) 即可運作，不需 build step 或 server。
 
-1.  **Core Framework**: React (Functional Components + Hooks).
-2.  **Styling**: Tailwind CSS (配色需活潑、高對比、護眼).
-3.  **Icons**: Lucide-React.
-4.  **Animation**: Framer Motion (所有點擊、切換、得分、進場都必須有流暢動畫).
-5.  **UI Library**: 使用 shadcn/ui 風格的組件設計.
-6.  **必備功能**:
+1.  **Single-file 架構**：HTML 內用 CDN import React 18 (UMD build) + Babel standalone (in-browser JSX transform, jsxRuntime: 'classic') + Tailwind CDN。CSS inline 喺 \`<style>\` tag，JS inline 喺 \`<script type="text/babel">\`。
+2.  **State**：React Functional Components + \`useState\` / \`useEffect\` / \`useRef\` hooks。**唔好用** Next.js / Vite / Webpack / npm build（要 file:// 可行）。
+3.  **Styling**：Tailwind utility classes (CDN 版已內建)。配色需活潑、高對比、護眼。
+4.  **Icons**：用 inline SVG（Lucide 嘅 outline 風格自己畫），避免 external icon library CDN dependency。
+5.  **Animation**：原生 CSS @keyframes + Tailwind transition utilities，唔需要 Framer Motion（避免額外 CDN）。
+6.  **必備功能**:` : `**Gemini Style 已關閉**。請按你嘅判斷選擇最合適嘅技術棧（React + Vite、純 HTML、或其他），呢度唔限制。
+
+1.  **必備功能**:`}
     * **🔊 語音功能**: 有on/off功能, 若實作 \`speak\` 函式，請將 \`lang\` 預設值設為 \`'zh-HK'\`。
     ${formData.includePreferenceSettings ? preferenceSettingsText : ""}
     * **⬅️ 導航**: 左上方必須有一個顯眼的「返回主頁」按鈕。
     * **💾 儲存 (Download HTML)**: 於主頁左下角設置提供「⬇️ 下載 HTML」按鈕，供使用者一鍵下載當前網頁完整 HTML 原始碼的能力，便於教師備份教學頁面。
-    * **🦶 頁尾與版權 (Footer)**: 頁面最底端顯示置中文字：\`©2025 WMC\`。
+    * **🦶 頁尾與版權 (Footer)**: 頁面最底端顯示置中文字：\`© ${new Date().getFullYear()} ${formData.teacherName || '老師'} 設計\`。
 ${formData.fabStyle === "cyber" ? `    * **🏷️ 懸浮標籤 (FAB) — Cyber 全息風格**:
         - 位置：右下角固定 (Fixed)。
         - 樣式：使用彩虹般的全息色 (holographic/iridescent)，隨視角或時間微變，外框與文字，半透明材質，營造未來感。帶有電腦型 (Monitor) 圖示。
-        - 內容：「WMC ${formData.teacherName || 'TDA'} 設計」。
-        - 額外元素：旁邊加一張 Ken Cheng 簽名 PNG (./assets/personal_logo.png) 製造個人品牌感。` :
+        - 內容：「${formData.teacherName || '老師'} 設計」。
+        - 不需要附加任何外部圖片或個人簽名資產。` :
 formData.fabStyle === "minimal" ? `    * **🏷️ 懸浮標籤 (FAB) — Minimal 簡約風格**:
         - 位置：右下角固定 (Fixed)。
         - 樣式：白底、淺灰邊框、簡約陰影；hover 時輕微 scale (1.05)。帶有電腦型 (Monitor) 圖示。
-        - 內容：簡短文字「${formData.teacherName || 'TDA'} 設計」，不需簽名圖。
+        - 內容：簡短文字「${formData.teacherName || '老師'} 設計」。
         - 整體調性：乾淨、專業、不搶眼，適合正式教學場合。` :
 `    * **🏷️ 懸浮標籤 (FAB)**: ❌ 老師已選擇關閉，請勿加任何右下角浮動標籤 / FAB。`}
-${formData.accessibility.length > 0 ? `    * **♿ 無障礙實作（對應 Part 1 指定嘅 a11y 維度）**:
-        - 必須喺最終程式碼真正實作 Part 1 揀嘅 a11y 維度（見 Part 1 §「# 3. 設計與教育原則」第 6 項）。
-        - 每個維度都要有對應 code：色彩對比用 color-contrast() 或手動驗證；鍵盤導航用 tabindex + :focus-visible；Screen Reader 用語意化 HTML + aria-label；減少動畫用 @media (prefers-reduced-motion: reduce)。
-        - 喺程式碼頂部加一個簡短嘅 a11y 註解區塊，列出已實作嘅維度。` : ""}
+${formData.accessibility.length > 0 ? `    * **♿ 無障礙實作**：見 Part 1 §3.6 嘅完整 checklist（每個維度嘅具體 code pattern 同實作要求）。本段唔重複，淨係喺程式碼頂部加一個簡短嘅 a11y 註解區塊列出已實作嘅維度。` : ""}
 
 # 執行任務 (Execution)
 請根據上述配置，編寫完整的程式碼。程式碼需包含完整的 UI 佈局、邏輯處理${formData.category === "教學遊戲" ? "、以及上述的三階 AI 回應內容模擬" : ""}。`;
