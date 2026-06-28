@@ -1783,7 +1783,7 @@ const renderAiResult = () => (
                                     }`}
                                 >
                                     <span>{tab.icon}</span>
-                                    <span className={''}>
+                                    <span className={'hidden sm:inline'}>
                                         {tab.label}
                                     </span>
                                     {comp.total > 0 && (
