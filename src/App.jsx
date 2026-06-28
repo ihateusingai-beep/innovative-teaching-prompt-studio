@@ -2008,7 +2008,8 @@ const renderAiResult = () => (
 
 
                 {/* Extra Links Above Footer */}
-                <div className="mt-12 flex flex-wrap justify-center gap-token-4">
+                {/* v3.3.1: 9 個 AI platform links (5 active + Lovable del + 4 新增) — flex-wrap 自動換行 */}
+                <div className="mt-12 flex flex-wrap justify-center gap-token-3">
                     {/* Base44 Link */}
                     <a href="https://base44.com/" target="_blank" rel="noopener noreferrer" className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex items-center gap-2 ${
                         theme === 'cyber'
@@ -2017,7 +2018,7 @@ const renderAiResult = () => (
                     }`}>
                         Base44 <ExternalLink size={14} />
                     </a>
-                    
+
                     {/* Emergent Link */}
                     <a href="https://app.emergent.sh/home" target="_blank" rel="noopener noreferrer" className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex items-center gap-2 ${
                         theme === 'cyber'
@@ -2026,7 +2027,7 @@ const renderAiResult = () => (
                     }`}>
                         Emergent <ExternalLink size={14} />
                     </a>
-                    
+
                     {/* v0.app Link */}
                     <a href="https://v0.app/" target="_blank" rel="noopener noreferrer" className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex items-center gap-2 ${
                         theme === 'cyber'
@@ -2035,7 +2036,7 @@ const renderAiResult = () => (
                     }`}>
                         v0.app <ExternalLink size={14} />
                     </a>
-                    
+
                     {/* Gemini Link */}
                     <a href="https://gemini.google.com/gem/brainstormer" target="_blank" rel="noopener noreferrer" className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex items-center gap-2 ${
                         theme === 'cyber'
@@ -2045,16 +2046,57 @@ const renderAiResult = () => (
                         Gemini <ExternalLink size={14} />
                     </a>
 
-                    {/* Lovable Link */}
-                    <a href="https://lovable.dev/" target="_blank" rel="noopener noreferrer" className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex items-center gap-2 ${
+                    {/* Lovable Link — del (不能分享) v3.3.1: 改做 visual disabled */}
+                    {/*    保留 link node（URL 仍然喺 source 入面）但 user click 唔到： */}
+                    {/*    pointer-events-none 阻 click + line-through opacity-50 視覺上表達「已刪除」 */}
+                    {/*    title hover tooltip 解釋「呢個 AI 平台 share 唔到 prompt, 已退役」 */}
+                    <span
+                        aria-disabled="true"
+                        title="Lovable 已退役：share link 唔可以喺 prompt 入面分享畀老師，已轉用其他 4 個新平台"
+                        className={`px-4 py-2 rounded-lg border text-sm font-medium flex items-center gap-2 select-none cursor-not-allowed line-through opacity-50 ${
+                            theme === 'cyber'
+                            ? 'border-pink-500/20 bg-pink-900/10 text-pink-400/60'
+                            : 'bg-slate-50 border-slate-200 text-slate-400'
+                        }`}
+                    >
+                        Lovable del (不能分享)
+                    </span>
+
+                    {/* Qwen Link — v3.3.1 新增 */}
+                    <a href="https://qwen.ai/" target="_blank" rel="noopener noreferrer" className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex items-center gap-2 ${
                         theme === 'cyber'
-                        ? 'border-pink-500/30 bg-pink-900/20 text-pink-300 hover:bg-pink-500/20 hover:text-pink-100'
-                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-pink-600 shadow-sm'
+                        ? 'border-violet-500/30 bg-violet-900/20 text-violet-300 hover:bg-violet-500/20 hover:text-violet-100'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-violet-600 shadow-sm'
                     }`}>
-                        Lovable (不能分享) <ExternalLink size={14} />
+                        Qwen <ExternalLink size={14} />
                     </a>
 
-                    {/* GitHub link 已移除 — placeholder link，冇指向特定 repo 留低冇意思 */}
+                    {/* Manus Link — v3.3.1 新增 */}
+                    <a href="https://manus.im/" target="_blank" rel="noopener noreferrer" className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex items-center gap-2 ${
+                        theme === 'cyber'
+                        ? 'border-emerald-500/30 bg-emerald-900/20 text-emerald-300 hover:bg-emerald-500/20 hover:text-emerald-100'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-emerald-600 shadow-sm'
+                    }`}>
+                        Manus <ExternalLink size={14} />
+                    </a>
+
+                    {/* GenSpark Link — v3.3.1 新增 */}
+                    <a href="https://www.genspark.ai/" target="_blank" rel="noopener noreferrer" className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex items-center gap-2 ${
+                        theme === 'cyber'
+                        ? 'border-orange-500/30 bg-orange-900/20 text-orange-300 hover:bg-orange-500/20 hover:text-orange-100'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-orange-600 shadow-sm'
+                    }`}>
+                        GenSpark <ExternalLink size={14} />
+                    </a>
+
+                    {/* 豆包 Doubao Link — v3.3.1 新增 */}
+                    <a href="https://www.doubao.com/chat/" target="_blank" rel="noopener noreferrer" className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex items-center gap-2 ${
+                        theme === 'cyber'
+                        ? 'border-red-500/30 bg-red-900/20 text-red-300 hover:bg-red-500/20 hover:text-red-100'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-red-600 shadow-sm'
+                    }`}>
+                        豆包 <ExternalLink size={14} />
+                    </a>
                 </div>
 
                 {/* Footer */}
