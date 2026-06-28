@@ -219,8 +219,8 @@ const renderStep1 = () => (
             theme={theme}
             title="📚 範本庫 (Template Library)"
             badge="快速開始"
-            isOpen={true}
-            onToggle={() => {}}
+            isOpen={expandedSections.templateLibrary}
+            onToggle={() => toggleSection('templateLibrary')}
             hint={`${BUILTIN_TEMPLATES.length} 個內建 + ${userTemplates.length} 個自訂`}
         >
             <div className="space-y-token-4">

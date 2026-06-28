@@ -27,6 +27,7 @@ import { generateWithGemini } from '../utils/gemini.js';
 import { saveToStorage, loadFromStorage, removeFromStorage } from '../utils/storage.js';
 import { formatTimeAgo } from '../utils/time.js';
 import { handleExportDOCX } from '../utils/docx.js';
+import { extractTemplateFields } from '../utils/template-loader.js';
 
 import { useFormData } from '../hooks/useFormData.js';
 import { useAutosave } from '../hooks/useAutosave.js';
@@ -333,14 +334,12 @@ export const useAppState = () => {
     }, [userTemplates, setUserTemplates]);
 
     // === Load template ===
+    // 3-shape 兼容邏輯抽咗去 src/utils/template-loader.js (extractTemplateFields)，
+    // 純 function 易 unit test；呢度只負責 push history + setFormData + jump tab.
     const handleLoadTemplate = useCallback((template) => {
         pushHistory();
-        if (template.data) {
-            setFormData({ ...getInitialFormData(), ...template.data });
-        } else {
-            // Built-in template — uses data shape { ...initial }
-            setFormData({ ...getInitialFormData(), ...template });
-        }
+        const fields = extractTemplateFields(template);
+        setFormData({ ...getInitialFormData(), ...fields });
         setActiveTab('basic');
     }, [setFormData, pushHistory]);
 

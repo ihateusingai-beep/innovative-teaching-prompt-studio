@@ -47,6 +47,8 @@ const MANGLE_RESERVED = [
     // W7-8 crypto helpers (called by hook consumer code)
     'createVault', 'unlockVault', 'encryptProfileEntry', 'decryptProfileEntry',
     'encryptString', 'decryptString', 'generateSalt', 'generateIV', 'testUnlock',
+    // v3.2.1 template loader
+    'extractTemplateFields',
 ];
 
 export default defineConfig({
