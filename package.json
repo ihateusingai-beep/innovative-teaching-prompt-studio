@@ -1,15 +1,16 @@
 {
   "name": "innovative-teaching-prompt-studio",
-  "version": "3.2.1",
+  "version": "3.2.2",
   "description": "Innovative Teaching Prompt Studio (創意教學 Prompt Studio) — single-file React app for SEN teachers to generate structured AI prompts (Gemini / Claude / Lovable / v0)",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm run check:icons && vite build",
     "preview": "vite preview",
     "test": "vitest run --config vitest.config.js",
-    "test:watch": "vitest --config vitest.config.js"
+    "test:watch": "vitest --config vitest.config.js",
+    "check:icons": "node scripts/check-icons.mjs"
   },
   "dependencies": {
     "docx": "^7.8.2",
