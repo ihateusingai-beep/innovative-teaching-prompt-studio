@@ -2008,7 +2008,7 @@ const renderAiResult = () => (
 
 
                 {/* Extra Links Above Footer */}
-                {/* v3.3.1: 9 個 AI platform links (5 active + Lovable del + 4 新增) — flex-wrap 自動換行 */}
+                {/* v3.3.2: 9 個 AI platform links (6 active + 3 新增 — qwen/manus/genspark/豆包 + base44/emergent/v0/gemini/lovable) — flex-wrap 自動換行 */}
                 <div className="mt-12 flex flex-wrap justify-center gap-token-3">
                     {/* Base44 Link */}
                     <a href="https://base44.com/" target="_blank" rel="noopener noreferrer" className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex items-center gap-2 ${
@@ -2046,21 +2046,14 @@ const renderAiResult = () => (
                         Gemini <ExternalLink size={14} />
                     </a>
 
-                    {/* Lovable Link — del (不能分享) v3.3.1: 改做 visual disabled */}
-                    {/*    保留 link node（URL 仍然喺 source 入面）但 user click 唔到： */}
-                    {/*    pointer-events-none 阻 click + line-through opacity-50 視覺上表達「已刪除」 */}
-                    {/*    title hover tooltip 解釋「呢個 AI 平台 share 唔到 prompt, 已退役」 */}
-                    <span
-                        aria-disabled="true"
-                        title="Lovable 已退役：share link 唔可以喺 prompt 入面分享畀老師，已轉用其他 4 個新平台"
-                        className={`px-4 py-2 rounded-lg border text-sm font-medium flex items-center gap-2 select-none cursor-not-allowed line-through opacity-50 ${
-                            theme === 'cyber'
-                            ? 'border-pink-500/20 bg-pink-900/10 text-pink-400/60'
-                            : 'bg-slate-50 border-slate-200 text-slate-400'
-                        }`}
-                    >
-                        Lovable del (不能分享)
-                    </span>
+                    {/* Lovable Link — v3.3.2: 移除 del disabled 狀態，restore active link */}
+                    <a href="https://lovable.dev/" target="_blank" rel="noopener noreferrer" className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex items-center gap-2 ${
+                        theme === 'cyber'
+                        ? 'border-pink-500/30 bg-pink-900/20 text-pink-300 hover:bg-pink-500/20 hover:text-pink-100'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-pink-600 shadow-sm'
+                    }`}>
+                        Lovable <ExternalLink size={14} />
+                    </a>
 
                     {/* Qwen Link — v3.3.1 新增 */}
                     <a href="https://qwen.ai/" target="_blank" rel="noopener noreferrer" className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex items-center gap-2 ${
