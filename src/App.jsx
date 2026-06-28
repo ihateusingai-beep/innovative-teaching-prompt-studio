@@ -234,13 +234,13 @@ const renderStep1 = () => (
         >
             <div className="space-y-token-4">
                 <div className={`p-token-3 rounded-lg text-sm ${
-                    theme === 'cyber' ? 'bg-cyan-900/20 border border-cyan-500/30 text-cyan-200' : 'bg-blue-50 border border-blue-200 text-blue-800'
+                    'bg-blue-50 border border-blue-200 text-blue-800'
                 }`}>
                     💡 第一次用？揀一個範本開始最快。所有範本都經 schema migration pipeline，舊 JSON 範本都 work。
                 </div>
 
                 <div>
-                    <h4 className={`text-sm font-bold mb-2 ${theme === 'cyber' ? 'text-cyan-300 orbitron' : 'text-slate-700'}`}>
+                    <h4 className={`text-sm font-bold mb-2 ${'text-slate-700'}`}>
                         🌟 內建範本 ({BUILTIN_TEMPLATES.length})
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-token-3">
@@ -258,7 +258,7 @@ const renderStep1 = () => (
 
                 {userTemplates.length > 0 && (
                     <div>
-                        <h4 className={`text-sm font-bold mb-2 ${theme === 'cyber' ? 'text-yellow-300 orbitron' : 'text-amber-700'}`}>
+                        <h4 className={`text-sm font-bold mb-2 ${'text-amber-700'}`}>
                             ⭐ 我嘅範本 ({userTemplates.length} / {MAX_USER_TEMPLATES})
                         </h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-token-3">
@@ -277,7 +277,7 @@ const renderStep1 = () => (
                 )}
 
                 <div className={`p-token-3 rounded-lg border-2 border-dashed text-center ${
-                    theme === 'cyber' ? 'border-slate-700 bg-slate-900/30' : 'border-slate-300 bg-slate-50'
+                    'border-slate-300 bg-slate-50'
                 }`}>
                     <button
                         onClick={() => {
@@ -293,13 +293,13 @@ const renderStep1 = () => (
                         className={`px-token-4 py-token-2 rounded-lg font-bold text-sm transition-all ${
                             (!formData.toolName && !formData.purpose)
                                 ? (theme === 'cyber' ? 'bg-slate-800 text-slate-600 cursor-not-allowed' : 'bg-slate-200 text-slate-400 cursor-not-allowed')
-                                : (theme === 'cyber' ? 'bg-gradient-to-r from-yellow-600 to-orange-600 text-white hover:from-yellow-500 hover:to-orange-500' : 'bg-amber-500 text-white hover:bg-amber-600')
+                                : ('bg-amber-500 text-white hover:bg-amber-600')
                         }`}
                     >
                         💾 將當前設定儲存為範本
                     </button>
                     {(!formData.toolName && !formData.purpose) && (
-                        <p className={`text-xs mt-2 ${theme === 'cyber' ? 'text-slate-500' : 'text-slate-500'}`}>
+                        <p className={`text-xs mt-2 ${'text-slate-500'}`}>
                             先填寫工具名稱或核心用途先可以儲存範本
                         </p>
                     )}
@@ -350,7 +350,7 @@ const renderStep1 = () => (
             <div className="space-y-token-4">
                 <div>
                     <Label theme={theme}>1.3 工具範疇 (Category)</Label>
-                    <div className={`text-xs mb-2 ${theme === 'cyber' ? 'text-slate-400' : 'text-slate-500'}`}>
+                    <div className={`text-xs mb-2 ${'text-slate-500'}`}>
                         💡 範疇決定下面嘅 sub-section：
                         <span className="font-bold"> 教學遊戲 </span>→ 遊戲風格 + 範例題目，
                         <span className="font-bold"> 教學工具 / 實驗模擬 </span>→ 範例題目，
@@ -460,11 +460,11 @@ const renderStep1 = () => (
             <div className="space-y-token-4">
                 <Label theme={theme}>1.6 範例題目 (Example Questions)</Label>
                 {formData.examples.map((ex, index) => (
-                    <div key={index} className={`p-token-4 rounded-xl border ${theme === 'cyber' ? 'border-slate-700 bg-slate-800/30' : 'border-slate-200 bg-white'} space-y-token-3`}>
+                    <div key={index} className={`p-token-4 rounded-xl border ${'border-slate-200 bg-white'} space-y-token-3`}>
                         <div className="w-full">
-                            <div className={`text-xs mb-1 opacity-70 ${theme === 'cyber' ? 'text-slate-300' : 'text-slate-600'}`}>題目內容</div>
+                            <div className={`text-xs mb-1 opacity-70 ${'text-slate-600'}`}>題目內容</div>
                             <textarea
-                                className={`w-full px-token-4 py-token-3 rounded-xl outline-none min-h-[80px] resize-y ${theme === 'cyber' ? 'tech-input' : 'plain-input'}`}
+                                className={`w-full px-token-4 py-token-3 rounded-xl outline-none min-h-[80px] resize-y ${'plain-input'}`}
                                 placeholder={`例如：蘋果是甚麼顏色？`}
                                 value={ex.text}
                                 onChange={(e) => handleExampleChange(index, 'text', e.target.value)}
@@ -472,7 +472,7 @@ const renderStep1 = () => (
                         </div>
                         <div className="flex flex-wrap gap-token-2 items-center">
                             <div className="w-24">
-                                <div className={`text-xs mb-1 opacity-70 ${theme === 'cyber' ? 'text-slate-300' : 'text-slate-600'}`}>難度</div>
+                                <div className={`text-xs mb-1 opacity-70 ${'text-slate-600'}`}>難度</div>
                                 <Select
                                     theme={theme}
                                     options={difficultyLevels}
@@ -481,7 +481,7 @@ const renderStep1 = () => (
                                 />
                             </div>
                             <div className="flex-1 min-w-[140px]">
-                                <div className={`text-xs mb-1 opacity-70 ${theme === 'cyber' ? 'text-slate-300' : 'text-slate-600'}`}>答題機制</div>
+                                <div className={`text-xs mb-1 opacity-70 ${'text-slate-600'}`}>答題機制</div>
                                 <Select
                                     theme={theme}
                                     options={answerMechanismOptions}
@@ -490,7 +490,7 @@ const renderStep1 = () => (
                                 />
                             </div>
                             <div className="w-20">
-                                <div className={`text-xs mb-1 opacity-70 ${theme === 'cyber' ? 'text-slate-300' : 'text-slate-600'}`}>數量</div>
+                                <div className={`text-xs mb-1 opacity-70 ${'text-slate-600'}`}>數量</div>
                                 <Input
                                     theme={theme}
                                     type="number"
@@ -598,7 +598,7 @@ const renderStep1 = () => (
                                     : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600'
                             }`}
                         >
-                            <div className={`font-bold tracking-wide ${theme === 'cyber' ? 'orbitron' : ''}`}>輕度需求 (Mild)</div>
+                            <div className={`font-bold tracking-wide ${''}`}>輕度需求 (Mild)</div>
                             <div className="text-xs opacity-70 mt-1">適合一般理解力，可包含較多文字說明與引導。</div>
                         </button>
                         <button
@@ -613,15 +613,15 @@ const renderStep1 = () => (
                                     : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600'
                             }`}
                         >
-                            <div className={`font-bold tracking-wide ${theme === 'cyber' ? 'orbitron' : ''}`}>中度需求 (Moderate)</div>
+                            <div className={`font-bold tracking-wide ${''}`}>中度需求 (Moderate)</div>
                             <div className="text-xs opacity-70 mt-1">需要高強度視覺輔助，少字多圖，詞彙簡單直接。</div>
                         </button>
                     </div>
                 </div>
 
                 <div>
-                    <Label theme={theme}>1.9 SEN 類型 (SEN Type) <span className={`text-xs ml-1 font-normal ${theme === 'cyber' ? 'text-cyan-500 orbitron' : 'text-blue-500'}`}>[可多選]</span></Label>
-                    <div className={`text-xs mb-2 ${theme === 'cyber' ? 'text-slate-400' : 'text-slate-500'}`}>
+                    <Label theme={theme}>1.9 SEN 類型 (SEN Type) <span className={`text-xs ml-1 font-normal ${'text-blue-500'}`}>[可多選]</span></Label>
+                    <div className={`text-xs mb-2 ${'text-slate-500'}`}>
                         學生有邊啲特殊教育需要？AI 會根據所選類型調整設計（例如 ADHD → 短任務；ASD → 視覺時間表）。
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-token-2">
@@ -647,8 +647,8 @@ const renderStep1 = () => (
                 </div>
 
                 <div>
-                    <Label theme={theme}>1.10 無障礙設定 (Accessibility) <span className={`text-xs ml-1 font-normal ${theme === 'cyber' ? 'text-cyan-500 orbitron' : 'text-blue-500'}`}>[可多選]</span></Label>
-                    <div className={`text-xs mb-2 ${theme === 'cyber' ? 'text-slate-400' : 'text-slate-500'}`}>
+                    <Label theme={theme}>1.10 無障礙設定 (Accessibility) <span className={`text-xs ml-1 font-normal ${'text-blue-500'}`}>[可多選]</span></Label>
+                    <div className={`text-xs mb-2 ${'text-slate-500'}`}>
                         預設全選核心項。取消剔 = 呢項毋須嚴格執行（例如唔需要 TTS 就取消剔）。
                     </div>
                     {/* Smart Recommend chip — 根據 SEN types 自動推薦 a11y */}
@@ -657,20 +657,20 @@ const renderStep1 = () => (
                         if (recommended.length === 0) return null;
                         return (
                             <div className={`mb-3 p-token-3 rounded-lg border-2 border-dashed ${
-                                theme === 'cyber' ? 'bg-emerald-900/20 border-emerald-500/50' : 'bg-emerald-50 border-emerald-300'
+                                'bg-emerald-50 border-emerald-300'
                             }`}>
                                 <div className="flex items-start justify-between gap-token-3">
                                     <div className="flex-1 min-w-0">
-                                        <div className={`text-sm font-bold mb-1 ${theme === 'cyber' ? 'text-emerald-200' : 'text-emerald-800'}`}>
+                                        <div className={`text-sm font-bold mb-1 ${'text-emerald-800'}`}>
                                             💡 智能推薦（根據 SEN 類型）
                                         </div>
-                                        <div className={`text-xs mb-2 ${theme === 'cyber' ? 'text-emerald-100' : 'text-emerald-700'}`}>
+                                        <div className={`text-xs mb-2 ${'text-emerald-700'}`}>
                                             為「{formData.senTypes.join('、')}」推薦以下 a11y 維度：
                                         </div>
                                         <div className="flex flex-wrap gap-token-1">
                                             {recommended.map(r => (
                                                 <span key={r} className={`text-xs px-token-2 py-0.5 rounded-full ${
-                                                    theme === 'cyber' ? 'bg-emerald-800/60 text-emerald-200' : 'bg-white border border-emerald-300 text-emerald-800'
+                                                    'bg-white border border-emerald-300 text-emerald-800'
                                                 }`}>
                                                     {r}
                                                 </span>
@@ -692,7 +692,7 @@ const renderStep1 = () => (
                                             }));
                                         }}
                                         className={`flex-none px-token-3 py-token-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                                            theme === 'cyber' ? 'bg-emerald-700 text-white hover:bg-emerald-600' : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                                            'bg-emerald-600 text-white hover:bg-emerald-700'
                                         }`}
                                     >
                                         ⚡ 一鍵啟用
@@ -724,7 +724,7 @@ const renderStep1 = () => (
                 </div>
 
                 <div>
-                    <Label theme={theme}>1.11 照顧學習差異 (Learning Diversity) <span className={`text-xs ml-1 font-normal ${theme === 'cyber' ? 'text-cyan-500 orbitron' : 'text-blue-500'}`}>[可多選]</span></Label>
+                    <Label theme={theme}>1.11 照顧學習差異 (Learning Diversity) <span className={`text-xs ml-1 font-normal ${'text-blue-500'}`}>[可多選]</span></Label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-token-2">
                         {learningDiversityOptions.map(opt => (
                             <button
@@ -748,7 +748,7 @@ const renderStep1 = () => (
                 </div>
 
                 <div>
-                    <Label theme={theme}>1.12 互動類型 (Interaction Types) <span className={`text-xs ml-1 font-normal ${theme === 'cyber' ? 'text-cyan-500 orbitron' : 'text-blue-500'}`}>[可多選]</span></Label>
+                    <Label theme={theme}>1.12 互動類型 (Interaction Types) <span className={`text-xs ml-1 font-normal ${'text-blue-500'}`}>[可多選]</span></Label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-token-2">
                         {interactionTypes.map(type => (
                             <button
@@ -796,7 +796,7 @@ const renderStep2 = () => (
                     className={`flex items-center gap-token-1 px-token-2 py-token-1 rounded-md text-xs font-bold transition-all ${
                         activeSuggestionField === 'purpose'
                             ? (theme === 'cyber' ? 'bg-cyan-900/40 text-cyan-200 border border-cyan-500/50' : 'bg-blue-100 text-blue-700 border border-blue-300')
-                            : (theme === 'cyber' ? 'text-slate-400 hover:text-cyan-300 hover:bg-slate-800' : 'text-slate-500 hover:text-blue-600 hover:bg-slate-100')
+                            : ('text-slate-500 hover:text-blue-600 hover:bg-slate-100')
                     }`}
                     title="AI 根據所選範疇智能推薦核心用途"
                 >
@@ -804,7 +804,7 @@ const renderStep2 = () => (
                     {activeSuggestionField === 'purpose' ? '關閉建議' : '✨ AI 幫我諗'}
                 </button>
             </div>
-            <div className={`text-xs mb-2 ${theme === 'cyber' ? 'text-slate-400' : 'text-slate-500'}`}>請簡述這個工具要解決什麼問題？(必填)</div>
+            <div className={`text-xs mb-2 ${'text-slate-500'}`}>請簡述這個工具要解決什麼問題？(必填)</div>
             <TextArea
                 theme={theme}
                 placeholder="例如：讓學生透過拖放蘋果來練習 10 以內的加法，或是幫助自閉症學生指認當下的情緒..."
@@ -832,7 +832,7 @@ const renderStep2 = () => (
                         className={`flex items-center gap-token-1 px-token-2 py-token-1 rounded-md text-xs font-bold transition-all ${
                             activeSuggestionField === 'context'
                                 ? (theme === 'cyber' ? 'bg-cyan-900/40 text-cyan-200 border border-cyan-500/50' : 'bg-blue-100 text-blue-700 border border-blue-300')
-                                : (theme === 'cyber' ? 'text-slate-400 hover:text-cyan-300 hover:bg-slate-800' : 'text-slate-500 hover:text-blue-600 hover:bg-slate-100')
+                                : ('text-slate-500 hover:text-blue-600 hover:bg-slate-100')
                         }`}
                         title="AI 根據所選範疇智能推薦生活情境"
                     >
@@ -857,7 +857,7 @@ const renderStep2 = () => (
                 )}
             </div>
             <div>
-                <Label theme={theme}>2.3 融入價值觀 (Values) <span className={`text-xs ml-1 font-normal ${theme === 'cyber' ? 'text-cyan-500 orbitron' : 'text-blue-500'}`}>[可多選]</span></Label>
+                <Label theme={theme}>2.3 融入價值觀 (Values) <span className={`text-xs ml-1 font-normal ${'text-blue-500'}`}>[可多選]</span></Label>
                 <div className="grid grid-cols-2 gap-token-2 mt-2">
                     {values.map(val => (
                         <button
@@ -893,7 +893,7 @@ const renderStep3 = () => (
                     className={`flex items-center gap-token-1 px-token-2 py-token-1 rounded-md text-xs font-bold transition-all ${
                         activeSuggestionField === 'rules'
                             ? (theme === 'cyber' ? 'bg-cyan-900/40 text-cyan-200 border border-cyan-500/50' : 'bg-blue-100 text-blue-700 border border-blue-300')
-                            : (theme === 'cyber' ? 'text-slate-400 hover:text-cyan-300 hover:bg-slate-800' : 'text-slate-500 hover:text-blue-600 hover:bg-slate-100')
+                            : ('text-slate-500 hover:text-blue-600 hover:bg-slate-100')
                     }`}
                     title="AI 推薦通用嘅教學工具規則（會直接 append 到 rules list）"
                 >
@@ -901,7 +901,7 @@ const renderStep3 = () => (
                     {activeSuggestionField === 'rules' ? '關閉建議' : '✨ AI 幫我加規則'}
                 </button>
             </div>
-            <div className={`text-xs mb-2 ${theme === 'cyber' ? 'text-slate-400' : 'text-slate-500'}`}>請列出這個工具必須遵守的規則（例如：計分方式、匯入功能等）。</div>
+            <div className={`text-xs mb-2 ${'text-slate-500'}`}>請列出這個工具必須遵守的規則（例如：計分方式、匯入功能等）。</div>
 
             {activeSuggestionField === 'rules' && (
                 <SuggestionPanel
@@ -920,7 +920,7 @@ const renderStep3 = () => (
                     const isDefault = typeof rule === 'object' && rule !== null && rule.__isDefault === true;
                     return (
                         <div key={index} className="flex gap-token-2">
-                            <div className={`flex-none pt-3 font-bold text-sm w-6 ${theme === 'cyber' ? 'text-cyan-500 orbitron' : 'text-blue-600'}`}>
+                            <div className={`flex-none pt-3 font-bold text-sm w-6 ${'text-blue-600'}`}>
                                 {index + 1}.
                             </div>
                             <div className="flex-1">
@@ -932,7 +932,7 @@ const renderStep3 = () => (
                                     className="min-h-[80px]"
                                 />
                                 {isDefault && (
-                                    <div className={`text-xs mt-1 ${theme === 'cyber' ? 'text-slate-500' : 'text-slate-400'}`}>
+                                    <div className={`text-xs mt-1 ${'text-slate-400'}`}>
                                         📋 預設範例 — 改一下就會自動標記為「自訂規則」
                                     </div>
                                 )}
@@ -976,13 +976,13 @@ const renderStep3 = () => (
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-token-3">
                         <div className={`p-token-2 rounded-lg ${
-                            theme === 'cyber' ? 'bg-blue-900/50 text-blue-400' : 'bg-blue-100 text-blue-600'
+                            'bg-blue-100 text-blue-600'
                         }`}>
                             <Accessibility size={20} />
                         </div>
                         <div>
-                            <div className={`font-bold text-sm ${theme === 'cyber' ? 'text-slate-200' : 'text-slate-800'}`}>加入偏好設定模組</div>
-                            <div className={`text-xs ${theme === 'cyber' ? 'text-slate-400' : 'text-slate-500'}`}>包含字體大小 (6級) 與 語音速度 (6級) 調整功能</div>
+                            <div className={`font-bold text-sm ${'text-slate-800'}`}>加入偏好設定模組</div>
+                            <div className={`text-xs ${'text-slate-500'}`}>包含字體大小 (6級) 與 語音速度 (6級) 調整功能</div>
                         </div>
                     </div>
                     <button
@@ -990,7 +990,7 @@ const renderStep3 = () => (
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
                             formData.includePreferenceSettings 
                             ? (theme === 'cyber' ? 'bg-cyan-500' : 'bg-blue-600') 
-                            : (theme === 'cyber' ? 'bg-slate-700' : 'bg-slate-300')
+                            : ('bg-slate-300')
                         }`}
                     >
                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -1002,13 +1002,13 @@ const renderStep3 = () => (
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
                     <div className="flex items-center gap-token-3">
                         <div className={`p-token-2 rounded-lg ${
-                            theme === 'cyber' ? 'bg-purple-900/50 text-purple-400' : 'bg-purple-100 text-purple-600'
+                            'bg-purple-100 text-purple-600'
                         }`}>
                             <Code size={20} />
                         </div>
                         <div>
-                            <div className={`font-bold text-sm ${theme === 'cyber' ? 'text-slate-200' : 'text-slate-800'}`}>Gemini 風格輸出格式</div>
-                            <div className={`text-xs ${theme === 'cyber' ? 'text-slate-400' : 'text-slate-500'}`}>若開啟，Part 2 會注入「生成單一 HTML 檔案 + Gemini 美學風格」指令。關閉則 prompt 由 AI 自由決定 stack / output。</div>
+                            <div className={`font-bold text-sm ${'text-slate-800'}`}>Gemini 風格輸出格式</div>
+                            <div className={`text-xs ${'text-slate-500'}`}>若開啟，Part 2 會注入「生成單一 HTML 檔案 + Gemini 美學風格」指令。關閉則 prompt 由 AI 自由決定 stack / output。</div>
                         </div>
                     </div>
                     <button
@@ -1016,7 +1016,7 @@ const renderStep3 = () => (
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
                             formData.useGeminiStyle
                             ? (theme === 'cyber' ? 'bg-purple-500' : 'bg-purple-600')
-                            : (theme === 'cyber' ? 'bg-slate-700' : 'bg-slate-300')
+                            : ('bg-slate-300')
                         }`}
                     >
                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -1031,13 +1031,13 @@ const renderStep3 = () => (
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-token-3">
                             <div className={`p-token-2 rounded-lg ${
-                                theme === 'cyber' ? 'bg-amber-900/50 text-amber-400' : 'bg-amber-100 text-amber-600'
+                                'bg-amber-100 text-amber-600'
                             }`}>
                                 <BarChart3 size={20} />
                             </div>
                             <div>
-                                <div className={`font-bold text-sm ${theme === 'cyber' ? 'text-slate-200' : 'text-slate-800'}`}>📊 個別化學習報告模組</div>
-                                <div className={`text-xs ${theme === 'cyber' ? 'text-slate-400' : 'text-slate-500'}`}>完成任務後嘅學習報告：包含學習數據、視覺化、與成長型思維建議</div>
+                                <div className={`font-bold text-sm ${'text-slate-800'}`}>📊 個別化學習報告模組</div>
+                                <div className={`text-xs ${'text-slate-500'}`}>完成任務後嘅學習報告：包含學習數據、視覺化、與成長型思維建議</div>
                             </div>
                         </div>
                         <button
@@ -1045,7 +1045,7 @@ const renderStep3 = () => (
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
                                 formData.personalizedReport?.enabled !== false
                                 ? (theme === 'cyber' ? 'bg-amber-500' : 'bg-amber-600')
-                                : (theme === 'cyber' ? 'bg-slate-700' : 'bg-slate-300')
+                                : ('bg-slate-300')
                             }`}
                             title={formData.personalizedReport?.enabled !== false ? '已啟用 — 7 段 rule 會注入 prompt' : '已關閉 — 唔會注入任何 rule'}
                         >
@@ -1069,8 +1069,8 @@ const renderStep3 = () => (
                         ].map(sub => (
                             <div key={sub.key} className="flex items-center justify-between py-1">
                                 <div className="flex-1 min-w-0 pr-3">
-                                    <div className={`text-xs font-bold ${theme === 'cyber' ? 'text-slate-300' : 'text-slate-700'}`}>{sub.label}</div>
-                                    <div className={`text-[10px] ${theme === 'cyber' ? 'text-slate-500' : 'text-slate-500'}`}>{sub.desc}</div>
+                                    <div className={`text-xs font-bold ${'text-slate-700'}`}>{sub.label}</div>
+                                    <div className={`text-[10px] ${'text-slate-500'}`}>{sub.desc}</div>
                                 </div>
                                 <button
                                     onClick={() => updateField('personalizedReport', {
@@ -1080,7 +1080,7 @@ const renderStep3 = () => (
                                     className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none flex-none ${
                                         formData.personalizedReport?.[sub.key] !== false
                                         ? (theme === 'cyber' ? 'bg-amber-500' : 'bg-amber-500')
-                                        : (theme === 'cyber' ? 'bg-slate-700' : 'bg-slate-300')
+                                        : ('bg-slate-300')
                                     }`}
                                 >
                                     <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
@@ -1097,13 +1097,13 @@ const renderStep3 = () => (
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-token-3">
                             <div className={`p-token-2 rounded-lg ${
-                                theme === 'cyber' ? 'bg-pink-900/50 text-pink-400' : 'bg-pink-100 text-pink-600'
+                                'bg-pink-100 text-pink-600'
                             }`}>
                                 <Monitor size={20} />
                             </div>
                             <div>
-                                <div className={`font-bold text-sm ${theme === 'cyber' ? 'text-slate-200' : 'text-slate-800'}`}>右下角 FAB 風格 (FAB Style)</div>
-                                <div className={`text-xs ${theme === 'cyber' ? 'text-slate-400' : 'text-slate-500'}`}>控制生成工具右下角浮動標籤嘅視覺風格</div>
+                                <div className={`font-bold text-sm ${'text-slate-800'}`}>右下角 FAB 風格 (FAB Style)</div>
+                                <div className={`text-xs ${'text-slate-500'}`}>控制生成工具右下角浮動標籤嘅視覺風格</div>
                             </div>
                         </div>
                     </div>
@@ -1154,10 +1154,10 @@ const renderStep4 = (formData, designPrompt, techPrompt, qualityScore) => (
             </div>
             <div>
                 <h3 className={`text-lg font-bold ${
-                    theme === 'cyber' ? 'text-cyan-100 orbitron tracking-wide' : 'text-slate-800'
+                    'text-slate-800'
                 }`}>提詞已生成！</h3>
                 <div className={`text-sm mt-2 space-y-token-1 ${
-                    theme === 'cyber' ? 'text-cyan-200/80' : 'text-slate-600'
+                    'text-slate-600'
                 }`}>
                     <p>1. 請點擊下方按鈕複製 PART 1 設計與邏輯，然後貼給 AI 進行構思。</p>
                     <p>2. 待 AI 回應後，請複製 PART 2 技術與執行讓 AI 生成 MVP 專案（最小可行產品）。</p>
@@ -1181,7 +1181,7 @@ const renderStep4 = (formData, designPrompt, techPrompt, qualityScore) => (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-token-4 md:h-[600px]">
             {/* Left Side: Design Prompt */}
             <div className="flex flex-col h-full">
-                <div className={`flex items-center justify-between mb-2 ${theme === 'cyber' ? 'text-cyan-300' : 'text-slate-700'}`}>
+                <div className={`flex items-center justify-between mb-2 ${'text-slate-700'}`}>
                     <span className="text-sm font-bold orbitron">Part 1: 設計與邏輯</span>
                     <button
                         onClick={handleCopyDesign}
@@ -1208,7 +1208,7 @@ const renderStep4 = (formData, designPrompt, techPrompt, qualityScore) => (
 
             {/* Right Side: Technical Prompt */}
             <div className="flex flex-col h-full">
-                <div className={`flex items-center justify-between mb-2 ${theme === 'cyber' ? 'text-purple-300' : 'text-slate-700'}`}>
+                <div className={`flex items-center justify-between mb-2 ${'text-slate-700'}`}>
                     <span className="text-sm font-bold orbitron">Part 2: 技術與執行</span>
                     <button
                         onClick={handleCopyTech}
@@ -1285,7 +1285,7 @@ const renderStep4 = (formData, designPrompt, techPrompt, qualityScore) => (
                             ? 'bg-slate-400 cursor-wait'
                             : !geminiApiKey
                                 ? 'bg-slate-300 cursor-not-allowed'
-                                : (theme === 'cyber' ? 'bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500' : 'bg-purple-600 hover:bg-purple-700')
+                                : ('bg-purple-600 hover:bg-purple-700')
                     }`}
                     title={geminiApiKey ? '直接 send Part 2 prompt 畀 Gemini 生成 HTML' : '請先設定 API key'}
                 >
@@ -1338,15 +1338,15 @@ const renderAiResult = () => (
     <Card theme={theme} className="mt-4 p-token-4">
         <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-token-2">
-                <img src={personalLogo} alt="NT-D" className={`h-5 w-5 ${theme === 'cyber' ? '' : ''}`} />
-                <h3 className={`text-sm font-bold ${theme === 'cyber' ? 'text-purple-200 orbitron' : 'text-slate-800'}`}>
+                <img src={personalLogo} alt="NT-D" className={`h-5 w-5 ${''}`} />
+                <h3 className={`text-sm font-bold ${'text-slate-800'}`}>
                     NT-D Gemini 生成嘅 HTML
                 </h3>
             </div>
             <button
                 onClick={() => setAiResult('')}
                 className={`text-xs px-token-2 py-token-1 rounded ${
-                    theme === 'cyber' ? 'text-slate-400 hover:bg-slate-800' : 'text-slate-500 hover:bg-slate-100'
+                    'text-slate-500 hover:bg-slate-100'
                 }`}
             >
                 ✕ 清除
@@ -1354,7 +1354,7 @@ const renderAiResult = () => (
         </div>
         {aiError && (
             <div className={`p-token-3 rounded-lg text-sm mb-3 ${
-                theme === 'cyber' ? 'bg-red-900/30 border border-red-500/40 text-red-200' : 'bg-red-50 border border-red-200 text-red-700'
+                'bg-red-50 border border-red-200 text-red-700'
             }`}>
                 ❌ {aiError}
             </div>
@@ -1362,7 +1362,7 @@ const renderAiResult = () => (
         {aiGenerating && !aiResult && (
             <div className="p-token-4 space-y-token-3">
                 {/* Phase 3.4.3: Skeleton loading pulse */}
-                <div className={`text-center text-sm mb-2 ${theme === 'cyber' ? 'text-cyan-300' : 'text-blue-600'}`}>
+                <div className={`text-center text-sm mb-2 ${'text-blue-600'}`}>
                     <span className="animate-pulse">⏳ Gemini 諗緊度...通常 5-30 秒</span>
                 </div>
                 {[1, 2, 3, 4, 5].map(i => (
@@ -1370,7 +1370,7 @@ const renderAiResult = () => (
                         key={i}
                         className={`skeleton h-3 rounded ${
                             i === 5 ? 'w-3/4' : 'w-full'
-                        } ${theme === 'cyber' ? 'bg-slate-800' : 'bg-slate-200'}`}
+                        } ${'bg-slate-200'}`}
                         style={{ animationDelay: `${i * 0.15}s` }}
                     />
                 ))}
@@ -1382,7 +1382,7 @@ const renderAiResult = () => (
                     readOnly
                     value={aiResult}
                     className={`w-full font-mono text-xs p-token-3 rounded-lg outline-none resize-y ${
-                        theme === 'cyber' ? 'bg-slate-950 text-purple-200 border border-slate-800' : 'bg-slate-50 text-slate-700 border border-slate-200'
+                        'bg-slate-50 text-slate-700 border border-slate-200'
                     }`}
                     style={{ minHeight: '400px' }}
                 />
@@ -1404,7 +1404,7 @@ const renderAiResult = () => (
                             }
                         }}
                         className={`px-token-3 py-token-1.5 rounded-lg text-xs font-bold ${
-                            theme === 'cyber' ? 'bg-cyan-900/40 text-cyan-200 hover:bg-cyan-800/60 border border-cyan-500/40' : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
+                            'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
                         }`}
                     >
                         📋 複製代碼
@@ -1420,7 +1420,7 @@ const renderAiResult = () => (
                             URL.revokeObjectURL(url);
                         }}
                         className={`px-token-3 py-token-1.5 rounded-lg text-xs font-bold ${
-                            theme === 'cyber' ? 'bg-emerald-900/40 text-emerald-200 hover:bg-emerald-800/60 border border-emerald-500/40' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+                            'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
                         }`}
                     >
                         ⬇️ 下載 .html
@@ -1430,7 +1430,7 @@ const renderAiResult = () => (
                         target="_blank"
                         rel="noopener noreferrer"
                         className={`px-token-3 py-token-1.5 rounded-lg text-xs font-bold ${
-                            theme === 'cyber' ? 'bg-purple-900/40 text-purple-200 hover:bg-purple-800/60 border border-purple-500/40' : 'bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200'
+                            'bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200'
                         }`}
                     >
                         🪟 喺新 tab 開
@@ -1570,17 +1570,17 @@ const renderAiResult = () => (
                     }`}>
                         <div className="flex items-start gap-token-3 mb-3">
                             <div className={`flex-none p-token-2 rounded-full ${
-                                theme === 'cyber' ? 'bg-cyan-900/50 text-cyan-300' : 'bg-blue-100 text-blue-600'
+                                'bg-blue-100 text-blue-600'
                             }`}>
                                 <RotateCcw size={18} />
                             </div>
                             <div className="flex-1 min-w-0">
                                 <h4 className={`text-sm font-bold ${
-                                    theme === 'cyber' ? 'text-cyan-100 orbitron' : 'text-slate-800'
+                                    'text-slate-800'
                                 }`}>
                                     載入上次未完成？
                                 </h4>
-                                <p className={`text-xs mt-0.5 ${theme === 'cyber' ? 'text-slate-400' : 'text-slate-500'}`}>
+                                <p className={`text-xs mt-0.5 ${'text-slate-500'}`}>
                                     {new Date(recoverySnapshot.savedAt).toLocaleString('zh-HK')}
                                 </p>
                             </div>
@@ -1608,9 +1608,9 @@ const renderAiResult = () => (
                             </button>
                         </div>
                         {/* Auto-dismiss countdown bar */}
-                        <div className={`mt-2 h-0.5 rounded-full overflow-hidden ${theme === 'cyber' ? 'bg-slate-800' : 'bg-slate-200'}`}>
+                        <div className={`mt-2 h-0.5 rounded-full overflow-hidden ${'bg-slate-200'}`}>
                             <motion.div
-                                className={`h-full ${theme === 'cyber' ? 'bg-cyan-500' : 'bg-blue-500'}`}
+                                className={`h-full ${'bg-blue-500'}`}
                                 initial={{ width: '100%' }}
                                 animate={{ width: '0%' }}
                                 transition={{ duration: 10, ease: 'linear' }}
@@ -1702,7 +1702,7 @@ const renderAiResult = () => (
                                 className={`p-token-2 rounded-full transition-all ${
                                     canUndo
                                         ? (theme === 'cyber' ? 'bg-slate-800 text-cyan-300 hover:bg-slate-700 border border-cyan-500/30' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 shadow-sm')
-                                        : (theme === 'cyber' ? 'bg-slate-900/50 text-slate-600 border border-slate-800' : 'bg-slate-50 text-slate-300 border border-slate-100')
+                                        : ('bg-slate-50 text-slate-300 border border-slate-100')
                                 }`}
                                 title="復原 (Ctrl/Cmd+Z)"
                             >
@@ -1714,7 +1714,7 @@ const renderAiResult = () => (
                                 className={`p-token-2 rounded-full transition-all ${
                                     canRedo
                                         ? (theme === 'cyber' ? 'bg-slate-800 text-cyan-300 hover:bg-slate-700 border border-cyan-500/30' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 shadow-sm')
-                                        : (theme === 'cyber' ? 'bg-slate-900/50 text-slate-600 border border-slate-800' : 'bg-slate-50 text-slate-300 border border-slate-100')
+                                        : ('bg-slate-50 text-slate-300 border border-slate-100')
                                 }`}
                                 title="重做 (Ctrl/Cmd+Shift+Z)"
                             >
@@ -1783,7 +1783,7 @@ const renderAiResult = () => (
                                     }`}
                                 >
                                     <span>{tab.icon}</span>
-                                    <span className={theme === 'cyber' ? 'orbitron tracking-wide' : ''}>
+                                    <span className={''}>
                                         {tab.label}
                                     </span>
                                     {comp.total > 0 && (
@@ -1811,7 +1811,7 @@ const renderAiResult = () => (
 
                 {/* Quality Score Badge — always visible (W1-2) */}
                 <div className="mb-4 max-w-3xl mx-auto flex items-center justify-between gap-token-3">
-                    <div className={`text-xs ${theme === 'cyber' ? 'text-slate-500' : 'text-slate-400'}`}>
+                    <div className={`text-xs ${'text-slate-400'}`}>
                         💡 Tabs 模式：任何 tab 隨時跳。改動自動儲存。
                     </div>
                     <QualityScoreBadge
@@ -1846,7 +1846,7 @@ const renderAiResult = () => (
 
                         {/* Footer Controls */}
                         <div className={`p-token-6 flex justify-between items-center backdrop-blur-sm border-t ${
-                            theme === 'cyber' ? 'bg-slate-900/50 border-slate-800' : 'bg-slate-50 border-slate-100'
+                            'bg-slate-50 border-slate-100'
                         }`}>
                             {/* Left Side: Previous Button */}
                             <div className="w-1/3 flex justify-start">
@@ -1919,12 +1919,12 @@ const renderAiResult = () => (
                         }`}>
                             {/* Panel header + tabs */}
                             <div className={`flex items-center justify-between p-token-3 border-b ${
-                                theme === 'cyber' ? 'border-cyan-500/20 bg-slate-900/50' : 'border-slate-200 bg-slate-50'
+                                'border-slate-200 bg-slate-50'
                             }`}>
                                 <div className="flex items-center gap-token-2">
-                                    <Eye size={16} className={theme === 'cyber' ? 'text-cyan-400' : 'text-blue-600'} />
+                                    <Eye size={16} className={'text-blue-600'} />
                                     <span className={`text-sm font-bold tracking-wide ${
-                                        theme === 'cyber' ? 'text-cyan-200 orbitron' : 'text-slate-800'
+                                        'text-slate-800'
                                     }`}>即時預覽 (Live Preview)</span>
                                 </div>
                                 <div className="flex gap-token-1">
@@ -1933,7 +1933,7 @@ const renderAiResult = () => (
                                         className={`px-token-3 py-token-1 rounded text-xs font-bold transition-all ${
                                             previewTab === 'design'
                                             ? (theme === 'cyber' ? 'bg-cyan-500/30 text-cyan-200 ring-1 ring-cyan-500' : 'bg-blue-100 text-blue-700')
-                                            : (theme === 'cyber' ? 'text-slate-400 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-100')
+                                            : ('text-slate-600 hover:bg-slate-100')
                                         }`}
                                     >
                                         Part 1: 設計
@@ -1943,7 +1943,7 @@ const renderAiResult = () => (
                                         className={`px-token-3 py-token-1 rounded text-xs font-bold transition-all ${
                                             previewTab === 'tech'
                                             ? (theme === 'cyber' ? 'bg-cyan-500/30 text-cyan-200 ring-1 ring-cyan-500' : 'bg-blue-100 text-blue-700')
-                                            : (theme === 'cyber' ? 'text-slate-400 hover:bg-slate-800' : 'text-slate-600 hover:bg-slate-100')
+                                            : ('text-slate-600 hover:bg-slate-100')
                                         }`}
                                     >
                                         Part 2: 技術
@@ -1952,7 +1952,7 @@ const renderAiResult = () => (
                                 <button
                                     onClick={() => setPreviewOpen(false)}
                                     className={`p-token-1 rounded transition-colors ${
-                                        theme === 'cyber' ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+                                        'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
                                     }`}
                                     title="關閉預覽"
                                 >
@@ -1967,7 +1967,7 @@ const renderAiResult = () => (
                                 if (isEmpty) {
                                     return (
                                         <div className={`flex-1 flex flex-col items-center justify-center p-token-8 text-center ${
-                                            theme === 'cyber' ? 'text-slate-400' : 'text-slate-500'
+                                            'text-slate-500'
                                         }`} style={{ minHeight: '300px' }}>
                                             <div className="text-5xl mb-3 opacity-50">📝</div>
                                             <p className="text-sm mb-2">Prompt 仲未填寫完成</p>
@@ -1990,7 +1990,7 @@ const renderAiResult = () => (
                                 );
                             })()}
                             <div className={`text-xs px-token-3 py-token-2 border-t ${
-                                theme === 'cyber' ? 'border-cyan-500/20 text-slate-400 bg-slate-900/30' : 'border-slate-200 text-slate-500 bg-slate-50'
+                                'border-slate-200 text-slate-500 bg-slate-50'
                             }`}>
                                 💡 Tip: 任何輸入改動都會即時更新預覽。去到 Step 4 可正式複製。
                             </div>
@@ -2103,7 +2103,7 @@ const renderAiResult = () => (
 
                 {/* Footer */}
                 <footer className={`mt-6 py-token-6 text-center text-xs font-medium tracking-widest ${
-                    theme === 'cyber' ? 'text-slate-600 orbitron' : 'text-slate-400'
+                    'text-slate-400'
                 }`}>
                     © 2026 創意教學 Prompt Studio · designed by Ken Cheng
                 </footer>
@@ -2118,7 +2118,7 @@ const renderAiResult = () => (
                                 ? 'border-white/20 bg-gradient-to-r from-cyan-600/80 via-blue-600/80 to-purple-600/80 animate-holo text-white shadow-[0_0_15px_rgba(6,182,212,0.5)]'
                                 : 'bg-white border-slate-200 text-slate-700 shadow-lg'
                             }`}>
-                            <Monitor size={20} className={theme === 'cyber' ? "group-hover:animate-pulse" : ""} />
+                            <Monitor size={20} className={""} />
                             <span className="font-bold text-sm tracking-wide text-shadow-sm">{formData.teacherName ? `${formData.teacherName} 設計` : 'Ken Cheng 設計'}</span>
                             {/* Personal logo — 用 ES module import，Vite dev server + build 都識處理 */}
                             <img src={personalLogo} alt="NT-D Emblem" className="h-6 w-auto ml-1" />
@@ -2131,7 +2131,7 @@ const renderAiResult = () => (
                                 ? 'bg-slate-800/80 border-slate-700 text-slate-300'
                                 : 'bg-white border-slate-200 text-slate-700 shadow-lg'
                             }`}>
-                            <Monitor size={18} className={theme === 'cyber' ? "group-hover:animate-pulse" : ""} />
+                            <Monitor size={18} className={""} />
                             <span className="font-medium text-sm tracking-wide">{formData.teacherName ? `${formData.teacherName} 設計` : 'Ken Cheng 設計'}</span>
                         </div>
                     )}

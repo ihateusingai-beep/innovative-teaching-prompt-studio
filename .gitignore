@@ -12,6 +12,12 @@ dist/
 *.swo
 *~
 
+# Refactor backups (Path A — App.jsx conditionals)
+# Backup files left by scripts/simplify-cyber-conditionals.py — git revert reference only
+src/*.bak
+src/**/*.bak
+
+
 # Logs
 *.log
 npm-debug.log*
