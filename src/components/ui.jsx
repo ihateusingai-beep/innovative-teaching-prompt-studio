@@ -1,33 +1,36 @@
 import React from 'react';
 
 // === Small UI primitives ===
-// W3-4.1: 加 warm third case (primary school 低刺激 amber palette)
-// W3-4.3: 用 CSS radius-token class 做 visual consistency
-// W3-4.5: focus-visible 由 global CSS 處理（*:focus-visible）
+// v3.3: Refactored to use new glass-card / glass-input utility classes
+// from styles/index.css. Theme conditionals kept minimal — only plain vs warm
+// (cyber alias resolved at body.className level, no longer needed here).
 
-// Helper: 揀 theme 對應嘅 border class (v3.2: cyber removed from active rotation)
+// Helper: theme-aware border class — v3.3 simplified to 2 active themes
 const borderClassFor = (theme) => {
-    if (theme === 'warm') return 'warm-border';
-    return 'plain-border';
+    if (theme === 'warm') return 'glass-card';
+    return 'glass-card';
 };
 
-// Helper: 揀 theme 對應嘅 input class
+// Helper: theme-aware input class
 const inputClassFor = (theme) => {
-    if (theme === 'warm') return 'warm-input';
-    return 'plain-input';
+    if (theme === 'warm') return 'glass-input';
+    return 'glass-input';
 };
 
-// Helper: 揀 theme 對應嘅 select option bg
+// Helper: theme-aware select option bg (color-only, no logic change)
 const optionBgFor = (theme) => {
     if (theme === 'warm') return 'bg-amber-50 text-amber-900';
     return 'bg-white text-slate-800';
 };
 
-export const Card = ({ children, className = "", theme }) => (
-    <div className={`radius-token-lg overflow-hidden ${borderClassFor(theme)} ${className}`}>
-        {children}
-    </div>
-);
+export const Card = ({ children, className = "", theme, variant = 'default' }) => {
+    const variantClass = variant === 'elevated' ? 'glass-card-elevated' : 'glass-card';
+    return (
+        <div className={`radius-token-lg overflow-hidden ${variantClass} ${className}`}>
+            {children}
+        </div>
+    );
+};
 
 export const Label = ({ children, theme, required, optional }) => (
     <label className={`block text-sm font-bold mb-2 flex items-center gap-2 ${
@@ -53,7 +56,7 @@ export const Input = (props) => {
     const { theme, className, ...rest } = props;
     return (
         <input
-            className={`w-full px-4 py-3 radius-token-md outline-none ${inputClassFor(theme)} ${className || ""}`}
+            className={`w-full px-4 py-3 radius-token-md outline-none transition-token-base ${inputClassFor(theme)} ${className || ""}`}
             {...rest}
         />
     );
@@ -63,7 +66,7 @@ export const TextArea = (props) => {
     const { theme, className, ...rest } = props;
     return (
         <textarea
-            className={`w-full px-4 py-3 radius-token-md outline-none min-h-[120px] ${inputClassFor(theme)} ${className || ""}`}
+            className={`w-full px-4 py-3 radius-token-md outline-none min-h-[120px] transition-token-base ${inputClassFor(theme)} ${className || ""}`}
             {...rest}
         />
     );
@@ -74,7 +77,7 @@ export const Select = ({ options, value, onChange, className = "", theme }) => (
         <select
             value={value}
             onChange={onChange}
-            className={`w-full px-4 py-3 radius-token-md outline-none appearance-none cursor-pointer ${inputClassFor(theme)}`}
+            className={`w-full px-4 py-3 radius-token-md outline-none appearance-none cursor-pointer transition-token-base ${inputClassFor(theme)}`}
         >
             {options.map(opt => (
                 <option
@@ -89,17 +92,15 @@ export const Select = ({ options, value, onChange, className = "", theme }) => (
     </div>
 );
 
-// === Collapsible Section ===
+// === Collapsible Section — v3.3: glass-card based, hover lift, smooth chevron ===
 export const CollapsibleSection = ({ title, badge, isOpen, onToggle, theme, children, hint }) => (
-    <div className={`radius-token-md border overflow-hidden ${
-        theme === 'warm' ? 'border-amber-200 bg-white'
-        : 'border-slate-200 bg-white'}`}>
+    <div className={`glass-card radius-token-md overflow-hidden animate-fade-in`}>
         <button
             type="button"
             onClick={onToggle}
-            className={`w-full flex items-center justify-between p-4 transition-colors ${
-                theme === 'warm' ? 'hover:bg-amber-50'
-                : 'hover:bg-slate-50'}`}
+            className={`w-full flex items-center justify-between p-4 transition-token-base ${
+                theme === 'warm' ? 'hover:bg-amber-50/60'
+                : 'hover:bg-slate-50/60'}`}
             aria-expanded={isOpen}
         >
             <div className="flex items-center gap-3">
@@ -125,9 +126,9 @@ export const CollapsibleSection = ({ title, badge, isOpen, onToggle, theme, chil
             )}
         </button>
         {isOpen && (
-            <div className={`p-4 border-t ${
-                theme === 'warm' ? 'border-amber-200 bg-amber-50/40'
-                : 'border-slate-100 bg-slate-50/50'}`}>
+            <div className={`p-4 border-t animate-slide-up-sm ${
+                theme === 'warm' ? 'border-amber-200/60 bg-amber-50/40'
+                : 'border-slate-200/60 bg-slate-50/30'}`}>
                 {children}
             </div>
         )}

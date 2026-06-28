@@ -1,22 +1,25 @@
-/* Innovative Teaching Prompt Studio v3.2 — main stylesheet
-   Tailwind pre-compiled via PostCSS + custom design tokens + legacy CSS preserved
+/* Innovative Teaching Prompt Studio v3.3 — main stylesheet
+   Tailwind pre-compiled via PostCSS + design tokens + glass morphism utilities
 
-   v3.2 theme overhaul:
-     - Default theme 'plain' (Vercel/Linear-inspired: light mesh gradient + floating cards)
-     - 'cyber' theme REMOVED from active rotation (CSS kept for backward compat, all rules now noop)
-     - 'warm' theme retained for primary school / low-stimulus environment
-     - 3-way toggle cycle: plain ↔ warm (cyber now aliases to plain)
+   v3.3 theme overhaul:
+     - Refactor: cyber alias REMOVED from active rotation (legacy CSS noop, body.className alias preserved)
+     - Themes: plain (default) + warm (low-stimulus, primary school) — 2 active themes
+     - Design system: new semantic tokens (gradient / elevation / animation / typography)
+     - Glass morphism: unified .glass-* utility classes replace inline Tailwind blur/bg
+     - Modern polish: subtle mesh gradient (lower opacity) + smooth transitions + fade-in animation
 
-   Token system unchanged (8px spacing / 4-level shadow / 250ms ease / radius scale).
+   Token system (8px spacing / 5-level elevation / 250ms ease / radius scale unchanged).
 */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* === Design Tokens === */
+/* ============================================================
+   Design Tokens
+   ============================================================ */
 :root {
-    /* Spacing scale — 8px 為基數 */
+    /* === Spacing (8px base, unchanged) === */
     --space-1: 4px;
     --space-2: 8px;
     --space-3: 12px;
@@ -26,35 +29,53 @@
     --space-12: 48px;
     --space-16: 64px;
 
-    /* Shadow scale */
-    --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
-    --shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.06), 0 2px 4px -1px rgba(15, 23, 42, 0.04);
-    --shadow-lg: 0 12px 24px -6px rgba(15, 23, 42, 0.08), 0 4px 8px -2px rgba(15, 23, 42, 0.04);
-    --shadow-xl: 0 24px 48px -12px rgba(15, 23, 42, 0.12), 0 8px 16px -4px rgba(15, 23, 42, 0.04);
+    /* === Elevation (semantic — replaces ad-hoc shadow scale) === */
+    --elevation-1: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+    --elevation-2: 0 4px 12px -2px rgba(15, 23, 42, 0.06), 0 2px 4px -1px rgba(15, 23, 42, 0.04);
+    --elevation-3: 0 12px 24px -6px rgba(15, 23, 42, 0.08), 0 4px 8px -2px rgba(15, 23, 42, 0.04);
+    --elevation-4: 0 24px 48px -12px rgba(15, 23, 42, 0.12), 0 8px 16px -4px rgba(15, 23, 42, 0.04);
+    /* Legacy aliases — kept for any inline shadow-token-* usage */
+    --shadow-sm: var(--elevation-1);
+    --shadow-md: var(--elevation-2);
+    --shadow-lg: var(--elevation-3);
+    --shadow-xl: var(--elevation-4);
 
-    /* Transition */
+    /* === Motion (smooth, snappy, polished) === */
     --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
     --transition-fast: 150ms var(--ease-out);
     --transition-base: 250ms var(--ease-out);
     --transition-slow: 400ms var(--ease-out);
+    --transition-spring: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);  /* overshoot for delight */
 
-    /* Radius */
+    /* === Radius (unchanged scale) === */
     --radius-sm: 6px;
     --radius-md: 10px;
     --radius-lg: 14px;
     --radius-xl: 20px;
+    --radius-2xl: 28px;
     --radius-full: 9999px;
 
-    /* Focus ring */
+    /* === Focus ring === */
     --focus-ring: 0 0 0 3px rgba(124, 58, 237, 0.4);
     --focus-ring-warm: 0 0 0 3px rgba(245, 158, 11, 0.5);
 
-    /* v3.2 — accent system */
+    /* === v3.3: Accent system (refined — simpler 2-stop gradient) === */
     --accent-primary: #7c3aed;       /* violet 600 */
     --accent-secondary: #06b6d4;     /* cyan 500 */
-    --accent-grad: linear-gradient(135deg, #7c3aed 0%, #06b6d4 50%, #ec4899 100%);
+    --accent-tertiary: #ec4899;      /* pink 500 */
+    --gradient-primary: linear-gradient(135deg, #7c3aed 0%, #06b6d4 100%);
+    --gradient-soft: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(6, 182, 212, 0.08));
+    --gradient-bg: linear-gradient(135deg, #7c3aed 0%, #06b6d4 50%, #ec4899 100%);
+    /* v3.3 warm theme accents */
+    --warm-accent: #f59e0b;          /* amber 500 */
+    --warm-accent-2: #fb923c;        /* orange 400 */
+    --gradient-warm: linear-gradient(135deg, #f59e0b 0%, #fb923c 100%);
 }
 
+/* ============================================================
+   Body / Typography
+   ============================================================ */
 body {
     font-family: 'Inter', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     overflow-x: hidden;
@@ -64,18 +85,20 @@ body {
     text-rendering: optimizeLegibility;
 }
 
-/* === v3.2: Plain Theme — DEFAULT (Light mesh gradient + floating cards)
-   Vercel/Linear-inspired: off-white base, subtle multi-color mesh blobs in header area,
-   white floating cards with soft shadow. */
+/* ============================================================
+   v3.3: Plain Theme — DEFAULT (Modern light mesh + glass cards)
+   Vercel/Linear-inspired: off-white base, subtle pastel mesh blobs in
+   upper area, white floating glass cards with soft elevation.
+   ============================================================ */
 body.theme-plain,
 body.theme-cyber /* alias — cyber retained for backward compat, same look */ {
     background-color: #fafafa;
-    color: #0f172a; /* slate 900 */
+    color: #0f172a;
     position: relative;
     min-height: 100vh;
 }
 
-/* Mesh gradient blobs — fixed background layer behind content */
+/* Mesh gradient blobs — softer v3.3 (lower opacity, larger blur) */
 body.theme-plain::before,
 body.theme-cyber::before {
     content: '';
@@ -84,14 +107,14 @@ body.theme-cyber::before {
     z-index: -2;
     pointer-events: none;
     background:
-        radial-gradient(circle at 12% 8%, rgba(124, 58, 237, 0.18) 0%, transparent 45%),
-        radial-gradient(circle at 88% 18%, rgba(6, 182, 212, 0.16) 0%, transparent 50%),
-        radial-gradient(circle at 70% 92%, rgba(236, 72, 153, 0.12) 0%, transparent 50%),
-        radial-gradient(circle at 8% 88%, rgba(59, 130, 246, 0.14) 0%, transparent 45%);
-    filter: blur(20px);
+        radial-gradient(circle at 12% 8%, rgba(124, 58, 237, 0.10) 0%, transparent 45%),
+        radial-gradient(circle at 88% 18%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 70% 92%, rgba(236, 72, 153, 0.06) 0%, transparent 50%),
+        radial-gradient(circle at 8% 88%, rgba(59, 130, 246, 0.07) 0%, transparent 45%);
+    filter: blur(40px);
 }
 
-/* Subtle grid overlay for tactile feel */
+/* Subtle grid overlay — v3.3 more subtle (smaller opacity, larger spacing) */
 body.theme-plain::after,
 body.theme-cyber::after {
     content: '';
@@ -100,14 +123,54 @@ body.theme-cyber::after {
     z-index: -1;
     pointer-events: none;
     background-image:
-        linear-gradient(rgba(15, 23, 42, 0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(15, 23, 42, 0.025) 1px, transparent 1px);
-    background-size: 56px 56px;
-    mask-image: radial-gradient(circle at 50% 0%, black 0%, transparent 70%);
-    -webkit-mask-image: radial-gradient(circle at 50% 0%, black 0%, transparent 70%);
+        linear-gradient(rgba(15, 23, 42, 0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(15, 23, 42, 0.015) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(circle at 50% 0%, black 0%, transparent 75%);
+    -webkit-mask-image: radial-gradient(circle at 50% 0%, black 0%, transparent 75%);
 }
 
-/* === Focus ring === */
+/* ============================================================
+   v3.3: WARM Theme — low-stimulus (primary school, color-friendly)
+   Soft amber/rose mesh, paper texture, warm glass cards.
+   ============================================================ */
+body.theme-warm {
+    background-color: #fffbeb;
+    color: #451a03;
+    position: relative;
+    min-height: 100vh;
+}
+
+/* Warm mesh — pastel amber/rose tones */
+body.theme-warm::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 15% 10%, rgba(251, 191, 36, 0.14) 0%, transparent 50%),
+        radial-gradient(circle at 85% 20%, rgba(251, 146, 60, 0.10) 0%, transparent 55%),
+        radial-gradient(circle at 50% 90%, rgba(254, 215, 170, 0.18) 0%, transparent 60%);
+    filter: blur(50px);
+}
+
+/* Warm subtle paper texture */
+body.theme-warm::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+        radial-gradient(circle at 25% 25%, rgba(180, 83, 9, 0.025) 0%, transparent 1.5px),
+        radial-gradient(circle at 75% 75%, rgba(180, 83, 9, 0.025) 0%, transparent 1.5px);
+    background-size: 32px 32px;
+}
+
+/* ============================================================
+   v3.3: Focus ring
+   ============================================================ */
 *:focus { outline: none; }
 *:focus-visible {
     outline: 2px solid var(--accent-primary);
@@ -115,40 +178,66 @@ body.theme-cyber::after {
     transition: outline-offset var(--transition-fast);
 }
 body.theme-warm *:focus-visible {
-    outline-color: #f59e0b;
+    outline-color: var(--warm-accent);
 }
 
-/* === v3.2: Glass card — primary widget style (was tech-border in cyber) === */
+/* ============================================================
+   v3.3: Glass Card System — primary widget style
+   Replaces inline `bg-white/70 backdrop-blur` patterns with single utility class.
+   ============================================================ */
 .glass-card {
     background: rgba(255, 255, 255, 0.78);
-    backdrop-filter: blur(12px) saturate(140%);
-    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
     border: 1px solid rgba(15, 23, 42, 0.06);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--elevation-2);
     border-radius: var(--radius-lg);
     transition: all var(--transition-base);
 }
 .glass-card:hover {
-    box-shadow: var(--shadow-lg);
-    border-color: rgba(124, 58, 237, 0.18);
+    box-shadow: var(--elevation-3);
+    border-color: rgba(124, 58, 237, 0.20);
+    transform: translateY(-1px);
 }
 
-/* === v3.2: Tech-border alias — keep class name for backward compat === */
+.glass-card-flat {
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    box-shadow: var(--elevation-2);
+    border-radius: var(--radius-lg);
+    transition: all var(--transition-base);
+}
+
+.glass-card-elevated {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: var(--elevation-3);
+    border-radius: var(--radius-xl);
+    transition: all var(--transition-base);
+}
+
+/* Legacy alias — kept for any tech-border class usage */
 .tech-border {
     background: rgba(255, 255, 255, 0.78);
-    backdrop-filter: blur(12px) saturate(140%);
-    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
     border: 1px solid rgba(15, 23, 42, 0.06);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--elevation-2);
     border-radius: var(--radius-lg);
-    transition: all 0.3s ease;
+    transition: all var(--transition-base);
 }
 
-/* === v3.2: Tech-input alias — light style === */
+/* ============================================================
+   v3.3: Glass Input — refined focus state
+   ============================================================ */
 .tech-input,
 .glass-input {
     background: rgba(255, 255, 255, 0.85);
-    border: 1px solid rgba(15, 23, 42, 0.1);
+    border: 1px solid rgba(15, 23, 42, 0.10);
     color: #0f172a;
     border-radius: var(--radius-md);
     transition: all var(--transition-base);
@@ -161,11 +250,10 @@ body.theme-warm *:focus-visible {
     outline: none;
 }
 
-/* === Plain border alias (existing class) === */
 .plain-border {
     background: #ffffff;
     border: 1px solid rgba(15, 23, 42, 0.08);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--elevation-2);
     border-radius: var(--radius-lg);
     transition: all var(--transition-base);
 }
@@ -183,41 +271,154 @@ body.theme-warm *:focus-visible {
     outline: none;
 }
 
-/* === v3.2: Gradient text utility (for hero title) === */
+/* ============================================================
+   v3.3: Gradient utilities — refined
+   ============================================================ */
 .gradient-text {
-    background: var(--accent-grad);
+    background: var(--gradient-bg);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
     -webkit-text-fill-color: transparent;
 }
 
-/* === v3.2: Glow / cyber effects — kept for backward compat but noop === */
-.text-glow-cyan { text-shadow: none; }
-.text-glow-purple { text-shadow: none; }
-.cyber-glow { box-shadow: none; }
+.gradient-text-primary {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+}
 
-/* === Radius utility classes === */
-.radius-token-sm { border-radius: var(--radius-sm); }
-.radius-token-md { border-radius: var(--radius-md); }
-.radius-token-lg { border-radius: var(--radius-lg); }
-.radius-token-xl { border-radius: var(--radius-xl); }
-.radius-token-full { border-radius: var(--radius-full); }
+body.theme-warm .gradient-text,
+body.theme-warm .gradient-text-primary {
+    background: var(--gradient-warm);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+}
 
-/* === Loading skeleton pulse === */
-@keyframes skeleton-pulse {
+.gradient-bg {
+    background: var(--gradient-bg);
+}
+
+.gradient-bg-primary {
+    background: var(--gradient-primary);
+}
+
+body.theme-warm .gradient-bg,
+body.theme-warm .gradient-bg-primary {
+    background: var(--gradient-warm);
+}
+
+/* ============================================================
+   v3.3: Button system — primary (gradient), secondary (glass), ghost
+   ============================================================ */
+.btn-primary {
+    background: var(--gradient-primary);
+    color: #ffffff;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-4);
+    box-shadow: var(--elevation-2);
+    transition: all var(--transition-base);
+    border: none;
+    cursor: pointer;
+}
+.btn-primary:hover {
+    box-shadow: var(--elevation-3);
+    transform: translateY(-1px);
+}
+.btn-primary:active {
+    transform: translateY(0);
+    box-shadow: var(--elevation-1);
+}
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: var(--accent-primary);
+    font-weight: 600;
+    border: 1px solid rgba(124, 58, 237, 0.20);
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-4);
+    box-shadow: var(--elevation-1);
+    transition: all var(--transition-base);
+    cursor: pointer;
+}
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(124, 58, 237, 0.40);
+    box-shadow: var(--elevation-2);
+}
+
+body.theme-warm .btn-primary {
+    background: var(--gradient-warm);
+}
+body.theme-warm .btn-secondary {
+    color: var(--warm-accent);
+    border-color: rgba(245, 158, 11, 0.30);
+}
+
+/* ============================================================
+   v3.3: Animations — fade-in / slide-up / pulse-soft / scale-in
+   ============================================================ */
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes slide-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-up-sm {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes scale-in {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+}
+@keyframes pulse-soft {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+    50% { opacity: 0.6; }
+}
+
+.animate-fade-in { animation: fade-in var(--transition-base) var(--ease-out); }
+.animate-slide-up { animation: slide-up var(--transition-slow) var(--ease-out); }
+.animate-slide-up-sm { animation: slide-up-sm var(--transition-base) var(--ease-out); }
+.animate-scale-in { animation: scale-in var(--transition-spring) var(--ease-out); }
+.animate-pulse-soft { animation: pulse-soft 2s ease-in-out infinite; }
+
+/* ============================================================
+   v3.3: Loading skeleton — refined
+   ============================================================ */
+@keyframes skeleton-pulse {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
 }
 .skeleton {
-    background: linear-gradient(90deg, transparent, rgba(15, 23, 42, 0.04), transparent);
+    background: linear-gradient(90deg,
+        rgba(15, 23, 42, 0.04) 0%,
+        rgba(15, 23, 42, 0.08) 50%,
+        rgba(15, 23, 42, 0.04) 100%);
     background-size: 200% 100%;
-    animation: skeleton-pulse 1.5s var(--ease-out) infinite;
+    animation: skeleton-pulse 1.5s linear infinite;
+    border-radius: var(--radius-md);
 }
 
-/* === Ripple effect === */
+/* ============================================================
+   v3.3: Ripple effect — refined
+   ============================================================ */
 @keyframes ripple {
-    from { transform: scale(0); opacity: 0.6; }
+    from { transform: scale(0); opacity: 0.5; }
     to { transform: scale(2.5); opacity: 0; }
 }
 .ripple-effect {
@@ -237,23 +438,36 @@ body.theme-warm *:focus-visible {
     animation: ripple 0.6s var(--ease-out);
 }
 
-/* === Cyber grid + vignette + holographic — DEPRECATED in v3.2 (noop) === */
+/* ============================================================
+   v3.3: Cyber grid + vignette + holographic — DEPRECATED (noop)
+   Class names retained to avoid breaking any leftover usage.
+   ============================================================ */
 .cyber-grid { display: none; }
 .vignette { display: none; }
 .animate-holo { animation: none; }
+.text-glow-cyan { text-shadow: none; }
+.text-glow-purple { text-shadow: none; }
+.cyber-glow { box-shadow: none; }
 
-/* === Shadow utility classes === */
+/* ============================================================
+   v3.3: Radius / Shadow / Spacing utilities (unchanged scale)
+   ============================================================ */
+.radius-token-sm { border-radius: var(--radius-sm); }
+.radius-token-md { border-radius: var(--radius-md); }
+.radius-token-lg { border-radius: var(--radius-lg); }
+.radius-token-xl { border-radius: var(--radius-xl); }
+.radius-token-2xl { border-radius: var(--radius-2xl); }
+.radius-token-full { border-radius: var(--radius-full); }
+
 .shadow-token-sm { box-shadow: var(--shadow-sm); }
 .shadow-token-md { box-shadow: var(--shadow-md); }
 .shadow-token-lg { box-shadow: var(--shadow-lg); }
 .shadow-token-xl { box-shadow: var(--shadow-xl); }
 
-/* === Transition utility classes === */
 .transition-token-fast { transition: all var(--transition-fast); }
 .transition-token-base { transition: all var(--transition-base); }
 .transition-token-slow { transition: all var(--transition-slow); }
 
-/* === Spacing tokens === */
 .p-token-1 { padding: var(--space-1); }
 .p-token-2 { padding: var(--space-2); }
 .p-token-3 { padding: var(--space-3); }
@@ -289,30 +503,38 @@ body.theme-warm *:focus-visible {
 .space-y-token-4 > * + * { margin-top: var(--space-4); }
 .space-y-token-6 > * + * { margin-top: var(--space-6); }
 
-/* === Orbitron — retained for backward compat (header may still use orbitron class) === */
+/* ============================================================
+   v3.3: Typography helpers
+   ============================================================ */
 .orbitron {
-    font-family: 'Inter', 'Noto Sans TC', sans-serif; /* overridden — was Orbitron */
+    font-family: 'Inter', 'Noto Sans TC', sans-serif;
     letter-spacing: -0.01em;
 }
 .mono {
     font-family: 'Share Tech Mono', monospace;
 }
-
-/* === WARM THEME (low-stimulus, primary school) === */
-body.theme-warm {
-    background-color: #fffbeb;
-    color: #451a03;
-    position: relative;
-    min-height: 100vh;
+.font-mono-token {
+    font-family: 'JetBrains Mono', 'Share Tech Mono', monospace;
+    font-feature-settings: 'liga' 0, 'calt' 0;
 }
 
+/* ============================================================
+   v3.3: WARM theme overrides for components
+   ============================================================ */
 body.theme-warm .plain-border,
 body.theme-warm .warm-border,
 body.theme-warm .glass-card,
+body.theme-warm .glass-card-flat,
+body.theme-warm .glass-card-elevated,
 body.theme-warm .tech-border {
-    background: #ffffff;
-    border: 1px solid #fde68a;
-    box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.08), 0 2px 4px -1px rgba(245, 158, 11, 0.04);
+    background: rgba(255, 251, 235, 0.85);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    box-shadow: 0 4px 12px -2px rgba(245, 158, 11, 0.10), 0 2px 4px -1px rgba(245, 158, 11, 0.06);
+}
+
+body.theme-warm .glass-card:hover {
+    border-color: rgba(245, 158, 11, 0.45);
+    box-shadow: 0 12px 24px -6px rgba(245, 158, 11, 0.15);
 }
 
 body.theme-warm .plain-input,
@@ -320,30 +542,27 @@ body.theme-warm .warm-input,
 body.theme-warm .tech-input,
 body.theme-warm .glass-input {
     background: #fffef9;
-    border: 1px solid #fcd34d;
+    border: 1px solid rgba(252, 211, 77, 0.55);
     color: #451a03;
 }
 body.theme-warm .plain-input:focus,
 body.theme-warm .warm-input:focus,
 body.theme-warm .tech-input:focus,
 body.theme-warm .glass-input:focus {
-    border-color: #f59e0b;
+    border-color: var(--warm-accent);
     box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25);
     outline: none;
+    background: #ffffff;
 }
 
-body.theme-warm textarea::-webkit-scrollbar-track { background: #fef3c7; border-radius: 4px; }
-body.theme-warm textarea::-webkit-scrollbar-thumb { background: #fcd34d; border-radius: 4px; border: 1px solid #f59e0b; }
-body.theme-warm textarea::-webkit-scrollbar-thumb:hover { background: #f59e0b; }
-
-/* === Scrollbar (default light) === */
-textarea::-webkit-scrollbar { width: 8px; }
+/* ============================================================
+   v3.3: Scrollbar — refined for both themes
+   ============================================================ */
+textarea::-webkit-scrollbar { width: 8px; height: 8px; }
 textarea::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.04); border-radius: 4px; }
 textarea::-webkit-scrollbar-thumb { background: rgba(15, 23, 42, 0.18); border-radius: 4px; }
 textarea::-webkit-scrollbar-thumb:hover { background: rgba(124, 58, 237, 0.5); }
 
-/* === Mono font helper === */
-.font-mono-token {
-    font-family: 'JetBrains Mono', 'Share Tech Mono', monospace;
-    font-feature-settings: 'liga' 0, 'calt' 0;
-}
+body.theme-warm textarea::-webkit-scrollbar-track { background: rgba(254, 243, 199, 0.7); border-radius: 4px; }
+body.theme-warm textarea::-webkit-scrollbar-thumb { background: rgba(245, 158, 11, 0.45); border-radius: 4px; border: 1px solid rgba(245, 158, 11, 0.6); }
+body.theme-warm textarea::-webkit-scrollbar-thumb:hover { background: rgba(245, 158, 11, 0.7); }

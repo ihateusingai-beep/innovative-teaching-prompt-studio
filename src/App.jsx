@@ -1622,22 +1622,18 @@ const renderAiResult = () => (
 
             <div className="max-w-6xl mx-auto pb-20"> {/* Increased width for dual columns */}
                 
-                {/* Header */}
-                <header className="mb-8 text-center md:text-left flex flex-col md:flex-row md:items-start justify-between gap-token-4 relative">
+                {/* Header — v3.3 modern typography polish */}
+                <header className="mb-12 text-center md:text-left flex flex-col md:flex-row md:items-start justify-between gap-token-6 relative animate-fade-in">
                     <div>
-                         <h1 className="text-2xl md:text-3xl font-black flex items-start gap-token-3 justify-center md:justify-start">
-                            <img src={personalLogo} alt="NT-D" className="h-10 w-10 mt-1" />
-                            <div className="flex flex-col">
-                                <span className={`font-black tracking-tight text-xl md:text-2xl ${
-                                    theme === 'warm'
-                                    ? 'bg-clip-text text-transparent bg-gradient-to-r from-amber-500 via-orange-500 to-red-500'
-                                    : 'gradient-text'
-                                }`}>
+                         <h1 className="text-3xl md:text-5xl font-black flex items-start gap-token-4 justify-center md:justify-start leading-none">
+                            <img src={personalLogo} alt="NT-D" className="h-12 w-12 md:h-14 md:w-14 mt-1 rounded-xl shadow-md" />
+                            <div className="flex flex-col gap-2">
+                                <span className={`font-black tracking-tight text-2xl md:text-4xl gradient-text`}>
                                     創意教學 Prompt Studio
                                 </span>
                             </div>
                         </h1>
-                        <p className={`mt-3 font-medium pl-0 md:pl-[3.5rem] flex items-center gap-token-2 ${
+                        <p className={`mt-4 font-medium text-base pl-0 md:pl-[4rem] flex items-center gap-token-2 ${
                             theme === 'warm' ? 'text-amber-700' : 'text-slate-500'
                         }`}>
                             <Zap size={16} className="text-yellow-400" />
