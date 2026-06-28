@@ -1003,7 +1003,7 @@ const renderStep3 = () => (
                         </div>
                     </div>
                     <button
-                        onClick={toggleGeminiStyle}
+                        onClick={() => updateField('useGeminiStyle', !formData.useGeminiStyle)}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
                             formData.useGeminiStyle
                             ? (theme === 'cyber' ? 'bg-purple-500' : 'bg-purple-600')
