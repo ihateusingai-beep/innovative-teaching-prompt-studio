@@ -6,6 +6,7 @@ import {
     accessibilityOptions,
     learningDiversityOptions,
     composePersonalizedReportRule,
+    composeDashboardReportBridge,
 } from '../data/option-tables.js';
 
 import promptScorer from '../data/scorer.js';
@@ -25,9 +26,17 @@ export const generateDesignPrompt = (formData) => {
     // 預設 enabled=true + 全 sub-toggle 開 → output 同舊 default rule 完全一樣
     // 老師可以關 master / 任一 sub 嚟個別化
     const personalizedReportRule = composePersonalizedReportRule(formData.personalizedReport);
-    const allRules = personalizedReportRule
-        ? [{ text: personalizedReportRule }, ...userRules]
-        : userRules;
+    // v3.2.6: Dashboard ↔ Report Bridge — 將 Rule 1 右上角儀表板同 Personalized Report
+    // 綁去同一份 localStorage schema。conditional: personalizedReport.enabled === true 先 inject
+    // 因為 bridge 講嘅係兩者互通 — 冇 report 就唔需要呢段 bridge
+    const dashboardBridge = composeDashboardReportBridge(formData.personalizedReport);
+    const allRules = [];
+    // 1. Bridge 先 (架構 context 應該喺 rules list 最前 — set tone for implementation)
+    if (dashboardBridge) allRules.push({ text: dashboardBridge });
+    // 2. Personalized Report module spec
+    if (personalizedReportRule) allRules.push({ text: personalizedReportRule });
+    // 3. 老師 custom rules（包括 Rule 1 如果佢改過 / 其他 user-added）
+    allRules.push(...userRules);
     const rulesList = allRules.map((r, i) => `${i + 1}. ${normalizeRule(r)}`).join("\n    ");
     const examplesList = formData.examples.filter(ex => ex.text.trim() !== "").map((ex, i) => `* [${ex.level}] (${ex.mechanism}) ${ex.text} (請生成 ${ex.count || 10} 題近似題目)`).join("\n    ");
     const isGame = formData.category === "教學遊戲";

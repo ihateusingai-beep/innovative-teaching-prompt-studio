@@ -46,6 +46,8 @@ const learningDiversityOptions = [
 // W9-10 #6: 加 __isDefault flag，等 generator 可以 filter 走未經老師改過嘅 default rules
 // v3.2.4: 拎走「個別化學習報告」rule (a/b/c 三段) — 改由 formData.personalizedReport
 // module toggle 控制（master + 3 sub-toggles），generator 動態 compose
+// v3.2.6: 第 1 條「右上角儀表板」Rule 1 同 Personalized Report module 加 cross-ref bridge，
+// 確保兩者用同一份 localStorage schema，數據互通，唔做兩個分離系統
 const defaultRules = [
     { text: "在右上角加上學習儀表版功能,讓學生能夠自我檢測, 成績要能存在本機", __isDefault: true },
     { text: "答對時給予 提示音及對應的知識理論，為何該答案是正確", __isDefault: true },
@@ -53,6 +55,25 @@ const defaultRules = [
     { text: "增加一個 自學模式，用戶能自行設定問題給自己, 例子(x - y) 然後自行解答。", __isDefault: true },
     { text: "🎉 慶祝特效: 任務完成時觸發 canvas-confetti（特效只會觸發一次，重置後才會再次觸發）。", __isDefault: true },
 ];
+
+// v3.2.6: Dashboard ↔ Report Bridge (cross-reference)
+// 將 Rule 1 嘅「右上角儀表板」同 Personalized Report module 嘅「完成後報告頁面」
+// 綁去同一份 localStorage schema，確保兩者數據互通，AI 唔做兩個分離系統
+//
+// 設計：
+//   - 純獨立可讀，唔假設 Rule 1 存在與否（即使老師刪走 Rule 1 都仍 work）
+//   - conditional inject：personalizedReport.enabled === true 先 inject
+//   - 即使老師改 Rule 1 文字（__isDefault: false），bridge 仍然 inject（bridge 講嘅係架構原則，唔係 rule 重複）
+export const composeDashboardReportBridge = (config) => {
+    if (!config || typeof config !== 'object') return null;
+    if (config.enabled === false) return null;
+    return `【架構指引 — 儀表板與報告頁面數據互通】
+右上角儀表板（即時 self-check widget）同完成任務後嘅「個別化學習報告頁面」必須共用同一份 localStorage schema（例如 learningLog_${'{studentName}'} 或類似結構），確保：
+- 學生邊做邊睇嘅即時反饋（儀表板）同完成後詳細總結（報告）係同一份數據嘅兩種 view
+- 報告頁面可以彙總儀表板整個 session 嘅數據（唔重新計算）
+- 兩者修改任何一處嘅「答對／答錯／時間戳」都會同步（單一 source of truth）
+- 避免做兩個獨立 widget 各自儲存，導致數據唔一致`;
+};
 
 // === Personalized Report Module ===
 // v3.2.4: 由原 defaultRules 抽出嘅 3 段 rule 內容 (a/b/c)

@@ -4,7 +4,7 @@
 // Generator 用 composePersonalizedReportRule(formData.personalizedReport) 動態組裝
 
 import { describe, it, expect } from 'vitest';
-import { composePersonalizedReportRule, personalizedReportSections } from '../src/data/option-tables.js';
+import { composePersonalizedReportRule, composeDashboardReportBridge, personalizedReportSections } from '../src/data/option-tables.js';
 
 describe('composePersonalizedReportRule', () => {
     it('default config (全開) — output 等同舊 default rule', () => {
@@ -281,5 +281,47 @@ describe('composePersonalizedReportRule', () => {
         expect(out).toContain('a. 個別化');
         expect(out).toContain('b. 可視化');
         expect(out).toContain('c. 正向語言');
+    });
+});
+
+// === v3.2.6: Dashboard ↔ Report Bridge (cross-reference) ===
+
+describe('composeDashboardReportBridge', () => {
+    it('enabled=true (default) — 返回 bridge text', () => {
+        const out = composeDashboardReportBridge({ enabled: true });
+        expect(out).not.toBeNull();
+        expect(out).toContain('儀表板');
+        expect(out).toContain('報告');
+        expect(out).toContain('localStorage');
+        // 強調 single source of truth
+        expect(out).toContain('同一份');
+    });
+
+    it('enabled=false — 返回 null (關咗 Report module 就唔需要 bridge)', () => {
+        const out = composeDashboardReportBridge({ enabled: false });
+        expect(out).toBeNull();
+    });
+
+    it('null / undefined config — 返回 null', () => {
+        expect(composeDashboardReportBridge(null)).toBeNull();
+        expect(composeDashboardReportBridge(undefined)).toBeNull();
+    });
+
+    it('唔係 object (string / number) — 返回 null (defensive)', () => {
+        expect(composeDashboardReportBridge('on')).toBeNull();
+        expect(composeDashboardReportBridge(1)).toBeNull();
+    });
+
+    it('empty object (冇 enabled field) — 視為 enabled (truthy !== false 默認行為)', () => {
+        const out = composeDashboardReportBridge({});
+        expect(out).not.toBeNull();
+    });
+
+    it('bridge text 獨立可讀，唔假設 Rule 1 存在 (即使老師刪走 Rule 1 都仍 work)', () => {
+        const out = composeDashboardReportBridge({ enabled: true });
+        // Bridge 唔引用 Rule 1 嘅原文 — 只講架構原則
+        expect(out).not.toContain('右上角加上學習儀表版');  // 唔 reference Rule 1 原文
+        expect(out).toContain('儀表板');                  // 但講到概念
+        expect(out).toContain('報告頁面');
     });
 });

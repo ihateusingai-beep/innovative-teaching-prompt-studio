@@ -468,9 +468,12 @@ describe('v3.2.4 — Personalized Report module', () => {
 
     it('composed rule 唔會 duplicate (舊 default rule 已由 defaultRules 拎走)', () => {
         const design = generateDesignPrompt(fixtureWithPersonalizedReport());
-        // 「個別化學習報告頁面」應該只出現一次 (喺 module compose 入面，唔係 rules 入面)
-        const matches = design.match(/個別化學習報告頁面/g);
-        expect(matches?.length).toBe(1);
+        // 「個別化學習報告頁面」喺 module compose spec 入面只出現一次
+        // (a 段「需符合以下原則：」嘅 intro)
+        // v3.2.6: bridge 入面亦會 reference 呢個 term 但用 generic context
+        // 唔當作 duplicate — 重點係 module spec definition 唔重複
+        const specMatches = design.match(/「個別化學習報告頁面」，需符合以下原則/g);
+        expect(specMatches?.length).toBe(1);
     });
 
     it('user custom rules 同 composed rule 一齊 inject (順序: composed 先)', () => {
@@ -572,5 +575,68 @@ describe('v3.2.5 — d 段親師溝通格式 sub-toggles', () => {
         expect(design).toContain('d2.');
         expect(design).toContain('d3.');
         expect(design).toContain('d4.');
+    });
+});
+
+// === v3.2.6: Dashboard ↔ Report Bridge (Rule 1 + Personalized Report cross-reference) ===
+
+describe('v3.2.6 — Dashboard ↔ Report Bridge', () => {
+    const fixtureWithReportEnabled = () => ({
+        ...fullFormData,
+        personalizedReport: {
+            enabled: true,
+            showData: true,
+            showVisualization: true,
+            showGrowthMindset: true,
+            showParentPDF: true,
+            showParentQR: true,
+            showNewsletter: true,
+            showTeacherReflection: true,
+        },
+    });
+
+    it('personalizedReport.enabled=true — Design prompt 包含 bridge (儀表板+報告互通)', () => {
+        const design = generateDesignPrompt(fixtureWithReportEnabled());
+        expect(design).toContain('儀表板');
+        expect(design).toContain('報告頁面');
+        expect(design).toContain('localStorage');
+        expect(design).toContain('同一份');
+    });
+
+    it('personalizedReport.enabled=false — Design prompt 唔包含 bridge', () => {
+        const formData = fixtureWithReportEnabled();
+        formData.personalizedReport.enabled = false;
+        const design = generateDesignPrompt(formData);
+        // 冇 report → 冇 bridge
+        expect(design).not.toContain('【架構指引');  // bridge marker
+    });
+
+    it('bridge 喺 rules list 最前 (set architecture tone before specific rules)', () => {
+        const design = generateDesignPrompt(fixtureWithReportEnabled());
+        const bridgeIdx = design.indexOf('【架構指引');
+        const reportIdx = design.indexOf('「個別化學習報告頁面」');
+        expect(bridgeIdx).toBeGreaterThan(-1);
+        expect(reportIdx).toBeGreaterThan(bridgeIdx);
+    });
+
+    it('即使老師改 Rule 1 文字，bridge 仍然 inject (bridge 講架構原則，唔係 rule 重複)', () => {
+        const formData = fixtureWithReportEnabled();
+        // 老師改 Rule 1 default → __isDefault: false → 會 inject
+        formData.rules = [
+            { text: '我嘅客製化儀表板：顯示自選 widget', __isDefault: false },
+        ];
+        const design = generateDesignPrompt(formData);
+        expect(design).toContain('我嘅客製化儀表板');  // user custom rule
+        expect(design).toContain('【架構指引');         // bridge 仲在
+    });
+
+    it('即使老師刪走 Rule 1，bridge 仍然 work (bridge 獨立可讀)', () => {
+        const formData = fixtureWithReportEnabled();
+        formData.rules = [];  // 完全冇 rules
+        const design = generateDesignPrompt(formData);
+        expect(design).toContain('【架構指引');
+        // bridge 自己已經完整解釋架構，唔需要 Rule 1 存在
+        expect(design).toContain('儀表板');
+        expect(design).toContain('報告頁面');
     });
 });
