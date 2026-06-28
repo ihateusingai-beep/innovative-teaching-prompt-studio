@@ -65,7 +65,7 @@ export const ApiSettingsModal = ({ theme, currentKey, onSave, onClose }) => {
 export const CoachMark = ({ theme, step, onNext, onSkip, total, index }) => {
     const steps = [
         {
-            title: "👋 歡迎使用 TDA Prompt Builder",
+            title: "👋 歡迎使用 創意教學 Prompt Studio",
             desc: "呢個工具幫助老師設計 AI 遊戲嘅詳細 prompt。等我哋 5 步帶你睇一圈，每步都唔使睇完可以隨時跳過。"
         },
         {

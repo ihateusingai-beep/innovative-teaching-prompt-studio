@@ -21,6 +21,8 @@ const categories = [
     { value: "情緒支援", label: "❤️ 情緒支援", icon: HeartHandshake },
     { value: "溝通輔助", label: "🗣️ 溝通輔助", icon: MessageCircle },
     { value: "實驗模擬", label: "🧪 實驗模擬", icon: FlaskConical },
+    { value: "生活技能", label: "🌱 生活技能", icon: Sparkles },
+    { value: "評估回饋", label: "✅ 評估回饋", icon: CheckCircle2 },
 ];
 
 const subjects = ["語文", "數學", "英文", "人文", "科學", "生活技能", "電腦", "班主任課", "其他"];
@@ -193,6 +195,8 @@ export function App() {
         userTemplates, geminiApiKey, setGeminiApiKey, fileInputRef, MAX_USER_TEMPLATES,
         // Recovery
         lastSavedAt, recoverySnapshot, acceptRecovery, dismissRecovery,
+        // W9-10 Q3: inline warning banner
+        warnings, dismissWarning,
         // Undo / Redo
         canUndo, canRedo, pushHistory, undo, redo,
         // Handlers
@@ -571,7 +575,7 @@ const renderStep1 = () => (
                 </div>
 
                 <div>
-                    <Label theme={theme}>1.8 支援需求 (SEN Support)</Label>
+                    <Label theme={theme}>1.8 支援程度 (SEN Level)</Label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-token-3">
                         <button
                             onClick={() => updateField('senLevel', "輕度 (Mild)")}
@@ -634,7 +638,7 @@ const renderStep1 = () => (
                 </div>
 
                 <div>
-                    <Label theme={theme}>1.10 無障礙維度 (Accessibility) <span className={`text-xs ml-1 font-normal ${theme === 'cyber' ? 'text-cyan-500 orbitron' : 'text-blue-500'}`}>[可多選]</span></Label>
+                    <Label theme={theme}>1.10 無障礙設定 (Accessibility) <span className={`text-xs ml-1 font-normal ${theme === 'cyber' ? 'text-cyan-500 orbitron' : 'text-blue-500'}`}>[可多選]</span></Label>
                     <div className={`text-xs mb-2 ${theme === 'cyber' ? 'text-slate-400' : 'text-slate-500'}`}>
                         預設全選核心項。取消剔 = 呢項毋須嚴格執行（例如唔需要 TTS 就取消剔）。
                     </div>
@@ -735,7 +739,7 @@ const renderStep1 = () => (
                 </div>
 
                 <div>
-                    <Label theme={theme}>1.12 互動機制 (Interaction) <span className={`text-xs ml-1 font-normal ${theme === 'cyber' ? 'text-cyan-500 orbitron' : 'text-blue-500'}`}>[可多選]</span></Label>
+                    <Label theme={theme}>1.12 互動類型 (Interaction Types) <span className={`text-xs ml-1 font-normal ${theme === 'cyber' ? 'text-cyan-500 orbitron' : 'text-blue-500'}`}>[可多選]</span></Label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-token-2">
                         {interactionTypes.map(type => (
                             <button
@@ -901,31 +905,43 @@ const renderStep3 = () => (
             )}
 
             <div className="space-y-token-3">
-                {formData.rules.map((rule, index) => (
-                    <div key={index} className="flex gap-token-2">
-                        <div className={`flex-none pt-3 font-bold text-sm w-6 ${theme === 'cyber' ? 'text-cyan-500 orbitron' : 'text-blue-600'}`}>
-                            {index + 1}.
+                {formData.rules.map((rule, index) => {
+                    // W9-10 #6: rule 由 string → {text, __isDefault}
+                    const ruleText = typeof rule === 'string' ? rule : (rule?.text || '');
+                    const isDefault = typeof rule === 'object' && rule !== null && rule.__isDefault === true;
+                    return (
+                        <div key={index} className="flex gap-token-2">
+                            <div className={`flex-none pt-3 font-bold text-sm w-6 ${theme === 'cyber' ? 'text-cyan-500 orbitron' : 'text-blue-600'}`}>
+                                {index + 1}.
+                            </div>
+                            <div className="flex-1">
+                                <TextArea
+                                    theme={theme}
+                                    value={ruleText}
+                                    onChange={(e) => handleRuleChange(index, e.target.value)}
+                                    placeholder={`規則 ${index + 1} (例如：答錯時要播放提示音)`}
+                                    className="min-h-[80px]"
+                                />
+                                {isDefault && (
+                                    <div className={`text-xs mt-1 ${theme === 'cyber' ? 'text-slate-500' : 'text-slate-400'}`}>
+                                        📋 預設範例 — 改一下就會自動標記為「自訂規則」
+                                    </div>
+                                )}
+                            </div>
+                            <button
+                                onClick={() => removeRule(index)}
+                                className={`flex-none h-12 mt-1 p-token-3 rounded-xl transition-colors border border-transparent ${
+                                    theme === 'cyber'
+                                        ? 'text-red-400 hover:text-red-300 hover:bg-red-900/30 hover:border-red-500/50'
+                                        : 'text-red-500 hover:bg-red-50 hover:border-red-200'
+                                }`}
+                                disabled={formData.rules.length === 1}
+                            >
+                                ✕
+                            </button>
                         </div>
-                        <TextArea 
-                            theme={theme}
-                            value={rule} 
-                            onChange={(e) => handleRuleChange(index, e.target.value)}
-                            placeholder={`規則 ${index + 1} (例如：答錯時要播放提示音)`}
-                            className="min-h-[80px]"
-                        />
-                        <button 
-                            onClick={() => removeRule(index)}
-                            className={`flex-none h-12 mt-1 p-token-3 rounded-xl transition-colors border border-transparent ${
-                                theme === 'cyber'
-                                ? 'text-red-400 hover:text-red-300 hover:bg-red-900/30 hover:border-red-500/50'
-                                : 'text-red-500 hover:bg-red-50 hover:border-red-200'
-                            }`}
-                            disabled={formData.rules.length === 1}
-                        >
-                            ✕
-                        </button>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
             
             <button 
@@ -1409,6 +1425,55 @@ const renderAiResult = () => (
                 />
             )}
 
+            {/* W9-10 Q3: Inline warning banner stack (top-right, dismissible) */}
+            <div className="fixed top-4 right-4 z-50 w-[min(90vw,400px)] space-y-2 pointer-events-none">
+                <AnimatePresence>
+                    {warnings.map(w => (
+                        <motion.div
+                            key={w.id}
+                            initial={{ opacity: 0, x: 30, scale: 0.95 }}
+                            animate={{ opacity: 1, x: 0, scale: 1 }}
+                            exit={{ opacity: 0, x: 30, scale: 0.95 }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                            className={`pointer-events-auto rounded-xl border-2 p-token-3 shadow-2xl backdrop-blur-md ${
+                                w.severity === 'error'
+                                    ? (theme === 'warm'
+                                        ? 'bg-red-50/95 border-red-400 text-red-900'
+                                        : 'bg-red-50/95 border-red-400 text-red-900')
+                                    : w.severity === 'warning'
+                                        ? (theme === 'warm'
+                                            ? 'bg-amber-50/95 border-amber-400 text-amber-900'
+                                            : 'bg-amber-50/95 border-amber-400 text-amber-900')
+                                        : (theme === 'warm'
+                                            ? 'bg-blue-50/95 border-blue-400 text-blue-900'
+                                            : 'bg-blue-50/95 border-blue-400 text-blue-900')
+                            }`}
+                        >
+                            <div className="flex items-start gap-token-2 mb-1">
+                                <span className="text-lg flex-none">
+                                    {w.severity === 'error' ? '❌' : w.severity === 'warning' ? '⚠️' : 'ℹ️'}
+                                </span>
+                                <h4 className="font-bold text-sm flex-1 min-w-0">{w.title}</h4>
+                                <button
+                                    onClick={() => dismissWarning(w.id)}
+                                    className="flex-none opacity-60 hover:opacity-100 transition-opacity p-0.5"
+                                    aria-label="關閉警告"
+                                >
+                                    <X size={14} />
+                                </button>
+                            </div>
+                            {w.messages && w.messages.length > 0 && (
+                                <ul className="text-xs space-y-0.5 pl-7 opacity-90">
+                                    {w.messages.map((m, i) => (
+                                        <li key={i} className="leading-snug">• {m}</li>
+                                    ))}
+                                </ul>
+                            )}
+                        </motion.div>
+                    ))}
+                </AnimatePresence>
+            </div>
+
             {/* Recovery snackbar — bottom-right, 10s auto-dismiss (W1-2) */}
             {recoverySnapshot && (
                 <motion.div
@@ -1488,14 +1553,7 @@ const renderAiResult = () => (
                                     ? 'bg-clip-text text-transparent bg-gradient-to-r from-amber-500 via-orange-500 to-red-500'
                                     : 'gradient-text'
                                 }`}>
-                                    特教 Prompt Studio
-                                </span>
-                                <span className={`tracking-tight text-lg md:text-xl font-bold mt-1 ${
-                                    theme === 'warm'
-                                    ? 'text-amber-800'
-                                    : 'text-slate-600'
-                                }`}>
-                                    SEN Prompt Studio · 特教版
+                                    創意教學 Prompt Studio
                                 </span>
                             </div>
                         </h1>
@@ -1503,7 +1561,7 @@ const renderAiResult = () => (
                             theme === 'warm' ? 'text-amber-700' : 'text-slate-500'
                         }`}>
                             <Zap size={16} className="text-yellow-400" />
-                            3 分鐘將 SEN 學生需要轉成 AI prompt — Gemini / Claude / Lovable / v0 都用得。
+                            3 分鐘將 SEN 學生需要轉成結構化 prompt
                         </p>
                     </div>
                     <div className="flex flex-col items-end gap-token-2">
@@ -1558,7 +1616,7 @@ const renderAiResult = () => (
                             title="學生 Profile Bank — 加密儲存個別學生 preset"
                         >
                             <Users size={16} />
-                            👤 Profile Bank
+                            👤 學生 Profile
                         </button>
                         {/* Undo / Redo */}
                         <div className="flex gap-token-1">
@@ -1587,18 +1645,22 @@ const renderAiResult = () => (
                                 ↪️
                             </button>
                         </div>
-                        {/* Auto-save indicator */}
-                        <div
+                        {/* Auto-save indicator — W9-10 Q2: pulse on save */}
+                        <motion.div
+                            key={lastSavedAt || 'idle'} // re-mount 觸發 pulse animation on save
+                            initial={lastSavedAt ? { scale: 1.15 } : { scale: 1 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: 'spring', stiffness: 400, damping: 18 }}
                             className={`hidden md:flex px-token-3 py-token-1.5 rounded-full text-xs font-bold flex items-center gap-token-1.5 tracking-wide ${
                                 lastSavedAt
-                                    ? (theme === 'cyber' ? 'text-emerald-400' : 'text-emerald-700')
-                                    : (theme === 'cyber' ? 'text-slate-500' : 'text-slate-400')
+                                    ? (theme === 'warm' ? 'text-emerald-700 bg-emerald-50' : 'text-emerald-700 bg-emerald-50')
+                                    : (theme === 'warm' ? 'text-slate-500' : 'text-slate-400')
                             }`}
                             title={lastSavedAt ? `上次儲存: ${new Date(lastSavedAt).toLocaleTimeString('zh-HK')}` : '尚未儲存'}
                         >
                             <Save size={12} />
                             {lastSavedAt ? `已儲存 ${formatTimeAgo(lastSavedAt)}` : '儲存中...'}
-                        </div>
+                        </motion.div>
                         {/* Hidden File Input */}
                         <input 
                             type="file" 
@@ -1923,7 +1985,7 @@ const renderAiResult = () => (
                 <footer className={`mt-6 py-token-6 text-center text-xs font-medium tracking-widest ${
                     theme === 'cyber' ? 'text-slate-600 orbitron' : 'text-slate-400'
                 }`}>
-                    © 2026 特教 Prompt Studio · designed by Ken Cheng
+                    © 2026 創意教學 Prompt Studio · designed by Ken Cheng
                 </footer>
 
                 {/* Floating Action Button (FAB) */}

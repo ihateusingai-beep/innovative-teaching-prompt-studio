@@ -1,4 +1,4 @@
-# TDA Prompt Builder
+# Innovative Teaching Prompt Studio（創意教學 Prompt Studio）
 
 **為 SEN 教師設計嘅 prompt 生成器**：3 分鐘填表 → 自動產生工程師級 prompt → 貼去 AI（Gemini / Claude / Lovable / v0）→ 生成教學工具 HTML。
 

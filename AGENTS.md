@@ -1,8 +1,8 @@
-# AGENTS.md — TDA Prompt Builder
+# AGENTS.md — Innovative Teaching Prompt Studio
 
 ## Project Overview
 
-`~/workspace/vs code/TDA/` — 純前端 single-file React app，幫 SEN 教師生成結構化 prompt 餵畀 AI（Gemini / Claude / Lovable / v0 等）構思 + 生成教學工具。
+`~/workspace/vs code/Innovative Teaching Prompt Studio/` — 純前端 single-file React app，幫 SEN 教師生成結構化 prompt 餵畀 AI（Gemini / Claude / Lovable / v0 等）構思 + 生成教學工具。
 
 **v3.0 modular source + single-file distribution build**: 開發用 modular Vite source (`src/`)，`npm run build` 將所有 JS/CSS inline 入 `dist/index.html`。老師收到嘅係 1 個 ~410KB 嘅 HTML file，唔需要 hosting / install。
 
