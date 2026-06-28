@@ -976,8 +976,8 @@ const renderStep3 = () => (
                             <div className={`text-xs ${theme === 'cyber' ? 'text-slate-400' : 'text-slate-500'}`}>包含字體大小 (6級) 與 語音速度 (6級) 調整功能</div>
                         </div>
                     </div>
-                    <button 
-                        onClick={togglePreferenceSettings}
+                    <button
+                        onClick={() => updateField('includePreferenceSettings', !formData.includePreferenceSettings)}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
                             formData.includePreferenceSettings 
                             ? (theme === 'cyber' ? 'bg-cyan-500' : 'bg-blue-600') 
