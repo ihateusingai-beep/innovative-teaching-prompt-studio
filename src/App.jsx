@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowRight, ArrowLeft, Save, Sparkles, Wand2, Eye, Copy, Download, Upload, RotateCcw, History, Key, Star, X, FileText, FileJson, Trash2, Sun, Moon, ChevronDown, ChevronLeft, ChevronRight, Plus, CheckCircle, CheckCircle2, ExternalLink, Github, Monitor, Bot, Zap, BookOpen, Gamepad2, HeartHandshake, MessageCircle, FlaskConical, Users, Accessibility, Code } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Save, Sparkles, Wand2, Eye, Copy, Download, Upload, RotateCcw, History, Key, Star, X, FileText, FileJson, Trash2, Sun, Moon, ChevronDown, ChevronLeft, ChevronRight, Plus, CheckCircle, CheckCircle2, ExternalLink, Github, Monitor, Bot, Zap, BookOpen, Gamepad2, HeartHandshake, MessageCircle, FlaskConical, Users, Accessibility, Code, BarChart3 } from 'lucide-react';
 
 import { useAppState } from './state/useAppState.js';
 import { formatTimeAgo } from './utils/time.js';
@@ -1023,6 +1023,68 @@ const renderStep3 = () => (
                             formData.useGeminiStyle ? 'translate-x-6' : 'translate-x-1'
                         }`} />
                     </button>
+                </div>
+
+                {/* v3.2.4: 個別化學習報告模組 — 由 3.1 default rule 抽出嚟做獨立 toggle 控制 */}
+                {/* Master toggle + 3 sub-toggles (a/b/c 對應原 rule 三段) */}
+                <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-token-3">
+                            <div className={`p-token-2 rounded-lg ${
+                                theme === 'cyber' ? 'bg-amber-900/50 text-amber-400' : 'bg-amber-100 text-amber-600'
+                            }`}>
+                                <BarChart3 size={20} />
+                            </div>
+                            <div>
+                                <div className={`font-bold text-sm ${theme === 'cyber' ? 'text-slate-200' : 'text-slate-800'}`}>📊 個別化學習報告模組</div>
+                                <div className={`text-xs ${theme === 'cyber' ? 'text-slate-400' : 'text-slate-500'}`}>完成任務後嘅學習報告：包含學習數據、視覺化、與成長型思維建議</div>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => updateField('personalizedReport', { ...formData.personalizedReport, enabled: !formData.personalizedReport?.enabled })}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                                formData.personalizedReport?.enabled !== false
+                                ? (theme === 'cyber' ? 'bg-amber-500' : 'bg-amber-600')
+                                : (theme === 'cyber' ? 'bg-slate-700' : 'bg-slate-300')
+                            }`}
+                            title={formData.personalizedReport?.enabled !== false ? '已啟用 — 3 段 rule 會注入 prompt' : '已關閉 — 唔會注入任何 rule'}
+                        >
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                formData.personalizedReport?.enabled !== false ? 'translate-x-6' : 'translate-x-1'
+                            }`} />
+                        </button>
+                    </div>
+
+                    {/* Sub-toggles: a/b/c 三段 — 跟 master toggle 啟用狀態 */}
+                    <div className={`mt-3 ml-2 space-y-2 ${formData.personalizedReport?.enabled === false ? 'opacity-40 pointer-events-none' : ''}`}>
+                        {[
+                            { key: 'showData', label: 'a. 個別化與數據化', desc: '答對率、最熟練／需加強項目、錯誤模式分析' },
+                            { key: 'showVisualization', label: 'b. 可視化與兒童友善', desc: '長條圖／進度條、大字體、Emoji 圖示' },
+                            { key: 'showGrowthMindset', label: 'c. 正向語言與建議', desc: '成長型思維措辭、具體可操作建議' },
+                        ].map(sub => (
+                            <div key={sub.key} className="flex items-center justify-between py-1">
+                                <div className="flex-1 min-w-0 pr-3">
+                                    <div className={`text-xs font-bold ${theme === 'cyber' ? 'text-slate-300' : 'text-slate-700'}`}>{sub.label}</div>
+                                    <div className={`text-[10px] ${theme === 'cyber' ? 'text-slate-500' : 'text-slate-500'}`}>{sub.desc}</div>
+                                </div>
+                                <button
+                                    onClick={() => updateField('personalizedReport', {
+                                        ...formData.personalizedReport,
+                                        [sub.key]: !(formData.personalizedReport?.[sub.key] !== false),
+                                    })}
+                                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none flex-none ${
+                                        formData.personalizedReport?.[sub.key] !== false
+                                        ? (theme === 'cyber' ? 'bg-amber-500' : 'bg-amber-500')
+                                        : (theme === 'cyber' ? 'bg-slate-700' : 'bg-slate-300')
+                                    }`}
+                                >
+                                    <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                                        formData.personalizedReport?.[sub.key] !== false ? 'translate-x-5' : 'translate-x-1'
+                                    }`} />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
                 {/* New: FAB style 選擇 — 控制生成出嚟嘅 HTML 工具嘅右下角 FAB 風格 */}

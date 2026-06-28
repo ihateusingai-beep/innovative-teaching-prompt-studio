@@ -49,6 +49,8 @@ const MANGLE_RESERVED = [
     'encryptString', 'decryptString', 'generateSalt', 'generateIV', 'testUnlock',
     // v3.2.1 template loader
     'extractTemplateFields',
+    // v3.2.4 personalized report module
+    'composePersonalizedReportRule', 'personalizedReportSections',
 ];
 
 export default defineConfig({

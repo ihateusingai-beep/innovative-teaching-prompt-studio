@@ -49,6 +49,13 @@ const fullFormData = {
         { text: 'rule 2', __isDefault: false },
         { text: 'rule 3', __isDefault: false },
     ],
+    // v3.2.4: 個別化學習報告模組 — default 全開（最 comprehensive）
+    personalizedReport: {
+        enabled: true,
+        showData: true,
+        showVisualization: true,
+        showGrowthMindset: true,
+    },
 };
 
 const minimalFormData = {
@@ -74,6 +81,13 @@ const minimalFormData = {
     context: '',
     value: [],
     rules: [],
+    // v3.2.4: personalizedReport 模組 default 全關（minimalFormData 唔需要）
+    personalizedReport: {
+        enabled: false,
+        showData: false,
+        showVisualization: false,
+        showGrowthMindset: false,
+    },
 };
 
 // === #1: WMC + Ken Cheng brand leak ===
@@ -331,10 +345,11 @@ describe('#6: rules default filter', () => {
         expect(design).toContain('legacy string rule');
     });
 
-    it('empty rules → "無特殊規則" fallback', () => {
+    it('empty rules + personalizedReport disabled → "無特殊規則" fallback', () => {
         const design = generateDesignPrompt({
             ...fullFormData,
             rules: [],
+            personalizedReport: { enabled: false, showData: false, showVisualization: false, showGrowthMindset: false },
         });
         expect(design).toContain('無特殊規則');
     });
@@ -374,5 +389,93 @@ describe('#9: Part 2 context recap', () => {
         expect(tech).toContain('ADHD 專注力不足/過度活躍');
         expect(tech).toContain('情緒支援'); // category
         expect(tech).toContain('中度 (Moderate)'); // senLevel
+    });
+});
+
+// === v3.2.4: Personalized Report module 集成 ===
+
+describe('v3.2.4 — Personalized Report module', () => {
+    const fixtureWithPersonalizedReport = (override) => ({
+        ...fullFormData,
+        personalizedReport: {
+            enabled: true,
+            showData: true,
+            showVisualization: true,
+            showGrowthMindset: true,
+            ...override,
+        },
+    });
+
+    it('enabled=true + 全 sub 開 — Design prompt 包含 a/b/c 三段', () => {
+        const design = generateDesignPrompt(fixtureWithPersonalizedReport());
+        expect(design).toContain('a. 個別化與數據化');
+        expect(design).toContain('b. 可視化與兒童友善設計');
+        expect(design).toContain('c. 正向語言與建設性建議');
+    });
+
+    it('enabled=false — Design prompt 唔包含任何 a/b/c 段', () => {
+        const design = generateDesignPrompt(fixtureWithPersonalizedReport({ enabled: false }));
+        expect(design).not.toContain('a. 個別化與數據化');
+        expect(design).not.toContain('b. 可視化');
+        expect(design).not.toContain('c. 正向語言');
+    });
+
+    it('showData=false (其他開) — 只有 b/c 段', () => {
+        const design = generateDesignPrompt(fixtureWithPersonalizedReport({ showData: false }));
+        expect(design).not.toContain('a. 個別化與數據化');
+        expect(design).toContain('b. 可視化');
+        expect(design).toContain('c. 正向語言');
+    });
+
+    it('showVisualization=false (其他開) — 只有 a/c 段', () => {
+        const design = generateDesignPrompt(fixtureWithPersonalizedReport({ showVisualization: false }));
+        expect(design).toContain('a. 個別化');
+        expect(design).not.toContain('b. 可視化');
+        expect(design).toContain('c. 正向語言');
+    });
+
+    it('showGrowthMindset=false (其他開) — 只有 a/b 段', () => {
+        const design = generateDesignPrompt(fixtureWithPersonalizedReport({ showGrowthMindset: false }));
+        expect(design).toContain('a. 個別化');
+        expect(design).toContain('b. 可視化');
+        expect(design).not.toContain('c. 正向語言');
+    });
+
+    it('冇 personalizedReport field (forward-fill default 全開) — 包含 a/b/c', () => {
+        const { personalizedReport, ...formDataNoModule } = fullFormData;
+        const design = generateDesignPrompt(formDataNoModule);
+        // 冇 field → composePersonalizedReportRule(undefined) → null → 唔 inject
+        // 但 schema default forward-fill 喺 migrateFormData 度做，generator 直接用 formData
+        // 冇 forward-fill 自動加 field，所以呢個 case 應該係 null（唔 inject）
+        expect(design).not.toContain('a. 個別化與數據化');
+    });
+
+    it('personalizedReport = {} empty object — 唔 inject (因為冇 enabled)', () => {
+        const design = generateDesignPrompt(fixtureWithPersonalizedReport({ enabled: undefined, showData: undefined, showVisualization: undefined, showGrowthMindset: undefined }));
+        // 所有 sub undefined → default !== false → 全部 enabled → 應該 inject
+        expect(design).toContain('a. 個別化');
+    });
+
+    it('composed rule 唔會 duplicate (舊 default rule 已由 defaultRules 拎走)', () => {
+        const design = generateDesignPrompt(fixtureWithPersonalizedReport());
+        // 「個別化學習報告頁面」應該只出現一次 (喺 module compose 入面，唔係 rules 入面)
+        const matches = design.match(/個別化學習報告頁面/g);
+        expect(matches?.length).toBe(1);
+    });
+
+    it('user custom rules 同 composed rule 一齊 inject (順序: composed 先)', () => {
+        const formData = fixtureWithPersonalizedReport();
+        formData.rules = [
+            { text: 'MY CUSTOM RULE', __isDefault: false },
+        ];
+        const design = generateDesignPrompt(formData);
+        // 兩個都應該出現
+        expect(design).toContain('MY CUSTOM RULE');
+        expect(design).toContain('a. 個別化');
+        // 順序: personalizedReport 在前 (i=1)，custom rule 在後 (i=2)
+        const composedIdx = design.indexOf('a. 個別化');
+        const customIdx = design.indexOf('MY CUSTOM RULE');
+        expect(composedIdx).toBeGreaterThan(-1);
+        expect(customIdx).toBeGreaterThan(composedIdx);
     });
 });

@@ -5,6 +5,7 @@ import {
     senTypeOptions,
     accessibilityOptions,
     learningDiversityOptions,
+    composePersonalizedReportRule,
 } from '../data/option-tables.js';
 
 import promptScorer from '../data/scorer.js';
@@ -20,7 +21,14 @@ export const generateDesignPrompt = (formData) => {
         if (typeof r === 'object' && r !== null && r.__isDefault === true) return false; // skip 走未改 default
         return true;
     });
-    const rulesList = userRules.map((r, i) => `${i + 1}. ${normalizeRule(r)}`).join("\n    ");
+    // v3.2.4: 個別化學習報告模組 — 根據 formData.personalizedReport toggle 動態 compose
+    // 預設 enabled=true + 全 sub-toggle 開 → output 同舊 default rule 完全一樣
+    // 老師可以關 master / 任一 sub 嚟個別化
+    const personalizedReportRule = composePersonalizedReportRule(formData.personalizedReport);
+    const allRules = personalizedReportRule
+        ? [{ text: personalizedReportRule }, ...userRules]
+        : userRules;
+    const rulesList = allRules.map((r, i) => `${i + 1}. ${normalizeRule(r)}`).join("\n    ");
     const examplesList = formData.examples.filter(ex => ex.text.trim() !== "").map((ex, i) => `* [${ex.level}] (${ex.mechanism}) ${ex.text} (請生成 ${ex.count || 10} 題近似題目)`).join("\n    ");
     const isGame = formData.category === "教學遊戲";
     

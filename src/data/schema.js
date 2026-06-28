@@ -31,6 +31,10 @@ const FORM_SCHEMA = {
     context:                 { type: 'string', required: false },
     value:                   { type: 'array',  required: false },
     rules:                   { type: 'array',  required: false },
+    // v3.2.4: 個別化學習報告模組 — 由 3.1 default rule 抽出嚟做獨立 toggle 控制
+    // shape: { enabled, showData, showVisualization, showGrowthMindset }
+    // 3 個 sub-toggle 對應原 rule 嘅 a/b/c 三段
+    personalizedReport:      { type: 'object', required: false },
 };
 
 // Migration map — 由舊 field name / structure migrate 到 v2 shape
@@ -199,7 +203,16 @@ const getInitialFormData = () => ({
     // W9-10 #6: rules 用 object array，加 __isDefault flag
     // generator 會 filter 掉 __isDefault: true 而老師未改過嘅 entry，避免 default noise 入 prompt
     // 老師一改 text (即使加個句號)，__isDefault 會由 useFormData.handleRuleChange 自動清返 false
+    // v3.2.4: 拎走「個別化學習報告」rule（a/b/c 三段），改由下面 personalizedReport module 控制
     rules: defaultRules.map(r => ({ ...r })),
+    // v3.2.4: 個別化學習報告模組 — 抽起做獨立 toggle 控制
+    // 預設全開（最 comprehensive），對齊舊 default 行為
+    personalizedReport: {
+        enabled: true,            // master toggle — 完全關閉 = 唔 inject 呢段 rule
+        showData: true,           // a. 個別化與數據化
+        showVisualization: true,  // b. 可視化與兒童友善設計
+        showGrowthMindset: true,  // c. 正向語言與建設性建議
+    },
 });
 
 export { SCHEMA_VERSION, FORM_SCHEMA, FIELD_RENAMES, FIELD_TRANSFORMS, matchesType, migrateFormData, getInitialFormData };

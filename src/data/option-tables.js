@@ -44,31 +44,64 @@ const learningDiversityOptions = [
 
 // 預設 rules（schema.js 用嚟初始化 formData.rules）
 // W9-10 #6: 加 __isDefault flag，等 generator 可以 filter 走未經老師改過嘅 default rules
+// v3.2.4: 拎走「個別化學習報告」rule (a/b/c 三段) — 改由 formData.personalizedReport
+// module toggle 控制（master + 3 sub-toggles），generator 動態 compose
 const defaultRules = [
     { text: "在右上角加上學習儀表版功能,讓學生能夠自我檢測, 成績要能存在本機", __isDefault: true },
     { text: "答對時給予 提示音及對應的知識理論，為何該答案是正確", __isDefault: true },
     { text: "首頁輸入框提示：請輸入你的名字開始遊戲： 例如：小明, 行動按鈕：開始遊戲", __isDefault: true },
     { text: "增加一個 自學模式，用戶能自行設定問題給自己, 例子(x - y) 然後自行解答。", __isDefault: true },
-    { text: `「個別化學習報告頁面」，需符合以下原則：
+    { text: "🎉 慶祝特效: 任務完成時觸發 canvas-confetti（特效只會觸發一次，重置後才會再次觸發）。", __isDefault: true },
+];
+
+// === Personalized Report Module ===
+// v3.2.4: 由原 defaultRules 抽出嘅 3 段 rule 內容
+// generator 用呢 3 段根據 formData.personalizedReport.{showData,showVisualization,showGrowthMindset}
+// 動態 compose rule text 注入 prompt
+// 設計：每段都係 closed spec（user 列嘅 spec），老師唔應該改文字，
+// 只能 toggle on/off — 因此獨立成 module 唔混入 free-form rules editor
+const personalizedReportSections = {
+    showData: `「個別化學習報告頁面」，需符合以下原則：
 a. 個別化與數據化
 顯示具體學習數據，例如：答對題數／總題數、平均嘗試次數、完成時間（若適用）
 標示「最熟練項目」與「需加強項目」（例如：最易／最難的數字、詞彙或題型）
-數據需基於學生實際互動行為（如錯誤模式、重試次數）而非僅二元對錯
-b. 可視化與兒童友善設計
+數據需基於學生實際互動行為（如錯誤模式、重試次數）而非僅二元對錯`,
+
+    showVisualization: `b. 可視化與兒童友善設計
 使用簡易長條圖、圓餅圖或進度條呈現關鍵數據，避免複雜座標軸
 採用柔和配色、大字體、Emoji 或插畫風格圖示（如🌟、💡、🚀）
-避免文字密集，多用圖示與留白，確保低年級學生能一眼理解
-c. 正向語言與建設性建議
+避免文字密集，多用圖示與留白，確保低年級學生能一眼理解`,
+
+    showGrowthMindset: `c. 正向語言與建設性建議
 以成長型思維（growth mindset）措辭：強調「努力」「進步」「小專家」「再試一次就更厲害」
 提供 1–2 條具體、可操作的建議（例如：「你可以每天練習 3 次『7 的分解』，就像搭積木一樣！」）
-避免負面標籤（如「你不會」「錯誤太多」）`
-    , __isDefault: true },
-    { text: "🎉 慶祝特效: 任務完成時觸發 canvas-confetti（特效只會觸發一次，重置後才會再次觸發）。", __isDefault: true },
-];
+避免負面標籤（如「你不會」「錯誤太多」）`,
+};
+
+// Compose 一段完整嘅 rule text 根據 toggle 狀態
+// 策略：
+//   - enabled=false → 返回 null (generator filter 走)
+//   - 冇任何 sub-toggle 開 → 返回 null
+//   - sub-toggle 開 → concat 對應 section (段間空一行分隔)
+// 老師 custom rules 入面如果有「個別化學習報告」相關嘅，已經 __isDefault: false 會
+// 被 generator 保留（唔會 dup）
+export const composePersonalizedReportRule = (config) => {
+    if (!config || typeof config !== 'object') return null;
+    if (config.enabled === false) return null;
+    const parts = [];
+    if (config.showData !== false) parts.push(personalizedReportSections.showData.trimEnd());
+    if (config.showVisualization !== false) parts.push(personalizedReportSections.showVisualization.trimEnd());
+    if (config.showGrowthMindset !== false) parts.push(personalizedReportSections.showGrowthMindset.trimEnd());
+    if (parts.length === 0) return null;
+    // 段間用 \n\n (一個空行) — trimEnd 確保唔會有 3 個 newline
+    return parts.join('\n\n');
+};
 
 export {
     senTypeOptions,
     accessibilityOptions,
     learningDiversityOptions,
     defaultRules,
+    personalizedReportSections,
+    // composePersonalizedReportRule 由上面 export const 直接 export，唔重複列
 };
