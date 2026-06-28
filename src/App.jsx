@@ -14,6 +14,7 @@ import { VersionPanel } from './components/VersionPanel.jsx';
 import { DiffView } from './components/DiffView.jsx';
 import { ProfileBankPanel } from './components/ProfileBankPanel.jsx';
 import personalLogo from '../assets/personal_logo.png';
+import { mutedTextClass, pillClass, toggleClass, cardClass } from './design-system/index.js';
 
 // === Feature flags ===
 // GEMINI_DIRECT_GENERATE_ENABLED: 控制 Gemini API 直接生成 HTML 嘅 UI 嘅顯隱
@@ -292,7 +293,7 @@ const renderStep1 = () => (
                         disabled={!formData.toolName && !formData.purpose}
                         className={`px-token-4 py-token-2 rounded-lg font-bold text-sm transition-all ${
                             (!formData.toolName && !formData.purpose)
-                                ? (theme === 'cyber' ? 'bg-slate-800 text-slate-600 cursor-not-allowed' : 'bg-slate-200 text-slate-400 cursor-not-allowed')
+                                ? ('bg-slate-200 text-slate-400 cursor-not-allowed')
                                 : ('bg-amber-500 text-white hover:bg-amber-600')
                         }`}
                     >
@@ -795,7 +796,7 @@ const renderStep2 = () => (
                     onClick={() => setActiveSuggestionField(activeSuggestionField === 'purpose' ? null : 'purpose')}
                     className={`flex items-center gap-token-1 px-token-2 py-token-1 rounded-md text-xs font-bold transition-all ${
                         activeSuggestionField === 'purpose'
-                            ? (theme === 'cyber' ? 'bg-cyan-900/40 text-cyan-200 border border-cyan-500/50' : 'bg-blue-100 text-blue-700 border border-blue-300')
+                            ? ('bg-blue-100 text-blue-700 border border-blue-300')
                             : ('text-slate-500 hover:text-blue-600 hover:bg-slate-100')
                     }`}
                     title="AI 根據所選範疇智能推薦核心用途"
@@ -831,7 +832,7 @@ const renderStep2 = () => (
                         onClick={() => setActiveSuggestionField(activeSuggestionField === 'context' ? null : 'context')}
                         className={`flex items-center gap-token-1 px-token-2 py-token-1 rounded-md text-xs font-bold transition-all ${
                             activeSuggestionField === 'context'
-                                ? (theme === 'cyber' ? 'bg-cyan-900/40 text-cyan-200 border border-cyan-500/50' : 'bg-blue-100 text-blue-700 border border-blue-300')
+                                ? ('bg-blue-100 text-blue-700 border border-blue-300')
                                 : ('text-slate-500 hover:text-blue-600 hover:bg-slate-100')
                         }`}
                         title="AI 根據所選範疇智能推薦生活情境"
@@ -892,7 +893,7 @@ const renderStep3 = () => (
                     onClick={() => setActiveSuggestionField(activeSuggestionField === 'rules' ? null : 'rules')}
                     className={`flex items-center gap-token-1 px-token-2 py-token-1 rounded-md text-xs font-bold transition-all ${
                         activeSuggestionField === 'rules'
-                            ? (theme === 'cyber' ? 'bg-cyan-900/40 text-cyan-200 border border-cyan-500/50' : 'bg-blue-100 text-blue-700 border border-blue-300')
+                            ? ('bg-blue-100 text-blue-700 border border-blue-300')
                             : ('text-slate-500 hover:text-blue-600 hover:bg-slate-100')
                     }`}
                     title="AI 推薦通用嘅教學工具規則（會直接 append 到 rules list）"
@@ -989,7 +990,7 @@ const renderStep3 = () => (
                         onClick={() => updateField('includePreferenceSettings', !formData.includePreferenceSettings)}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
                             formData.includePreferenceSettings 
-                            ? (theme === 'cyber' ? 'bg-cyan-500' : 'bg-blue-600') 
+                            ? ('bg-blue-600') 
                             : ('bg-slate-300')
                         }`}
                     >
@@ -1015,7 +1016,7 @@ const renderStep3 = () => (
                         onClick={() => updateField('useGeminiStyle', !formData.useGeminiStyle)}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
                             formData.useGeminiStyle
-                            ? (theme === 'cyber' ? 'bg-purple-500' : 'bg-purple-600')
+                            ? ('bg-purple-600')
                             : ('bg-slate-300')
                         }`}
                     >
@@ -1044,7 +1045,7 @@ const renderStep3 = () => (
                             onClick={() => updateField('personalizedReport', { ...formData.personalizedReport, enabled: !formData.personalizedReport?.enabled })}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
                                 formData.personalizedReport?.enabled !== false
-                                ? (theme === 'cyber' ? 'bg-amber-500' : 'bg-amber-600')
+                                ? ('bg-amber-600')
                                 : ('bg-slate-300')
                             }`}
                             title={formData.personalizedReport?.enabled !== false ? '已啟用 — 7 段 rule 會注入 prompt' : '已關閉 — 唔會注入任何 rule'}
@@ -1079,7 +1080,7 @@ const renderStep3 = () => (
                                     })}
                                     className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none flex-none ${
                                         formData.personalizedReport?.[sub.key] !== false
-                                        ? (theme === 'cyber' ? 'bg-amber-500' : 'bg-amber-500')
+                                        ? ('bg-amber-500')
                                         : ('bg-slate-300')
                                     }`}
                                 >
@@ -1633,9 +1634,7 @@ const renderAiResult = () => (
                                 </span>
                             </div>
                         </h1>
-                        <p className={`mt-4 font-medium text-base pl-0 md:pl-[4rem] flex items-center gap-token-2 ${
-                            theme === 'warm' ? 'text-amber-700' : 'text-slate-500'
-                        }`}>
+                        <p className={`mt-4 font-medium text-base pl-0 md:pl-[4rem] flex items-center gap-token-2 ${mutedTextClass(theme)}`}>
                             <Zap size={16} className="text-yellow-400" />
                             3 分鐘將 SEN 學生需要轉成結構化 prompt
                         </p>
@@ -1701,7 +1700,7 @@ const renderAiResult = () => (
                                 disabled={!canUndo}
                                 className={`p-token-2 rounded-full transition-all ${
                                     canUndo
-                                        ? (theme === 'cyber' ? 'bg-slate-800 text-cyan-300 hover:bg-slate-700 border border-cyan-500/30' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 shadow-sm')
+                                        ? ('bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 shadow-sm')
                                         : ('bg-slate-50 text-slate-300 border border-slate-100')
                                 }`}
                                 title="復原 (Ctrl/Cmd+Z)"
@@ -1713,7 +1712,7 @@ const renderAiResult = () => (
                                 disabled={!canRedo}
                                 className={`p-token-2 rounded-full transition-all ${
                                     canRedo
-                                        ? (theme === 'cyber' ? 'bg-slate-800 text-cyan-300 hover:bg-slate-700 border border-cyan-500/30' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 shadow-sm')
+                                        ? ('bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 shadow-sm')
                                         : ('bg-slate-50 text-slate-300 border border-slate-100')
                                 }`}
                                 title="重做 (Ctrl/Cmd+Shift+Z)"
@@ -1932,7 +1931,7 @@ const renderAiResult = () => (
                                         onClick={() => setPreviewTab('design')}
                                         className={`px-token-3 py-token-1 rounded text-xs font-bold transition-all ${
                                             previewTab === 'design'
-                                            ? (theme === 'cyber' ? 'bg-cyan-500/30 text-cyan-200 ring-1 ring-cyan-500' : 'bg-blue-100 text-blue-700')
+                                            ? ('bg-blue-100 text-blue-700')
                                             : ('text-slate-600 hover:bg-slate-100')
                                         }`}
                                     >
@@ -1942,7 +1941,7 @@ const renderAiResult = () => (
                                         onClick={() => setPreviewTab('tech')}
                                         className={`px-token-3 py-token-1 rounded text-xs font-bold transition-all ${
                                             previewTab === 'tech'
-                                            ? (theme === 'cyber' ? 'bg-cyan-500/30 text-cyan-200 ring-1 ring-cyan-500' : 'bg-blue-100 text-blue-700')
+                                            ? ('bg-blue-100 text-blue-700')
                                             : ('text-slate-600 hover:bg-slate-100')
                                         }`}
                                     >
