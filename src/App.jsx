@@ -15,6 +15,7 @@ import { DiffView } from './components/DiffView.jsx';
 import { ProfileBankPanel } from './components/ProfileBankPanel.jsx';
 import personalLogo from '../assets/personal_logo.png';
 import { mutedTextClass, pillClass, toggleClass, cardClass, ToggleSwitch } from './design-system/index.js';
+import { themeMeta, themeOrder } from './design-system/tokens/colors.js';
 
 // === Feature flags ===
 // GEMINI_DIRECT_GENERATE_ENABLED: 控制 Gemini API 直接生成 HTML 嘅 UI 嘅顯隱
@@ -1150,9 +1151,7 @@ const renderStep4 = (formData, designPrompt, techPrompt, qualityScore) => (
                  <button
                     onClick={() => setVersionPanelOpen(true)}
                     className={`px-token-3 py-token-2 rounded-lg flex items-center gap-token-2 text-sm font-bold transition-all border shadow-sm ${
-                        theme === 'warm'
-                        ? 'bg-amber-100 hover:bg-amber-200 text-amber-800 border-amber-300'
-                        : 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200'
+                        theme === 'warm' ? 'bg-amber-100 hover:bg-amber-200 text-amber-800 border-amber-300' : theme === 'dark' ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200' : theme === 'contrast' ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200' : theme === 'paper' ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200' : theme === 'reactor' ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200' : 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200'
                     }`}
                     title="管理 Prompt 版本 + Diff View (W5-6)"
                 >
@@ -1419,16 +1418,10 @@ const renderAiResult = () => (
                             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
                             className={`pointer-events-auto rounded-xl border-2 p-token-3 shadow-2xl backdrop-blur-md ${
                                 w.severity === 'error'
-                                    ? (theme === 'warm'
-                                        ? 'bg-red-50/95 border-red-400 text-red-900'
-                                        : 'bg-red-50/95 border-red-400 text-red-900')
+                                    ? (theme === 'warm' ? 'bg-red-50/95 border-red-400 text-red-900' : theme === 'dark' ? 'bg-red-50/95 border-red-400 text-red-900' : theme === 'contrast' ? 'bg-red-50/95 border-red-400 text-red-900' : theme === 'paper' ? 'bg-red-50/95 border-red-400 text-red-900' : theme === 'reactor' ? 'bg-red-50/95 border-red-400 text-red-900' : 'bg-red-50/95 border-red-400 text-red-900')
                                     : w.severity === 'warning'
-                                        ? (theme === 'warm'
-                                            ? 'bg-amber-50/95 border-amber-400 text-amber-900'
-                                            : 'bg-amber-50/95 border-amber-400 text-amber-900')
-                                        : (theme === 'warm'
-                                            ? 'bg-blue-50/95 border-blue-400 text-blue-900'
-                                            : 'bg-blue-50/95 border-blue-400 text-blue-900')
+                                        ? (theme === 'warm' ? 'bg-amber-50/95 border-amber-400 text-amber-900' : theme === 'dark' ? 'bg-amber-50/95 border-amber-400 text-amber-900' : theme === 'contrast' ? 'bg-amber-50/95 border-amber-400 text-amber-900' : theme === 'paper' ? 'bg-amber-50/95 border-amber-400 text-amber-900' : theme === 'reactor' ? 'bg-amber-50/95 border-amber-400 text-amber-900' : 'bg-amber-50/95 border-amber-400 text-amber-900')
+                                        : (theme === 'warm' ? 'bg-blue-50/95 border-blue-400 text-blue-900' : theme === 'dark' ? 'bg-blue-50/95 border-blue-400 text-blue-900' : theme === 'contrast' ? 'bg-blue-50/95 border-blue-400 text-blue-900' : theme === 'paper' ? 'bg-blue-50/95 border-blue-400 text-blue-900' : theme === 'reactor' ? 'bg-blue-50/95 border-blue-400 text-blue-900' : 'bg-blue-50/95 border-blue-400 text-blue-900')
                             }`}
                         >
                             <div className="flex items-start gap-token-2 mb-1">
@@ -1535,21 +1528,24 @@ const renderAiResult = () => (
                         </p>
                     </div>
                     <div className="flex flex-col items-end gap-token-2">
-                        <button
-                            onClick={toggleTheme}
-                            aria-label={`切換主題（目前：${theme === 'plain' ? '簡潔' : '暖色'}）`}
-                            className={`p-token-2 rounded-full transition-all duration-300 ${
-                                theme === 'warm'
-                                ? 'bg-amber-100 text-amber-700 hover:bg-amber-200 border border-amber-300 shadow-sm'
-                                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 shadow-sm'
-                            }`}
-                            title={
-                                theme === 'plain' ? "切換至暖色模式"
-                                : "切換至簡潔模式"
-                            }
-                        >
-                            {theme === 'plain' ? <Moon size={20} /> : <Sun size={20} />}
-                        </button>
+                        {/* v3.12.0: Theme dropdown selector (6 themes) */}
+                        <label className={`flex items-center gap-token-1 px-token-3 py-token-1.5 rounded-full text-sm font-medium transition-all duration-300 cursor-pointer border ${pillClass(theme, { active: true })}`}
+                            title="揀主題">
+                            <span className="text-base">{themeMeta[theme]?.emoji || '☀️'}</span>
+                            <select
+                                value={theme}
+                                onChange={(e) => setTheme(e.target.value)}
+                                aria-label="選擇主題"
+                                className="bg-transparent border-none outline-none cursor-pointer font-medium"
+                                style={{ colorScheme: theme === 'dark' || theme === 'reactor' ? 'dark' : 'light' }}
+                            >
+                                {themeOrder.map(t => (
+                                    <option key={t} value={t} className="bg-white text-slate-800">
+                                        {themeMeta[t]?.emoji} {themeMeta[t]?.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
                         <div
                             className={`hidden md:flex px-token-4 py-token-2 rounded-full text-sm font-bold flex items-center gap-token-2 tracking-wider ${
                             'bg-slate-100 text-slate-600 border border-slate-200'
@@ -1573,9 +1569,7 @@ const renderAiResult = () => (
                         <button
                             onClick={() => setProfileBankOpen(true)}
                             className={`px-token-4 py-token-2 rounded-full text-sm font-bold flex items-center gap-token-2 tracking-wider transition-all ${
-                                theme === 'warm'
-                                ? 'bg-violet-100 text-violet-700 border border-violet-200 hover:bg-violet-200'
-                                : 'bg-violet-100 text-violet-700 border border-violet-200 hover:bg-violet-200'
+                                theme === 'warm' ? 'bg-violet-100 text-violet-700 border border-violet-200 hover:bg-violet-200' : theme === 'dark' ? 'bg-violet-100 text-violet-700 border border-violet-200 hover:bg-violet-200' : theme === 'contrast' ? 'bg-violet-100 text-violet-700 border border-violet-200 hover:bg-violet-200' : theme === 'paper' ? 'bg-violet-100 text-violet-700 border border-violet-200 hover:bg-violet-200' : theme === 'reactor' ? 'bg-violet-100 text-violet-700 border border-violet-200 hover:bg-violet-200' : 'bg-violet-100 text-violet-700 border border-violet-200 hover:bg-violet-200'
                             }`}
                             title="學生 Profile Bank — 加密儲存個別學生 preset"
                         >
@@ -1617,8 +1611,8 @@ const renderAiResult = () => (
                             transition={{ type: 'spring', stiffness: 400, damping: 18 }}
                             className={`hidden md:flex px-token-3 py-token-1.5 rounded-full text-xs font-bold flex items-center gap-token-1.5 tracking-wide ${
                                 lastSavedAt
-                                    ? (theme === 'warm' ? 'text-emerald-700 bg-emerald-50' : 'text-emerald-700 bg-emerald-50')
-                                    : (theme === 'warm' ? 'text-slate-500' : 'text-slate-400')
+                                    ? (theme === 'warm' ? 'text-emerald-700 bg-emerald-50' : theme === 'dark' ? 'text-emerald-700 bg-emerald-50' : theme === 'contrast' ? 'text-emerald-700 bg-emerald-50' : theme === 'paper' ? 'text-emerald-700 bg-emerald-50' : theme === 'reactor' ? 'text-emerald-700 bg-emerald-50' : 'text-emerald-700 bg-emerald-50')
+                                    : (theme === 'warm' ? 'text-slate-500' : theme === 'dark' ? 'text-slate-400' : theme === 'contrast' ? 'text-slate-400' : theme === 'paper' ? 'text-slate-400' : theme === 'reactor' ? 'text-slate-400' : 'text-slate-400')
                             }`}
                             title={lastSavedAt ? `上次儲存: ${new Date(lastSavedAt).toLocaleTimeString('zh-HK')}` : '尚未儲存'}
                         >
@@ -1639,8 +1633,7 @@ const renderAiResult = () => (
                 {/* Tab Nav — W1-2 取代 step gate (任何 tab 隨時跳) — W3-4.1 加 warm 第三 case */}
                 <div className="mb-6 max-w-3xl mx-auto">
                     <div className={`flex gap-token-1 p-token-1 rounded-xl border ${
-                        theme === 'warm' ? 'border-amber-200 bg-amber-50/60'
-                        : 'border-slate-200 bg-slate-50'
+                        theme === 'warm' ? 'border-amber-200 bg-amber-50/60' : theme === 'dark' ? 'border-slate-200 bg-slate-50' : theme === 'contrast' ? 'border-slate-200 bg-slate-50' : theme === 'paper' ? 'border-slate-200 bg-slate-50' : theme === 'reactor' ? 'border-slate-200 bg-slate-50' : 'border-slate-200 bg-slate-50'
                     }`}>
                         {[
                             { key: 'basic', label: '基本', icon: '📋' },
@@ -1657,12 +1650,8 @@ const renderAiResult = () => (
                                     aria-current={isActive ? 'page' : undefined}
                                     className={`flex-1 px-token-3 py-token-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-token-2 ${
                                         isActive
-                                            ? (theme === 'warm'
-                                                ? 'bg-amber-200/80 text-amber-900 ring-1 ring-amber-400'
-                                                : 'bg-blue-100 text-blue-700 ring-1 ring-blue-300')
-                                            : (theme === 'warm'
-                                                ? 'text-amber-800 hover:text-amber-900 hover:bg-amber-100'
-                                                : 'text-slate-600 hover:bg-white hover:shadow-sm')
+                                            ? (theme === 'warm' ? 'bg-amber-200/80 text-amber-900 ring-1 ring-amber-400' : theme === 'dark' ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : theme === 'contrast' ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : theme === 'paper' ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : theme === 'reactor' ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' : 'bg-blue-100 text-blue-700 ring-1 ring-blue-300')
+                                            : (theme === 'warm' ? 'text-amber-800 hover:text-amber-900 hover:bg-amber-100' : theme === 'dark' ? 'text-slate-600 hover:bg-white hover:shadow-sm' : theme === 'contrast' ? 'text-slate-600 hover:bg-white hover:shadow-sm' : theme === 'paper' ? 'text-slate-600 hover:bg-white hover:shadow-sm' : theme === 'reactor' ? 'text-slate-600 hover:bg-white hover:shadow-sm' : 'text-slate-600 hover:bg-white hover:shadow-sm')
                                     }`}
                                 >
                                     <span>{tab.icon}</span>
@@ -1672,13 +1661,10 @@ const renderAiResult = () => (
                                     {comp.total > 0 && (
                                         <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
                                             comp.complete
-                                                ? (theme === 'warm' ? 'bg-emerald-200 text-emerald-800'
-                                                    : 'bg-emerald-100 text-emerald-700')
+                                                ? (theme === 'warm' ? 'bg-emerald-200 text-emerald-800' : theme === 'dark' ? 'bg-emerald-100 text-emerald-700' : theme === 'contrast' ? 'bg-emerald-100 text-emerald-700' : theme === 'paper' ? 'bg-emerald-100 text-emerald-700' : theme === 'reactor' ? 'bg-emerald-100 text-emerald-700' : 'bg-emerald-100 text-emerald-700')
                                                 : isActive
-                                                    ? (theme === 'warm' ? 'bg-amber-300 text-amber-900'
-                                                        : 'bg-blue-200 text-blue-700')
-                                                    : (theme === 'warm' ? 'bg-amber-100 text-amber-700'
-                                                        : 'bg-slate-200 text-slate-600')
+                                                    ? (theme === 'warm' ? 'bg-amber-300 text-amber-900' : theme === 'dark' ? 'bg-blue-200 text-blue-700' : theme === 'contrast' ? 'bg-blue-200 text-blue-700' : theme === 'paper' ? 'bg-blue-200 text-blue-700' : theme === 'reactor' ? 'bg-blue-200 text-blue-700' : 'bg-blue-200 text-blue-700')
+                                                    : (theme === 'warm' ? 'bg-amber-100 text-amber-700' : theme === 'dark' ? 'bg-slate-200 text-slate-600' : theme === 'contrast' ? 'bg-slate-200 text-slate-600' : theme === 'paper' ? 'bg-slate-200 text-slate-600' : theme === 'reactor' ? 'bg-slate-200 text-slate-600' : 'bg-slate-200 text-slate-600')
                                         }`}>
                                             {comp.filled}/{comp.total}
                                         </span>

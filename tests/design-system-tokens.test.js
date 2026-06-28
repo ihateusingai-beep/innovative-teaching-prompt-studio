@@ -8,8 +8,10 @@ import {
     radius, radiusTokens, radiusOf,
     elevation, shadow, elevationOf,
     easing, transition, transitionCss,
-    accent, warmAccent, focusRing, background, themePrimary, getThemePrimary,
+    accent, warmAccent, darkAccent, contrastAccent, paperAccent, reactorAccent,
+    focusRing, background, themePrimary, getThemePrimary,
     gradient, gradientFor,
+    themeMeta, themeOrder,
     fontFamily, fontSize, fontWeight, lineHeight, letterSpacing,
 } from '../src/design-system/tokens/index.js';
 
@@ -137,13 +139,22 @@ describe('color tokens', () => {
 });
 
 describe('gradient tokens', () => {
-    it('exports 4 gradients', () => {
-        expect(Object.keys(gradient)).toEqual(['primary', 'background', 'soft', 'warm']);
+    it('exports 9 gradient keys (plain alias + 5 themes + primary/background/soft)', () => {
+        expect(Object.keys(gradient)).toContain('primary');
+        expect(Object.keys(gradient)).toContain('background');
+        expect(Object.keys(gradient)).toContain('soft');
+        expect(Object.keys(gradient)).toContain('warm');
+        expect(Object.keys(gradient)).toContain('dark');
+        expect(Object.keys(gradient)).toContain('contrast');
+        expect(Object.keys(gradient)).toContain('paper');
+        expect(Object.keys(gradient)).toContain('reactor');
+        expect(Object.keys(gradient)).toContain('plain');  // alias for primary
+        expect(Object.keys(gradient).length).toBe(9);
     });
 
-    it('all gradients are linear-gradient(135deg, ...) strings', () => {
+    it('all gradients are linear-gradient(...) strings', () => {
         for (const key of Object.keys(gradient)) {
-            expect(gradient[key]).toMatch(/^linear-gradient\(135deg,/);
+            expect(gradient[key]).toMatch(/^linear-gradient\(/);
         }
     });
 
@@ -152,17 +163,75 @@ describe('gradient tokens', () => {
         expect(gradient.warm).toContain('#fb923c');
     });
 
-    it('gradientFor(theme) returns warm for warm theme + non-warm names', () => {
+    it('dark gradient uses cyan/purple (neon)', () => {
+        expect(gradient.dark).toContain('#06b6d4');
+        expect(gradient.dark).toContain('#a855f7');
+    });
+
+    it('contrast gradient is pure black (no gradient — accessibility)', () => {
+        expect(gradient.contrast).toContain('#000000');
+    });
+
+    it('paper gradient uses cream/stone palette', () => {
+        expect(gradient.paper).toContain('#fefce8');
+        expect(gradient.paper).toContain('#fef3c7');
+    });
+
+    it('reactor gradient uses amber/sky/red (Iron Man HUD)', () => {
+        expect(gradient.reactor).toContain('#f59e0b');
+        expect(gradient.reactor).toContain('#0ea5e9');
+        expect(gradient.reactor).toContain('#ef4444');
+    });
+
+    it('gradientFor(theme) returns theme-specific gradient for primary/background/soft', () => {
         expect(gradientFor('warm', 'primary')).toBe(gradient.warm);
         expect(gradientFor('warm', 'background')).toBe(gradient.warm);
         expect(gradientFor('warm', 'soft')).toBe(gradient.warm);
         expect(gradientFor('plain', 'primary')).toBe(gradient.primary);
         expect(gradientFor('plain', 'background')).toBe(gradient.background);
+        expect(gradientFor('dark', 'primary')).toBe(gradient.dark);
+        expect(gradientFor('contrast', 'primary')).toBe(gradient.contrast);
+        expect(gradientFor('paper', 'primary')).toBe(gradient.paper);
+        expect(gradientFor('reactor', 'primary')).toBe(gradient.reactor);
+    });
+
+    it('gradientFor falls back to plain for invalid theme', () => {
+        expect(gradientFor('invalid', 'primary')).toBe(gradient.primary);
     });
 
     it('gradientFor handles invalid name (default to primary)', () => {
         expect(gradientFor('plain', 'invalid')).toBe(gradient.primary);
-        expect(gradientFor('invalid', 'primary')).toBe(gradient.primary);
+    });
+});
+
+describe('theme metadata', () => {
+    it('themeMeta covers all 6 themes with label/emoji/description', () => {
+        expect(Object.keys(themeMeta).sort()).toEqual(['contrast', 'dark', 'paper', 'plain', 'reactor', 'warm']);
+        for (const t of themeOrder) {
+            expect(themeMeta[t].label).toBeTruthy();
+            expect(themeMeta[t].emoji).toBeTruthy();
+            expect(themeMeta[t].description).toBeTruthy();
+        }
+    });
+
+    it('themeOrder lists all 6 themes in display order', () => {
+        expect(themeOrder).toEqual(['plain', 'warm', 'dark', 'contrast', 'paper', 'reactor']);
+    });
+
+    it('themePrimary covers all 6 themes', () => {
+        expect(themePrimary.plain).toBe(accent.primary);
+        expect(themePrimary.warm).toBe(warmAccent.primary);
+        expect(themePrimary.dark).toBe(darkAccent.primary);
+        expect(themePrimary.contrast).toBe(contrastAccent.primary);
+        expect(themePrimary.paper).toBe(paperAccent.primary);
+        expect(themePrimary.reactor).toBe(reactorAccent.primary);
+    });
+
+    it('accent palette: 4 new themes', () => {
+        expect(darkAccent.primary).toBe('#06b6d4');
+        expect(contrastAccent.primary).toBe('#000000');
+        expect(paperAccent.primary).toBe('#1c1917');
+        expect(reactorAccent.primary).toBe('#f59e0b');
     });
 });
 

@@ -102,11 +102,14 @@ export const useAppState = () => {
     const [previewOpen, setPreviewOpen] = useState(false);
     const [previewTab, setPreviewTab] = useState("design");
     const [theme, setTheme] = useState('plain');
-    // v3.2: 2-way cycle plain ↔ warm (cyber theme classes retained as noop aliases)
+    // v3.12.0: 6 themes via dropdown selector (plain/warm/dark/contrast/paper/reactor)
+    // setTheme is now called directly by dropdown onChange — no binary toggle needed
     const toggleTheme = useCallback(() => {
+        // Keep for backward compat — cycles through all 6 themes in order
         setTheme(prev => {
-            if (prev === 'plain') return 'warm';
-            return 'plain';
+            const order = ['plain', 'warm', 'dark', 'contrast', 'paper', 'reactor'];
+            const idx = order.indexOf(prev);
+            return order[(idx + 1) % order.length];
         });
     }, []);
     const [onboardingStep, setOnboardingStep] = useState(null);
@@ -149,9 +152,10 @@ export const useAppState = () => {
 
     const fileInputRef = useRef(null);
 
-    // === Theme sync to <body> className === (W3-4.1: 3-way theme)
+    // === Theme sync to <body> className === (v3.12.0: 6 themes)
     useEffect(() => {
-        document.body.classList.remove('theme-cyber', 'theme-plain', 'theme-warm');
+        const ALL_THEMES = ['theme-cyber', 'theme-plain', 'theme-warm', 'theme-dark', 'theme-contrast', 'theme-paper', 'theme-reactor'];
+        document.body.classList.remove(...ALL_THEMES);
         document.body.classList.add('theme-' + theme);
     }, [theme]);
 

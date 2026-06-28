@@ -8,18 +8,10 @@ import { Card } from './ui.jsx';
 // Click to open QualityScoreDetail modal
 // W3-4.1: 加 warm third case (amber palette)
 const scoreColor = (grade, theme) => {
-    if (grade === 'S' || grade === 'A') return theme === 'warm'
-        ? 'bg-emerald-100 text-emerald-800 border-emerald-400'
-        : 'bg-emerald-100 text-emerald-700 border-emerald-500';
-    if (grade === 'B') return theme === 'warm'
-        ? 'bg-amber-100 text-amber-800 border-amber-400'
-        : 'bg-cyan-100 text-cyan-700 border-cyan-500';
-    if (grade === 'C') return theme === 'warm'
-        ? 'bg-orange-100 text-orange-800 border-orange-400'
-        : 'bg-amber-100 text-amber-700 border-amber-500';
-    return theme === 'warm'
-        ? 'bg-orange-50 text-orange-700 border-orange-300'
-        : 'bg-slate-100 text-slate-600 border-slate-400';
+    if (grade === 'S' || grade === 'A') return theme === 'warm' ? 'bg-emerald-100 text-emerald-800 border-emerald-400' : theme === 'dark' ? 'bg-emerald-100 text-emerald-700 border-emerald-500' : theme === 'contrast' ? 'bg-emerald-100 text-emerald-700 border-emerald-500' : theme === 'paper' ? 'bg-emerald-100 text-emerald-700 border-emerald-500' : theme === 'reactor' ? 'bg-emerald-100 text-emerald-700 border-emerald-500' : 'bg-emerald-100 text-emerald-700 border-emerald-500';
+    if (grade === 'B') return theme === 'warm' ? 'bg-amber-100 text-amber-800 border-amber-400' : theme === 'dark' ? 'bg-cyan-100 text-cyan-700 border-cyan-500' : theme === 'contrast' ? 'bg-cyan-100 text-cyan-700 border-cyan-500' : theme === 'paper' ? 'bg-cyan-100 text-cyan-700 border-cyan-500' : theme === 'reactor' ? 'bg-cyan-100 text-cyan-700 border-cyan-500' : 'bg-cyan-100 text-cyan-700 border-cyan-500';
+    if (grade === 'C') return theme === 'warm' ? 'bg-orange-100 text-orange-800 border-orange-400' : theme === 'dark' ? 'bg-amber-100 text-amber-700 border-amber-500' : theme === 'contrast' ? 'bg-amber-100 text-amber-700 border-amber-500' : theme === 'paper' ? 'bg-amber-100 text-amber-700 border-amber-500' : theme === 'reactor' ? 'bg-amber-100 text-amber-700 border-amber-500' : 'bg-amber-100 text-amber-700 border-amber-500';
+    return theme === 'warm' ? 'bg-orange-50 text-orange-700 border-orange-300' : theme === 'dark' ? 'bg-slate-100 text-slate-600 border-slate-400' : theme === 'contrast' ? 'bg-slate-100 text-slate-600 border-slate-400' : theme === 'paper' ? 'bg-slate-100 text-slate-600 border-slate-400' : theme === 'reactor' ? 'bg-slate-100 text-slate-600 border-slate-400' : 'bg-slate-100 text-slate-600 border-slate-400';
 };
 
 export const QualityScoreBadge = ({ theme, score, onClick }) => (

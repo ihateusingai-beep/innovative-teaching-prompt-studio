@@ -85,10 +85,9 @@ export const ProfileBankPanel = ({
     const fileInputRef = useRef(null);
 
     // === Theme tokens ===
-    const cardBg = theme === 'warm' ? 'bg-white border-amber-300'
-                  : 'bg-white border-slate-300';
-    const textPri = theme === 'warm' ? 'text-amber-900' : 'text-slate-800';
-    const textSec = theme === 'warm' ? 'text-amber-700' : 'text-slate-600';
+    const cardBg = theme === 'warm' ? 'bg-white border-amber-300' : theme === 'dark' ? 'bg-white border-slate-300' : theme === 'contrast' ? 'bg-white border-slate-300' : theme === 'paper' ? 'bg-white border-slate-300' : theme === 'reactor' ? 'bg-white border-slate-300' : 'bg-white border-slate-300';
+    const textPri = theme === 'warm' ? 'text-amber-900' : theme === 'dark' ? 'text-slate-800' : theme === 'contrast' ? 'text-slate-800' : theme === 'paper' ? 'text-slate-800' : theme === 'reactor' ? 'text-slate-800' : 'text-slate-800';
+    const textSec = theme === 'warm' ? 'text-amber-700' : theme === 'dark' ? 'text-slate-600' : theme === 'contrast' ? 'text-slate-600' : theme === 'paper' ? 'text-slate-600' : theme === 'reactor' ? 'text-slate-600' : 'text-slate-600';
     const inputBorder = 'border-slate-300 bg-white text-slate-800';
     const btnPri = 'bg-blue-600 text-white hover:bg-blue-700';
     const btnSec = 'bg-slate-100 text-slate-700 hover:bg-slate-200';
@@ -258,8 +257,7 @@ export const ProfileBankPanel = ({
     const renderGate = () => (
         <div className="space-y-token-4">
             <div className={`p-token-3 rounded-lg border ${
-                theme === 'warm' ? 'bg-amber-50 border-amber-300 text-amber-800'
-                : 'bg-blue-50 border-blue-200 text-blue-800'
+                theme === 'warm' ? 'bg-amber-50 border-amber-300 text-amber-800' : theme === 'dark' ? 'bg-blue-50 border-blue-200 text-blue-800' : theme === 'contrast' ? 'bg-blue-50 border-blue-200 text-blue-800' : theme === 'paper' ? 'bg-blue-50 border-blue-200 text-blue-800' : theme === 'reactor' ? 'bg-blue-50 border-blue-200 text-blue-800' : 'bg-blue-50 border-blue-200 text-blue-800'
             }`}>
                 <div className="flex items-start gap-token-2">
                     <Lock size={16} className="flex-none mt-0.5" />
@@ -315,8 +313,7 @@ export const ProfileBankPanel = ({
 
             {gateError && (
                 <div className={`p-token-3 rounded-lg text-sm ${
-                    theme === 'warm' ? 'bg-red-50 border border-red-200 text-red-700'
-                    : 'bg-red-50 border border-red-200 text-red-700'
+                    theme === 'warm' ? 'bg-red-50 border border-red-200 text-red-700' : theme === 'dark' ? 'bg-red-50 border border-red-200 text-red-700' : theme === 'contrast' ? 'bg-red-50 border border-red-200 text-red-700' : theme === 'paper' ? 'bg-red-50 border border-red-200 text-red-700' : theme === 'reactor' ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-red-50 border border-red-200 text-red-700'
                 }`}>
                     ❌ {gateError}
                 </div>
@@ -343,8 +340,7 @@ export const ProfileBankPanel = ({
         <div className="space-y-token-4">
             {/* Toolbar */}
             <div className={`flex flex-wrap gap-token-2 p-token-3 rounded-lg border ${
-                theme === 'warm' ? 'border-amber-200 bg-amber-50/40'
-                : 'border-slate-200 bg-slate-50'
+                theme === 'warm' ? 'border-amber-200 bg-amber-50/40' : theme === 'dark' ? 'border-slate-200 bg-slate-50' : theme === 'contrast' ? 'border-slate-200 bg-slate-50' : theme === 'paper' ? 'border-slate-200 bg-slate-50' : theme === 'reactor' ? 'border-slate-200 bg-slate-50' : 'border-slate-200 bg-slate-50'
             }`}>
                 <button
                     onClick={handleStartAdd}
@@ -395,8 +391,7 @@ export const ProfileBankPanel = ({
                 </label>
                 {profiles.length === 0 ? (
                     <div className={`p-token-6 text-center text-sm rounded-lg border-2 border-dashed ${
-                        theme === 'warm' ? 'border-amber-300 text-amber-700'
-                        : 'border-slate-300 text-slate-500'
+                        theme === 'warm' ? 'border-amber-300 text-amber-700' : theme === 'dark' ? 'border-slate-300 text-slate-500' : theme === 'contrast' ? 'border-slate-300 text-slate-500' : theme === 'paper' ? 'border-slate-300 text-slate-500' : theme === 'reactor' ? 'border-slate-300 text-slate-500' : 'border-slate-300 text-slate-500'
                     }`}>
                         <div className="text-3xl mb-2">👤</div>
                         <p>仲未儲存任何 profile</p>
@@ -408,8 +403,7 @@ export const ProfileBankPanel = ({
                             <div
                                 key={p.id}
                                 className={`p-token-3 rounded-lg border ${
-                                    theme === 'warm' ? 'border-amber-200 bg-amber-50/40'
-                                    : 'border-slate-200 bg-white'
+                                    theme === 'warm' ? 'border-amber-200 bg-amber-50/40' : theme === 'dark' ? 'border-slate-200 bg-white' : theme === 'contrast' ? 'border-slate-200 bg-white' : theme === 'paper' ? 'border-slate-200 bg-white' : theme === 'reactor' ? 'border-slate-200 bg-white' : 'border-slate-200 bg-white'
                                 }`}
                             >
                                 <div className="flex items-start justify-between gap-token-2">
@@ -447,7 +441,7 @@ export const ProfileBankPanel = ({
                                         </button>
                                         <button
                                             onClick={() => setDeleteCandidate(p)}
-                                            className={`p-token-2 rounded-lg ${theme === 'warm' ? 'text-red-600 hover:bg-red-100' : 'text-red-600 hover:bg-red-50'}`}
+                                            className={`p-token-2 rounded-lg ${theme === 'warm' ? 'text-red-600 hover:bg-red-100' : theme === 'dark' ? 'text-red-600 hover:bg-red-50' : theme === 'contrast' ? 'text-red-600 hover:bg-red-50' : theme === 'paper' ? 'text-red-600 hover:bg-red-50' : theme === 'reactor' ? 'text-red-600 hover:bg-red-50' : 'text-red-600 hover:bg-red-50'}`}
                                             title="刪除"
                                         >
                                             <Trash2 size={14} />
@@ -462,7 +456,7 @@ export const ProfileBankPanel = ({
 
             {/* Apply confirm dialog */}
             {applyCandidate && (
-                <div className={`p-token-3 rounded-lg border-2 ${theme === 'warm' ? 'border-orange-400 bg-orange-50' : 'border-orange-300 bg-orange-50'}`}>
+                <div className={`p-token-3 rounded-lg border-2 ${theme === 'warm' ? 'border-orange-400 bg-orange-50' : theme === 'dark' ? 'border-orange-300 bg-orange-50' : theme === 'contrast' ? 'border-orange-300 bg-orange-50' : theme === 'paper' ? 'border-orange-300 bg-orange-50' : theme === 'reactor' ? 'border-orange-300 bg-orange-50' : 'border-orange-300 bg-orange-50'}`}>
                     <p className={`text-sm font-bold mb-2 ${textPri}`}>
                         ✨ 套用 Profile「{applyCandidate.name}」？
                     </p>
@@ -482,7 +476,7 @@ export const ProfileBankPanel = ({
 
             {/* Delete confirm dialog */}
             {deleteCandidate && (
-                <div className={`p-token-3 rounded-lg border-2 ${theme === 'warm' ? 'border-red-400 bg-red-50' : 'border-red-300 bg-red-50'}`}>
+                <div className={`p-token-3 rounded-lg border-2 ${theme === 'warm' ? 'border-red-400 bg-red-50' : theme === 'dark' ? 'border-red-300 bg-red-50' : theme === 'contrast' ? 'border-red-300 bg-red-50' : theme === 'paper' ? 'border-red-300 bg-red-50' : theme === 'reactor' ? 'border-red-300 bg-red-50' : 'border-red-300 bg-red-50'}`}>
                     <p className={`text-sm font-bold mb-2 ${textPri}`}>
                         ⚠️ 確認刪除 Profile「{deleteCandidate.name}」？
                     </p>
@@ -508,8 +502,7 @@ export const ProfileBankPanel = ({
         return (
             <div className="space-y-token-4">
                 <div className={`p-token-3 rounded-lg border ${
-                    theme === 'warm' ? 'bg-amber-50 border-amber-300 text-amber-800'
-                    : 'bg-blue-50 border-blue-200 text-blue-800'
+                    theme === 'warm' ? 'bg-amber-50 border-amber-300 text-amber-800' : theme === 'dark' ? 'bg-blue-50 border-blue-200 text-blue-800' : theme === 'contrast' ? 'bg-blue-50 border-blue-200 text-blue-800' : theme === 'paper' ? 'bg-blue-50 border-blue-200 text-blue-800' : theme === 'reactor' ? 'bg-blue-50 border-blue-200 text-blue-800' : 'bg-blue-50 border-blue-200 text-blue-800'
                 }`}>
                     <div className="text-sm">
                         <strong>{isNew ? '新增 Profile' : '編輯 Profile'}</strong>

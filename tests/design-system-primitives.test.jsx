@@ -24,11 +24,25 @@ describe('GlassCard', () => {
         expect(html).toContain('<div');  // no onClick → div, not button
     });
 
-    it('renders warm theme with same glass-card (border only on flat/elevated variants)', () => {
+    it('renders warm theme with theme-aware border', () => {
         const html = renderToStaticMarkup(<GlassCard theme="warm">content</GlassCard>);
         expect(html).toContain('glass-card');
-        // default variant 不加 border (CSS already handles warm theme via body override)
-        expect(html).not.toContain('border-amber-200');
+        // v3.12.0: cardClass now adds theme-specific border for ALL variants (default/flat/elevated)
+        expect(html).toContain('border-amber-200');
+    });
+
+    it('renders dark/contrast/paper/reactor with theme-specific borders', () => {
+        const dark = renderToStaticMarkup(<GlassCard theme="dark">x</GlassCard>);
+        expect(dark).toContain('border-cyan-500/40');
+
+        const contrast = renderToStaticMarkup(<GlassCard theme="contrast">x</GlassCard>);
+        expect(contrast).toContain('border-black');
+
+        const paper = renderToStaticMarkup(<GlassCard theme="paper">x</GlassCard>);
+        expect(paper).toContain('border-stone-400');
+
+        const reactor = renderToStaticMarkup(<GlassCard theme="reactor">x</GlassCard>);
+        expect(reactor).toContain('border-amber-500/40');
     });
 
     it('renders elevated variant with glass-card-elevated class', () => {
