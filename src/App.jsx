@@ -363,11 +363,7 @@ const renderStep1 = () => (
                                 key={cat.value}
                                 onClick={() => updateField('category', cat.value)}
                                 className={`ripple-effect flex flex-col items-center p-token-3 rounded-xl border transition-token-base hover:scale-105 ${
-                                    theme === 'cyber'
-                                    ? formData.category === cat.value
-                                        ? 'border-cyan-500 bg-cyan-900/30 text-cyan-200 ring-1 ring-cyan-500 shadow-token-md'
-                                        : 'border-slate-700 bg-slate-800/50 hover:bg-slate-700/50 text-slate-400 hover:border-cyan-500/40'
-                                    : formData.category === cat.value
+                                    formData.category === cat.value
                                         ? 'border-blue-500 bg-blue-50 text-blue-700 ring-1 ring-blue-500 shadow-token-md'
                                         : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:border-blue-300'
                                 }`}
@@ -420,11 +416,7 @@ const renderStep1 = () => (
                                 key={style}
                                 onClick={() => updateField('gameStyle', style)}
                                 className={`p-token-2 rounded-lg text-sm font-medium transition-all border text-left ${
-                                    theme === 'cyber'
-                                    ? formData.gameStyle === style
-                                        ? 'border-pink-500 bg-pink-900/30 text-pink-200 ring-1 ring-pink-500 shadow-[0_0_10px_rgba(236,72,153,0.3)]'
-                                        : 'border-slate-700 bg-slate-800/50 hover:bg-slate-700/50 text-slate-400'
-                                    : formData.gameStyle === style
+                                    formData.gameStyle === style
                                         ? 'border-pink-500 bg-pink-50 text-pink-700 ring-1 ring-pink-500'
                                         : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600'
                                 }`}
@@ -506,9 +498,7 @@ const renderStep1 = () => (
                                 <button
                                     onClick={() => removeExample(index)}
                                     className={`p-token-3 rounded-xl transition-colors border border-transparent ${
-                                        theme === 'cyber'
-                                        ? 'text-red-400 hover:text-red-300 hover:bg-red-900/30 hover:border-red-500/50'
-                                        : 'text-red-500 hover:bg-red-50 hover:border-red-200'
+                                        'text-red-500 hover:bg-red-50 hover:border-red-200'
                                     }`}
                                     disabled={formData.examples.length === 1}
                                     title="移除範例"
@@ -522,9 +512,7 @@ const renderStep1 = () => (
                 <button
                     onClick={addExample}
                     className={`text-sm font-bold flex items-center px-token-4 py-token-2 rounded-lg border border-transparent transition-all ${
-                        theme === 'cyber'
-                        ? 'text-cyan-400 hover:text-cyan-200 hover:bg-cyan-900/30 hover:border-cyan-500/50'
-                        : 'text-blue-600 hover:bg-blue-50 hover:border-blue-200'
+                        'text-blue-600 hover:bg-blue-50 hover:border-blue-200'
                     }`}
                 >
                     <Plus size={16} className="mr-1" /> 新增範例
@@ -546,9 +534,7 @@ const renderStep1 = () => (
                 {/* Category-driven callout — 提示當前範疇特別設計要點 */}
                 {['情緒支援', '溝通輔助'].includes(formData.category) && (
                     <div className={`p-token-3 rounded-lg border-l-4 text-sm ${
-                        theme === 'cyber'
-                        ? 'bg-cyan-900/20 border-cyan-500 text-cyan-100'
-                        : 'bg-blue-50 border-blue-500 text-blue-900'
+                        'bg-blue-50 border-blue-500 text-blue-900'
                     }`}>
                         💡 <strong>{formData.category}</strong> 工具通常唔需要答題機制，
                         學生用呢類工具表達 / 探索感受。請特別注意 a11y 設定（減少動畫、簡化內容、TTS）對
@@ -557,9 +543,7 @@ const renderStep1 = () => (
                 )}
                 {formData.category === '教學遊戲' && (
                     <div className={`p-token-3 rounded-lg border-l-4 text-sm ${
-                        theme === 'cyber'
-                        ? 'bg-emerald-900/20 border-emerald-500 text-emerald-100'
-                        : 'bg-emerald-50 border-emerald-500 text-emerald-900'
+                        'bg-emerald-50 border-emerald-500 text-emerald-900'
                     }`}>
                         💡 <strong>教學遊戲</strong> 嘅核心係「動機調節」：遊戲階段純玩（無知識），
                         知識傳遞只發生於問答彈窗。請喺 1.12 互動機制啟用「拖拉」+「點擊」混合操作。
@@ -567,9 +551,7 @@ const renderStep1 = () => (
                 )}
                 {formData.category === '實驗模擬' && (
                     <div className={`p-token-3 rounded-lg border-l-4 text-sm ${
-                        theme === 'cyber'
-                        ? 'bg-amber-900/20 border-amber-500 text-amber-100'
-                        : 'bg-amber-50 border-amber-500 text-amber-900'
+                        'bg-amber-50 border-amber-500 text-amber-900'
                     }`}>
                         💡 <strong>實驗模擬</strong> 通常用 slider 調參數 + 視覺化結果。請加入「重置」按鈕方便學生反覆試驗唔同組合。
                     </div>
@@ -590,11 +572,7 @@ const renderStep1 = () => (
                         <button
                             onClick={() => updateField('senLevel', "輕度 (Mild)")}
                             className={`p-token-4 rounded-xl border text-left transition-all ${
-                                theme === 'cyber'
-                                ? formData.senLevel === "輕度 (Mild)"
-                                    ? 'border-emerald-500 bg-emerald-900/30 text-emerald-200 ring-1 ring-emerald-500'
-                                    : 'border-slate-700 bg-slate-800/50 hover:bg-slate-700/50 text-slate-400'
-                                : formData.senLevel === "輕度 (Mild)"
+                                formData.senLevel === "輕度 (Mild)"
                                     ? 'border-emerald-500 bg-emerald-50 text-emerald-700 ring-1 ring-emerald-500'
                                     : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600'
                             }`}
@@ -605,11 +583,7 @@ const renderStep1 = () => (
                         <button
                             onClick={() => updateField('senLevel', "中度 (Moderate)")}
                             className={`p-token-4 rounded-xl border text-left transition-all ${
-                                theme === 'cyber'
-                                ? formData.senLevel === "中度 (Moderate)"
-                                    ? 'border-orange-500 bg-orange-900/30 text-orange-200 ring-1 ring-orange-500'
-                                    : 'border-slate-700 bg-slate-800/50 hover:bg-slate-700/50 text-slate-400'
-                                : formData.senLevel === "中度 (Moderate)"
+                                formData.senLevel === "中度 (Moderate)"
                                     ? 'border-orange-500 bg-orange-50 text-orange-700 ring-1 ring-orange-500'
                                     : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600'
                             }`}
@@ -632,12 +606,8 @@ const renderStep1 = () => (
                                 onClick={() => toggleSelection('senTypes', opt.label)}
                                 className={`p-token-3 rounded-lg text-sm font-medium transition-all border text-left flex flex-col gap-token-1 h-full ${
                                     formData.senTypes.includes(opt.label)
-                                    ? (theme === 'cyber'
-                                        ? 'border-emerald-500 bg-emerald-900/30 text-emerald-200 ring-1 ring-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
-                                        : 'border-emerald-500 bg-emerald-50 text-emerald-800 ring-1 ring-emerald-500')
-                                    : (theme === 'cyber'
-                                        ? 'border-slate-700 bg-slate-800/50 hover:bg-slate-700/50 text-slate-400'
-                                        : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600')
+                                    ? ('border-emerald-500 bg-emerald-50 text-emerald-800 ring-1 ring-emerald-500')
+                                    : ('border-slate-200 bg-white hover:bg-slate-50 text-slate-600')
                                 }`}
                             >
                                 <span className="font-bold">{opt.label}</span>
@@ -709,12 +679,8 @@ const renderStep1 = () => (
                                 onClick={() => toggleSelection('accessibility', opt.label)}
                                 className={`p-token-3 rounded-lg text-sm font-medium transition-all border text-left flex flex-col gap-token-1 h-full ${
                                     formData.accessibility.includes(opt.label)
-                                    ? (theme === 'cyber'
-                                        ? 'border-cyan-500 bg-cyan-900/30 text-cyan-200 ring-1 ring-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.3)]'
-                                        : 'border-cyan-500 bg-cyan-50 text-cyan-800 ring-1 ring-cyan-500')
-                                    : (theme === 'cyber'
-                                        ? 'border-slate-700 bg-slate-800/50 hover:bg-slate-700/50 text-slate-400'
-                                        : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600')
+                                    ? ('border-cyan-500 bg-cyan-50 text-cyan-800 ring-1 ring-cyan-500')
+                                    : ('border-slate-200 bg-white hover:bg-slate-50 text-slate-600')
                                 }`}
                             >
                                 <span className="font-bold">{opt.label}</span>
@@ -733,12 +699,8 @@ const renderStep1 = () => (
                                 onClick={() => toggleSelection('learningDiversity', opt.label)}
                                 className={`p-token-3 rounded-lg text-sm font-medium transition-all border text-left flex flex-col gap-token-1 h-full ${
                                     formData.learningDiversity.includes(opt.label)
-                                    ? (theme === 'cyber'
-                                        ? 'border-cyan-500 bg-cyan-900/30 text-cyan-200 ring-1 ring-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.3)]'
-                                        : 'border-cyan-500 bg-cyan-50 text-cyan-800 ring-1 ring-cyan-500')
-                                    : (theme === 'cyber'
-                                        ? 'border-slate-700 bg-slate-800/50 hover:bg-slate-700/50 text-slate-400'
-                                        : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600')
+                                    ? ('border-cyan-500 bg-cyan-50 text-cyan-800 ring-1 ring-cyan-500')
+                                    : ('border-slate-200 bg-white hover:bg-slate-50 text-slate-600')
                                 }`}
                             >
                                 <span className="font-bold">{opt.label}</span>
@@ -756,11 +718,7 @@ const renderStep1 = () => (
                                 key={type}
                                 onClick={() => toggleSelection('interactionType', type)}
                                 className={`p-token-2 rounded-lg text-sm font-medium transition-all border text-left ${
-                                    theme === 'cyber'
-                                    ? formData.interactionType.includes(type)
-                                        ? 'border-violet-500 bg-violet-900/30 text-violet-200 ring-1 ring-violet-500 shadow-[0_0_10px_rgba(139,92,246,0.3)]'
-                                        : 'border-slate-700 bg-slate-800/50 hover:bg-slate-700/50 text-slate-400'
-                                    : formData.interactionType.includes(type)
+                                    formData.interactionType.includes(type)
                                         ? 'border-violet-500 bg-violet-50 text-violet-700 ring-1 ring-violet-500'
                                         : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600'
                                 }`}
@@ -865,11 +823,7 @@ const renderStep2 = () => (
                             key={val}
                             onClick={() => toggleSelection('value', val)}
                             className={`p-token-2 rounded-lg text-sm font-medium transition-all border text-left ${
-                                theme === 'cyber'
-                                ? formData.value.includes(val)
-                                    ? 'border-yellow-500 bg-yellow-900/30 text-yellow-200 ring-1 ring-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.3)]' 
-                                    : 'border-slate-700 bg-slate-800/50 hover:bg-slate-700/50 text-slate-400'
-                                : formData.value.includes(val)
+                                formData.value.includes(val)
                                     ? 'border-yellow-500 bg-yellow-50 text-yellow-800 ring-1 ring-yellow-500'
                                     : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600'
                             }`}
@@ -941,9 +895,7 @@ const renderStep3 = () => (
                             <button
                                 onClick={() => removeRule(index)}
                                 className={`flex-none h-12 mt-1 p-token-3 rounded-xl transition-colors border border-transparent ${
-                                    theme === 'cyber'
-                                        ? 'text-red-400 hover:text-red-300 hover:bg-red-900/30 hover:border-red-500/50'
-                                        : 'text-red-500 hover:bg-red-50 hover:border-red-200'
+                                    'text-red-500 hover:bg-red-50 hover:border-red-200'
                                 }`}
                                 disabled={formData.rules.length === 1}
                             >
@@ -957,9 +909,7 @@ const renderStep3 = () => (
             <button 
                 onClick={addRule}
                 className={`mt-3 text-sm font-bold flex items-center px-token-4 py-token-2 rounded-lg border border-transparent transition-all ${
-                    theme === 'cyber'
-                    ? 'text-cyan-400 hover:text-cyan-200 hover:bg-cyan-900/30 hover:border-cyan-500/50'
-                    : 'text-blue-600 hover:bg-blue-50 hover:border-blue-200'
+                    'text-blue-600 hover:bg-blue-50 hover:border-blue-200'
                 }`}
             >
                 + 新增一條規則
@@ -970,9 +920,7 @@ const renderStep3 = () => (
         <div>
             <Label theme={theme}>技術功能設定 (Technical Features)</Label>
             <div className={`p-token-4 rounded-xl border ${
-                theme === 'cyber' 
-                ? 'border-slate-700 bg-slate-800/30' 
-                : 'border-slate-200 bg-slate-50'
+                'border-slate-200 bg-slate-50'
             }`}>
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-token-3">
@@ -1098,12 +1046,8 @@ const renderStep3 = () => (
                                 onClick={() => updateField('fabStyle', opt.value)}
                                 className={`p-token-3 rounded-lg text-sm font-medium transition-all border text-left flex flex-col gap-token-1 h-full ${
                                     formData.fabStyle === opt.value
-                                    ? (theme === 'cyber'
-                                        ? 'border-pink-500 bg-pink-900/30 text-pink-200 ring-1 ring-pink-500 shadow-[0_0_10px_rgba(236,72,153,0.3)]'
-                                        : 'border-pink-500 bg-pink-50 text-pink-700 ring-1 ring-pink-500')
-                                    : (theme === 'cyber'
-                                        ? 'border-slate-700 bg-slate-800/50 hover:bg-slate-700/50 text-slate-400'
-                                        : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600')
+                                    ? ('border-pink-500 bg-pink-50 text-pink-700 ring-1 ring-pink-500')
+                                    : ('border-slate-200 bg-white hover:bg-slate-50 text-slate-600')
                                 }`}
                             >
                                 <span className="font-bold">{opt.label}</span>
@@ -1121,14 +1065,10 @@ const renderStep3 = () => (
 const renderStep4 = (formData, designPrompt, techPrompt, qualityScore) => (
     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-token-4">
         <div className={`border p-token-6 rounded-2xl flex items-start gap-token-4 ${
-            theme === 'cyber'
-            ? 'bg-slate-900/50 border-cyan-500/30 shadow-[0_0_20px_rgba(6,182,212,0.1)]'
-            : 'bg-white border-blue-200 shadow-md'
+            'bg-white border-blue-200 shadow-md'
         }`}>
             <div className={`p-token-3 rounded-full shadow-sm ${
-                theme === 'cyber'
-                ? 'bg-cyan-900/30 text-cyan-400 border border-cyan-500/50'
-                : 'bg-blue-100 text-blue-600'
+                'bg-blue-100 text-blue-600'
             }`}>
                 <Sparkles size={24} />
             </div>
@@ -1166,9 +1106,7 @@ const renderStep4 = (formData, designPrompt, techPrompt, qualityScore) => (
                     <button
                         onClick={handleCopyDesign}
                         className={`px-token-3 py-token-1 rounded-lg flex items-center gap-token-2 text-xs font-bold transition-all border shadow-sm ${
-                            theme === 'cyber'
-                            ? 'bg-slate-800/80 hover:bg-slate-700/80 text-cyan-400 backdrop-blur-md border-cyan-500/30 hover:border-cyan-400'
-                            : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
+                            'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
                         }`}
                     >
                         {copiedDesign ? <CheckCircle size={14} className="text-green-500" /> : <Copy size={14} />}
@@ -1179,9 +1117,7 @@ const renderStep4 = (formData, designPrompt, techPrompt, qualityScore) => (
                     readOnly
                     value={designPrompt}
                     className={`flex-1 w-full font-mono text-xs p-token-4 rounded-xl outline-none resize-none leading-relaxed border shadow-inner ${
-                        theme === 'cyber'
-                        ? 'bg-slate-950 text-cyan-300 border-slate-800'
-                        : 'bg-slate-50 text-slate-700 border-slate-200'
+                        'bg-slate-50 text-slate-700 border-slate-200'
                     }`}
                 />
             </div>
@@ -1193,9 +1129,7 @@ const renderStep4 = (formData, designPrompt, techPrompt, qualityScore) => (
                     <button
                         onClick={handleCopyTech}
                         className={`px-token-3 py-token-1 rounded-lg flex items-center gap-token-2 text-xs font-bold transition-all border shadow-sm ${
-                            theme === 'cyber'
-                            ? 'bg-slate-800/80 hover:bg-slate-700/80 text-purple-400 backdrop-blur-md border-purple-500/30 hover:border-purple-400'
-                            : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
+                            'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
                         }`}
                     >
                         {copiedTech ? <CheckCircle size={14} className="text-green-500" /> : <Copy size={14} />}
@@ -1206,9 +1140,7 @@ const renderStep4 = (formData, designPrompt, techPrompt, qualityScore) => (
                     readOnly
                     value={techPrompt}
                     className={`flex-1 w-full font-mono text-xs p-token-4 rounded-xl outline-none resize-none leading-relaxed border shadow-inner ${
-                        theme === 'cyber'
-                        ? 'bg-slate-950 text-purple-300 border-slate-800'
-                        : 'bg-slate-50 text-slate-700 border-slate-200'
+                        'bg-slate-50 text-slate-700 border-slate-200'
                     }`}
                 />
             </div>
@@ -1218,9 +1150,7 @@ const renderStep4 = (formData, designPrompt, techPrompt, qualityScore) => (
                  <button
                     onClick={() => setVersionPanelOpen(true)}
                     className={`px-token-3 py-token-2 rounded-lg flex items-center gap-token-2 text-sm font-bold transition-all border shadow-sm ${
-                        theme === 'cyber'
-                        ? 'bg-slate-800/80 hover:bg-slate-700/80 text-amber-400 backdrop-blur-md border-amber-500/30 hover:border-amber-400'
-                        : theme === 'warm'
+                        theme === 'warm'
                         ? 'bg-amber-100 hover:bg-amber-200 text-amber-800 border-amber-300'
                         : 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200'
                     }`}
@@ -1234,9 +1164,7 @@ const renderStep4 = (formData, designPrompt, techPrompt, qualityScore) => (
                 <button
                     onClick={() => setShowApiSettings(true)}
                     className={`px-token-3 py-token-2 rounded-lg flex items-center gap-token-2 text-sm font-bold transition-all border shadow-sm ${
-                        theme === 'cyber'
-                        ? 'bg-slate-800/80 hover:bg-slate-700/80 text-purple-400 backdrop-blur-md border-purple-500/30 hover:border-purple-400'
-                        : 'bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200'
+                        'bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200'
                     }`}
                     title={geminiApiKey ? 'AI API 已設定' : '設定 Gemini API key'}
                 >
@@ -1276,9 +1204,7 @@ const renderStep4 = (formData, designPrompt, techPrompt, qualityScore) => (
                  <button
                     onClick={handleExportJSON}
                     className={`px-token-3 py-token-2 rounded-lg flex items-center gap-token-2 text-sm font-bold transition-all border shadow-sm ${
-                        theme === 'cyber'
-                        ? 'bg-slate-800/80 hover:bg-slate-700/80 text-cyan-400 backdrop-blur-md border-cyan-500/30 hover:border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.1)]'
-                        : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
+                        'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
                     }`}
                     title="儲存為 JSON 檔案"
                 >
@@ -1288,9 +1214,7 @@ const renderStep4 = (formData, designPrompt, techPrompt, qualityScore) => (
                 <button
                     onClick={handleExport}
                     className={`px-token-3 py-token-2 rounded-lg flex items-center gap-token-2 text-sm font-bold transition-all border shadow-sm ${
-                        theme === 'cyber'
-                        ? 'bg-slate-800/80 hover:bg-slate-700/80 text-cyan-400 backdrop-blur-md border-cyan-500/30 hover:border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.1)]'
-                        : 'bg-white hover:bg-slate-700 border-slate-200 hover:border-slate-300'
+                        'bg-white hover:bg-slate-700 border-slate-200 hover:border-slate-300'
                     }`}
                     title="匯出為 DOCX 檔案"
                 >
@@ -1300,9 +1224,7 @@ const renderStep4 = (formData, designPrompt, techPrompt, qualityScore) => (
                 <button 
                     onClick={() => setActiveTab('rules')} // Return to 規則 tab
                     className={`px-token-4 py-token-2 rounded-lg flex items-center gap-token-2 text-sm font-bold transition-all border shadow-sm ${
-                        theme === 'cyber'
-                        ? 'bg-slate-800/80 hover:bg-slate-700/80 text-cyan-400 backdrop-blur-md border-cyan-500/30 hover:border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.1)]'
-                        : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
+                        'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300'
                     }`}
                     title="返回上一步 (Step 3)"
                 >
@@ -1544,9 +1466,7 @@ const renderAiResult = () => (
                     className="fixed bottom-6 right-6 z-50 w-[min(90vw,360px)]"
                 >
                     <div className={`p-token-4 rounded-2xl border shadow-2xl backdrop-blur-md ${
-                        theme === 'cyber'
-                            ? 'bg-slate-900/95 border-cyan-500/40 shadow-[0_0_20px_rgba(6,182,212,0.3)]'
-                            : 'bg-white border-blue-300'
+                        'bg-white border-blue-300'
                     }`}>
                         <div className="flex items-start gap-token-3 mb-3">
                             <div className={`flex-none p-token-2 rounded-full ${
@@ -1569,9 +1489,7 @@ const renderAiResult = () => (
                             <button
                                 onClick={dismissRecovery}
                                 className={`flex-1 px-token-3 py-token-2 rounded-lg text-xs font-bold transition-all ${
-                                    theme === 'cyber'
-                                        ? 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                                    'bg-slate-100 text-slate-700 hover:bg-slate-200'
                                 }`}
                             >
                                 忽略
@@ -1579,9 +1497,7 @@ const renderAiResult = () => (
                             <button
                                 onClick={acceptRecovery}
                                 className={`flex-1 px-token-3 py-token-2 rounded-lg text-xs font-bold transition-all text-white ${
-                                    theme === 'cyber'
-                                        ? 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500'
-                                        : 'bg-blue-600 hover:bg-blue-700'
+                                    'bg-blue-600 hover:bg-blue-700'
                                 }`}
                             >
                                 📂 載入
@@ -1636,9 +1552,7 @@ const renderAiResult = () => (
                         </button>
                         <div
                             className={`hidden md:flex px-token-4 py-token-2 rounded-full text-sm font-bold flex items-center gap-token-2 tracking-wider ${
-                            theme === 'cyber'
-                            ? 'border border-cyan-500/50 bg-cyan-950/30 text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.2)] orbitron'
-                            : 'bg-slate-100 text-slate-600 border border-slate-200'
+                            'bg-slate-100 text-slate-600 border border-slate-200'
                         }`}
                             title={`JSON Schema 版本 v${SCHEMA_VERSION}（決定 import 時嘅 migration 行為）`}
                         >
@@ -1648,9 +1562,7 @@ const renderAiResult = () => (
 <button
                             onClick={triggerJSONImport}
                             className={`px-token-4 py-token-2 rounded-full text-sm font-bold flex items-center gap-token-2 tracking-wider transition-all ${
-                                theme === 'cyber'
-                                ? 'border border-emerald-500/50 bg-emerald-950/30 text-emerald-400 hover:bg-emerald-900/50 shadow-[0_0_10px_rgba(16,185,129,0.2)] orbitron'
-                                : 'bg-emerald-100 text-emerald-700 border border-emerald-200 hover:bg-emerald-200'
+                                'bg-emerald-100 text-emerald-700 border border-emerald-200 hover:bg-emerald-200'
                             }`}
                             title="匯入 JSON 設定檔"
                         >
@@ -1661,9 +1573,7 @@ const renderAiResult = () => (
                         <button
                             onClick={() => setProfileBankOpen(true)}
                             className={`px-token-4 py-token-2 rounded-full text-sm font-bold flex items-center gap-token-2 tracking-wider transition-all ${
-                                theme === 'cyber'
-                                ? 'border border-violet-500/50 bg-violet-950/30 text-violet-400 hover:bg-violet-900/50 shadow-[0_0_10px_rgba(139,92,246,0.2)] orbitron'
-                                : theme === 'warm'
+                                theme === 'warm'
                                 ? 'bg-violet-100 text-violet-700 border border-violet-200 hover:bg-violet-200'
                                 : 'bg-violet-100 text-violet-700 border border-violet-200 hover:bg-violet-200'
                             }`}
@@ -1729,8 +1639,7 @@ const renderAiResult = () => (
                 {/* Tab Nav — W1-2 取代 step gate (任何 tab 隨時跳) — W3-4.1 加 warm 第三 case */}
                 <div className="mb-6 max-w-3xl mx-auto">
                     <div className={`flex gap-token-1 p-token-1 rounded-xl border ${
-                        theme === 'cyber' ? 'border-slate-700/50 bg-slate-900/30'
-                        : theme === 'warm' ? 'border-amber-200 bg-amber-50/60'
+                        theme === 'warm' ? 'border-amber-200 bg-amber-50/60'
                         : 'border-slate-200 bg-slate-50'
                     }`}>
                         {[
@@ -1748,14 +1657,10 @@ const renderAiResult = () => (
                                     aria-current={isActive ? 'page' : undefined}
                                     className={`flex-1 px-token-3 py-token-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-token-2 ${
                                         isActive
-                                            ? (theme === 'cyber'
-                                                ? 'bg-cyan-900/40 text-cyan-200 ring-1 ring-cyan-500/50 shadow-[0_0_10px_rgba(6,182,212,0.2)]'
-                                                : theme === 'warm'
+                                            ? (theme === 'warm'
                                                 ? 'bg-amber-200/80 text-amber-900 ring-1 ring-amber-400'
                                                 : 'bg-blue-100 text-blue-700 ring-1 ring-blue-300')
-                                            : (theme === 'cyber'
-                                                ? 'text-slate-400 hover:text-cyan-300 hover:bg-slate-800/50'
-                                                : theme === 'warm'
+                                            : (theme === 'warm'
                                                 ? 'text-amber-800 hover:text-amber-900 hover:bg-amber-100'
                                                 : 'text-slate-600 hover:bg-white hover:shadow-sm')
                                     }`}
@@ -1767,15 +1672,12 @@ const renderAiResult = () => (
                                     {comp.total > 0 && (
                                         <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
                                             comp.complete
-                                                ? (theme === 'cyber' ? 'bg-emerald-900/50 text-emerald-300'
-                                                    : theme === 'warm' ? 'bg-emerald-200 text-emerald-800'
+                                                ? (theme === 'warm' ? 'bg-emerald-200 text-emerald-800'
                                                     : 'bg-emerald-100 text-emerald-700')
                                                 : isActive
-                                                    ? (theme === 'cyber' ? 'bg-cyan-800/50 text-cyan-200'
-                                                        : theme === 'warm' ? 'bg-amber-300 text-amber-900'
+                                                    ? (theme === 'warm' ? 'bg-amber-300 text-amber-900'
                                                         : 'bg-blue-200 text-blue-700')
-                                                    : (theme === 'cyber' ? 'bg-slate-700 text-slate-400'
-                                                        : theme === 'warm' ? 'bg-amber-100 text-amber-700'
+                                                    : (theme === 'warm' ? 'bg-amber-100 text-amber-700'
                                                         : 'bg-slate-200 text-slate-600')
                                         }`}>
                                             {comp.filled}/{comp.total}
@@ -1832,9 +1734,7 @@ const renderAiResult = () => (
                                     <button
                                         onClick={handlePrevTab}
                                         className={`flex items-center gap-token-2 px-token-6 py-token-3 rounded-xl font-bold transition-all ${
-                                            theme === 'cyber'
-                                            ? 'text-slate-400 hover:text-white hover:bg-slate-800'
-                                            : 'text-slate-600 hover:bg-white hover:shadow-sm border border-transparent hover:border-slate-200'
+                                            'text-slate-600 hover:bg-white hover:shadow-sm border border-transparent hover:border-slate-200'
                                         }`}
                                     >
                                         <ChevronLeft size={20} />
@@ -1849,12 +1749,8 @@ const renderAiResult = () => (
                                     onClick={() => setPreviewOpen(prev => !prev)}
                                     className={`flex items-center gap-token-2 px-token-4 py-token-2 rounded-xl font-bold transition-all border ${
                                         previewOpen
-                                        ? (theme === 'cyber'
-                                            ? 'bg-cyan-900/40 border-cyan-500/50 text-cyan-200'
-                                            : 'bg-blue-50 border-blue-300 text-blue-700')
-                                        : (theme === 'cyber'
-                                            ? 'border-slate-700 text-slate-400 hover:bg-slate-800/50 hover:text-cyan-300'
-                                            : 'border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-blue-600')
+                                        ? ('bg-blue-50 border-blue-300 text-blue-700')
+                                        : ('border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-blue-600')
                                     }`}
                                     title="即時預覽當前設定生成的 prompt output"
                                 >
@@ -1868,9 +1764,7 @@ const renderAiResult = () => (
                                 <button 
                                     onClick={handleNextTab}
                                     className={`flex items-center gap-token-2 px-token-8 py-token-3 rounded-xl font-bold transition-all hover:scale-105 active:scale-95 group text-white ${
-                                        theme === 'cyber'
-                                        ? 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 shadow-[0_0_20px_rgba(6,182,212,0.4)]'
-                                        : 'bg-blue-600 hover:bg-blue-700 shadow-md'
+                                        'bg-blue-600 hover:bg-blue-700 shadow-md'
                                     }`}
                                 >
                                     下一步
@@ -1891,9 +1785,7 @@ const renderAiResult = () => (
                         className="fixed bottom-6 left-6 z-40 w-[min(90vw,560px)] max-h-[70vh] flex flex-col"
                     >
                         <div className={`flex-1 flex flex-col rounded-2xl overflow-hidden border shadow-2xl ${
-                            theme === 'cyber'
-                            ? 'bg-slate-950/95 border-cyan-500/30 backdrop-blur-md shadow-[0_0_30px_rgba(6,182,212,0.2)]'
-                            : 'bg-white border-slate-300'
+                            'bg-white border-slate-300'
                         }`}>
                             {/* Panel header + tabs */}
                             <div className={`flex items-center justify-between p-token-3 border-b ${
@@ -1959,9 +1851,7 @@ const renderAiResult = () => (
                                         readOnly
                                         value={previewText}
                                         className={`flex-1 w-full font-mono text-xs p-token-4 outline-none resize-none leading-relaxed ${
-                                            theme === 'cyber'
-                                            ? 'bg-slate-950 text-cyan-200'
-                                            : 'bg-white text-slate-700'
+                                            'bg-white text-slate-700'
                                         }`}
                                         style={{ minHeight: '300px' }}
                                     />
@@ -1990,90 +1880,70 @@ const renderAiResult = () => (
                 <div className="mt-12 flex flex-wrap justify-center gap-token-3">
                     {/* Base44 Link */}
                     <a href="https://base44.com/" target="_blank" rel="noopener noreferrer" className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex items-center gap-2 ${
-                        theme === 'cyber'
-                        ? 'border-cyan-500/30 bg-cyan-900/20 text-cyan-300 hover:bg-cyan-500/20 hover:text-cyan-100'
-                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-blue-600 shadow-sm'
+                        'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-blue-600 shadow-sm'
                     }`}>
                         Base44 <ExternalLink size={14} />
                     </a>
 
                     {/* Emergent Link */}
                     <a href="https://app.emergent.sh/home" target="_blank" rel="noopener noreferrer" className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex items-center gap-2 ${
-                        theme === 'cyber'
-                        ? 'border-purple-500/30 bg-purple-900/20 text-purple-300 hover:bg-purple-500/20 hover:text-purple-100'
-                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-purple-600 shadow-sm'
+                        'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-purple-600 shadow-sm'
                     }`}>
                         Emergent <ExternalLink size={14} />
                     </a>
 
                     {/* v0.app Link */}
                     <a href="https://v0.app/" target="_blank" rel="noopener noreferrer" className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex items-center gap-2 ${
-                        theme === 'cyber'
-                        ? 'border-slate-500/30 bg-slate-800/20 text-slate-300 hover:bg-slate-700/40 hover:text-slate-100'
-                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 shadow-sm'
+                        'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 shadow-sm'
                     }`}>
                         v0.app <ExternalLink size={14} />
                     </a>
 
                     {/* Gemini Link */}
                     <a href="https://gemini.google.com/gem/brainstormer" target="_blank" rel="noopener noreferrer" className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex items-center gap-2 ${
-                        theme === 'cyber'
-                        ? 'border-blue-500/30 bg-blue-900/20 text-blue-300 hover:bg-blue-500/20 hover:text-blue-100'
-                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-blue-600 shadow-sm'
+                        'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-blue-600 shadow-sm'
                     }`}>
                         Gemini <ExternalLink size={14} />
                     </a>
 
                     {/* Lovable Link — v3.3.2: 移除 del disabled 狀態，restore active link */}
                     <a href="https://lovable.dev/" target="_blank" rel="noopener noreferrer" className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex items-center gap-2 ${
-                        theme === 'cyber'
-                        ? 'border-pink-500/30 bg-pink-900/20 text-pink-300 hover:bg-pink-500/20 hover:text-pink-100'
-                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-pink-600 shadow-sm'
+                        'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-pink-600 shadow-sm'
                     }`}>
                         Lovable <ExternalLink size={14} />
                     </a>
 
                     {/* Bolt.new Link — v3.3.3 新增 — AI app builder (StackBlitz WebContainer) */}
                     <a href="https://bolt.new/" target="_blank" rel="noopener noreferrer" className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex items-center gap-2 ${
-                        theme === 'cyber'
-                        ? 'border-orange-500/30 bg-orange-900/20 text-orange-300 hover:bg-orange-500/20 hover:text-orange-100'
-                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-orange-600 shadow-sm'
+                        'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-orange-600 shadow-sm'
                     }`}>
                         Bolt.new <ExternalLink size={14} />
                     </a>
 
                     {/* Qwen Link — v3.3.1 新增 */}
                     <a href="https://qwen.ai/" target="_blank" rel="noopener noreferrer" className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex items-center gap-2 ${
-                        theme === 'cyber'
-                        ? 'border-violet-500/30 bg-violet-900/20 text-violet-300 hover:bg-violet-500/20 hover:text-violet-100'
-                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-violet-600 shadow-sm'
+                        'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-violet-600 shadow-sm'
                     }`}>
                         Qwen <ExternalLink size={14} />
                     </a>
 
                     {/* Manus Link — v3.3.1 新增 */}
                     <a href="https://manus.im/" target="_blank" rel="noopener noreferrer" className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex items-center gap-2 ${
-                        theme === 'cyber'
-                        ? 'border-emerald-500/30 bg-emerald-900/20 text-emerald-300 hover:bg-emerald-500/20 hover:text-emerald-100'
-                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-emerald-600 shadow-sm'
+                        'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-emerald-600 shadow-sm'
                     }`}>
                         Manus <ExternalLink size={14} />
                     </a>
 
                     {/* GenSpark Link — v3.3.1 新增 */}
                     <a href="https://www.genspark.ai/" target="_blank" rel="noopener noreferrer" className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex items-center gap-2 ${
-                        theme === 'cyber'
-                        ? 'border-orange-500/30 bg-orange-900/20 text-orange-300 hover:bg-orange-500/20 hover:text-orange-100'
-                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-orange-600 shadow-sm'
+                        'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-orange-600 shadow-sm'
                     }`}>
                         GenSpark <ExternalLink size={14} />
                     </a>
 
                     {/* 豆包 Doubao Link — v3.3.1 新增 */}
                     <a href="https://www.doubao.com/chat/" target="_blank" rel="noopener noreferrer" className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium flex items-center gap-2 ${
-                        theme === 'cyber'
-                        ? 'border-red-500/30 bg-red-900/20 text-red-300 hover:bg-red-500/20 hover:text-red-100'
-                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-red-600 shadow-sm'
+                        'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-red-600 shadow-sm'
                     }`}>
                         豆包 <ExternalLink size={14} />
                     </a>
@@ -2092,9 +1962,7 @@ const renderAiResult = () => (
                     {formData.fabStyle === "cyber" && (
                         <div
                             className={`flex items-center gap-token-2 px-token-4 py-token-2 rounded-full border backdrop-blur-md transition-all group ${
-                                theme === 'cyber'
-                                ? 'border-white/20 bg-gradient-to-r from-cyan-600/80 via-blue-600/80 to-purple-600/80 animate-holo text-white shadow-[0_0_15px_rgba(6,182,212,0.5)]'
-                                : 'bg-white border-slate-200 text-slate-700 shadow-lg'
+                                'bg-white border-slate-200 text-slate-700 shadow-lg'
                             }`}>
                             <Monitor size={20} className={""} />
                             <span className="font-bold text-sm tracking-wide text-shadow-sm">{formData.teacherName ? `${formData.teacherName} 設計` : 'Ken Cheng 設計'}</span>
@@ -2105,9 +1973,7 @@ const renderAiResult = () => (
                     {formData.fabStyle === "minimal" && (
                         <div
                             className={`flex items-center gap-token-2 px-token-4 py-token-2 rounded-full border transition-all group ${
-                                theme === 'cyber'
-                                ? 'bg-slate-800/80 border-slate-700 text-slate-300'
-                                : 'bg-white border-slate-200 text-slate-700 shadow-lg'
+                                'bg-white border-slate-200 text-slate-700 shadow-lg'
                             }`}>
                             <Monitor size={18} className={""} />
                             <span className="font-medium text-sm tracking-wide">{formData.teacherName ? `${formData.teacherName} 設計` : 'Ken Cheng 設計'}</span>
