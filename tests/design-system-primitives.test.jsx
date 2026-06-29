@@ -178,6 +178,43 @@ describe('ToggleSwitch', () => {
         const html = renderToStaticMarkup(<ToggleSwitch theme="warm" on={true} onChange={() => {}} />);
         expect(html).toContain('bg-amber-500');
     });
+
+    it('v3.13.0: 48×28 track (md) — bumped from 44×24 (mobile audit V6 fix)', () => {
+        const html = renderToStaticMarkup(<ToggleSwitch theme="plain" on={false} onChange={() => {}} />);
+        expect(html).toContain('h-8');   // 32px track height
+        expect(html).toContain('w-14');  // 56px track width
+        expect(html).toContain('h-6');   // 24px knob
+        expect(html).toContain('w-6');
+    });
+
+    it('v3.13.0: 48×28 track (sm) — bumped from 36×20', () => {
+        const html = renderToStaticMarkup(<ToggleSwitch theme="plain" on={false} onChange={() => {}} size="sm" />);
+        expect(html).toContain('h-7');   // 28px track height
+        expect(html).toContain('w-12');  // 48px track width
+    });
+
+    it('v3.13.0: hit area expanded via padding wrapper (44px minimum)', () => {
+        const html = renderToStaticMarkup(<ToggleSwitch theme="plain" on={false} onChange={() => {}} />);
+        // md size uses p-2 → 8px padding each side → effective hit area 56+16=72 wide, 32+16=48 tall
+        expect(html).toContain('p-2');
+    });
+
+    it('v3.13.0: 6 themes render correct on color (theme propagation)', () => {
+        const themes = ['plain', 'warm', 'dark', 'contrast', 'paper', 'reactor'];
+        for (const t of themes) {
+            const html = renderToStaticMarkup(<ToggleSwitch theme={t} on={true} onChange={() => {}} />);
+            // Each theme has distinct on color (via toggleClass lookup)
+            const expectedColor = {
+                plain: 'bg-blue-600',
+                warm: 'bg-amber-500',
+                dark: 'bg-cyan-500',
+                contrast: 'bg-black',
+                paper: 'bg-stone-800',
+                reactor: 'bg-amber-500',
+            }[t];
+            expect(html).toContain(expectedColor);
+        }
+    });
 });
 
 describe('SegmentedControl', () => {

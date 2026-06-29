@@ -21,10 +21,8 @@ import { themeMeta, themeOrder } from './design-system/tokens/colors.js';
 // GEMINI_DIRECT_GENERATE_ENABLED: 控制 Gemini API 直接生成 HTML 嘅 UI 嘅顯隱
 //   false → 隱藏：API settings button + 直接生成 HTML button + AI Result panel
 //   true  → 顯示（原有 Gemini 直接 generate → download HTML 嘅 user flow）
-// 暫時隱藏原因（v3.2.3）：Gemini API 嘅 UX（API key 設定、錯誤處理、result 預覽）
-// 仲未構思清楚，要重新設計過 workflow 先 re-enable。
-// 將來 re-enable：將 flag 改 true 即可，state / handler / utils/gemini.js 全部保留。
-const GEMINI_DIRECT_GENERATE_ENABLED = false;
+// v3.13.0: re-enabled with F2 multi-variant 3-card side-by-side comparison UI
+const GEMINI_DIRECT_GENERATE_ENABLED = true;
 
 const categories = [
     { value: "教學工具", label: "📚 教學工具", icon: BookOpen },
@@ -212,6 +210,8 @@ export function App() {
         canUndo, canRedo, pushHistory, undo, redo,
         // Handlers
         handleCopyDesign, handleCopyTech, handleExport, handleGeminiGenerate,
+        // v3.13.0 F2: Multi-variant
+        variants, handleMultiVariantGenerate, useVariantAsFinal, VARIANT_CONFIG, VARIANT_KEYS,
         saveApiKey, saveAsUserTemplate, deleteUserTemplate, handleLoadTemplate,
         handleDeleteTemplate, handleImportJSON, handleExportJSON,
         handleGetSuggestions, applySuggestion, handleSelectSuggestion,
@@ -1198,6 +1198,26 @@ const renderStep4 = (formData, designPrompt, techPrompt, qualityScore) => (
                 >
                     {aiGenerating ? '⏳ 生成中...' : '🚀 直接生成 HTML'}
                 </button>
+                {/* v3.13.0 F2: Multi-variant parallel generation (3 lengths side-by-side) */}
+                <button
+                    onClick={() => handleMultiVariantGenerate()}
+                    disabled={aiGenerating || !geminiApiKey || variants.short.loading || variants.standard.loading || variants.long.loading}
+                    className={`px-token-3 py-token-2 rounded-lg flex items-center gap-token-2 text-sm font-bold transition-all border shadow-sm text-white ${
+                        aiGenerating || variants.short.loading || variants.standard.loading || variants.long.loading
+                            ? 'bg-slate-400 cursor-wait'
+                            : !geminiApiKey
+                                ? 'bg-slate-300 cursor-not-allowed'
+                                : (theme === 'dark' ? 'bg-cyan-500 hover:bg-cyan-400 text-slate-900'
+                                    : theme === 'reactor' ? 'bg-amber-500 hover:bg-amber-400 text-zinc-950'
+                                    : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500')
+                    }`}
+                    title={geminiApiKey ? '同時生成 簡短/標準/完整 3 個版本並排比較 (3x Gemini calls)' : '請先設定 API key'}
+                >
+                    <Sparkles size={16} />
+                    {variants.short.loading || variants.standard.loading || variants.long.loading
+                        ? '⏳ 3 個生成中...'
+                        : '✨ 3 版本並排'}
+                </button>
                 </>
                 )}
                  <button
@@ -1341,6 +1361,133 @@ const renderAiResult = () => (
         )}
     </Card>
 );
+
+// === v3.13.0 F2: Multi-variant result panel (3 cards side-by-side) ===
+const renderMultiVariant = () => {
+    // Only show if at least one variant has been triggered
+    const hasAny = VARIANT_KEYS.some(k => variants[k].loading || variants[k].text || variants[k].error);
+    if (!hasAny) return null;
+
+    return (
+        <div className="mt-4">
+            <div className="flex items-center justify-between mb-3">
+                <h3 className={`text-sm font-bold flex items-center gap-token-2 ${
+                    theme === 'warm' ? 'text-amber-900' : theme === 'dark' ? 'text-cyan-100' : theme === 'contrast' ? 'text-black' : theme === 'paper' ? 'text-stone-900' : theme === 'reactor' ? 'text-amber-100' : 'text-slate-800'
+                }`}>
+                    <Sparkles size={16} />
+                    3 版本並排比較 (Multi-variant comparison)
+                </h3>
+                <button
+                    onClick={() => setVariants({
+                        short:    { text: '', error: null, tokenCount: 0, durationMs: 0, loading: false },
+                        standard: { text: '', error: null, tokenCount: 0, durationMs: 0, loading: false },
+                        long:     { text: '', error: null, tokenCount: 0, durationMs: 0, loading: false },
+                    })}
+                    className={`text-xs px-token-2 py-token-1 rounded ${
+                        theme === 'warm' ? 'text-amber-700 hover:bg-amber-100' : theme === 'dark' ? 'text-cyan-300 hover:bg-slate-800' : theme === 'contrast' ? 'text-black hover:bg-black hover:text-white' : theme === 'paper' ? 'text-stone-700 hover:bg-stone-100' : theme === 'reactor' ? 'text-amber-300 hover:bg-zinc-900' : 'text-slate-500 hover:bg-slate-100'
+                    }`}
+                >
+                    ✕ 清除全部
+                </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-token-3">
+                {VARIANT_KEYS.map(variantKey => {
+                    const variant = variants[variantKey];
+                    const cfg = VARIANT_CONFIG[variantKey];
+                    return (
+                        <Card key={variantKey} theme={theme} className="p-token-3 flex flex-col">
+                            {/* Header: emoji + label + length badge */}
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-token-2">
+                                    <span className="text-xl">{cfg.emoji}</span>
+                                    <div>
+                                        <h4 className={`text-sm font-bold ${
+                                            theme === 'warm' ? 'text-amber-900' : theme === 'dark' ? 'text-cyan-100' : theme === 'contrast' ? 'text-black' : theme === 'paper' ? 'text-stone-900' : theme === 'reactor' ? 'text-amber-100' : 'text-slate-800'
+                                        }`}>{cfg.label}</h4>
+                                        <p className={`text-xs ${mutedTextClass(theme)}`}>{cfg.desc}</p>
+                                    </div>
+                                </div>
+                                {variant.tokenCount > 0 && (
+                                    <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                        theme === 'warm' ? 'bg-amber-100 text-amber-700' : theme === 'dark' ? 'bg-cyan-500/20 text-cyan-300' : theme === 'contrast' ? 'bg-black text-white' : theme === 'paper' ? 'bg-stone-200 text-stone-700' : theme === 'reactor' ? 'bg-amber-500/20 text-amber-300' : 'bg-blue-100 text-blue-700'
+                                    }`}>
+                                        {variant.tokenCount}字
+                                    </span>
+                                )}
+                            </div>
+                            {/* Content: loading / error / text */}
+                            {variant.loading && (
+                                <div className="flex-1 flex items-center justify-center p-token-4">
+                                    <div className="text-center">
+                                        <div className="animate-pulse text-2xl mb-2">⏳</div>
+                                        <p className={`text-xs ${mutedTextClass(theme)}`}>
+                                            Gemini 生成中... ({Math.round(variant.durationMs / 100) / 10}s)
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                            {variant.error && !variant.loading && (
+                                <div className={`flex-1 p-token-3 rounded-lg text-xs ${
+                                    theme === 'warm' ? 'bg-red-50 border border-red-200 text-red-700' : theme === 'dark' ? 'bg-red-500/20 border border-red-500/40 text-red-300' : theme === 'contrast' ? 'bg-white border-2 border-black text-black' : theme === 'paper' ? 'bg-red-50 border border-red-300 text-red-700' : theme === 'reactor' ? 'bg-red-500/20 border border-red-500/40 text-red-300' : 'bg-red-50 border border-red-200 text-red-700'
+                                }`}>
+                                    ❌ {variant.error}
+                                </div>
+                            )}
+                            {variant.text && !variant.loading && (
+                                <textarea
+                                    readOnly
+                                    value={variant.text}
+                                    className={`flex-1 w-full font-mono text-xs p-token-3 rounded-lg outline-none resize-none leading-relaxed border min-h-[200px] ${
+                                        theme === 'warm' ? 'bg-amber-50/50 text-amber-900 border-amber-200' : theme === 'dark' ? 'bg-slate-900/50 text-cyan-100 border-cyan-500/30' : theme === 'contrast' ? 'bg-white text-black border-black' : theme === 'paper' ? 'bg-stone-50 text-stone-900 border-stone-400' : theme === 'reactor' ? 'bg-zinc-950/50 text-amber-100 border-amber-500/30' : 'bg-slate-50 text-slate-700 border-slate-200'
+                                    }`}
+                                />
+                            )}
+                            {/* Actions: Use / Copy / Download */}
+                            {variant.text && !variant.loading && (
+                                <div className="flex flex-col gap-token-1 mt-token-2">
+                                    <button
+                                        onClick={() => useVariantAsFinal(variantKey)}
+                                        className={`w-full px-token-2 py-token-1.5 rounded text-xs font-bold ${
+                                            theme === 'warm' ? 'bg-amber-500 hover:bg-amber-600 text-white' : theme === 'dark' ? 'bg-cyan-500 hover:bg-cyan-400 text-slate-900' : theme === 'contrast' ? 'bg-black text-white border-2 border-white hover:bg-white hover:text-black' : theme === 'paper' ? 'bg-stone-800 hover:bg-stone-700 text-stone-50' : theme === 'reactor' ? 'bg-amber-500 hover:bg-amber-400 text-zinc-950 shadow-[0_0_8px_rgba(245,158,11,0.4)]' : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                        }`}
+                                    >
+                                        ✓ 用呢個版本 (Use as final)
+                                    </button>
+                                    <div className="flex gap-token-1">
+                                        <button
+                                            onClick={() => navigator.clipboard.writeText(variant.text)}
+                                            className={`flex-1 px-token-2 py-token-1 rounded text-xs ${
+                                                theme === 'warm' ? 'bg-amber-100 text-amber-800 hover:bg-amber-200' : theme === 'dark' ? 'bg-slate-800 text-cyan-200 hover:bg-slate-700' : theme === 'contrast' ? 'bg-white text-black border border-black hover:bg-black hover:text-white' : theme === 'paper' ? 'bg-stone-100 text-stone-700 hover:bg-stone-200' : theme === 'reactor' ? 'bg-zinc-900 text-amber-200 hover:bg-zinc-800' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                                            }`}
+                                        >
+                                            📋 複製
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                const blob = new Blob([variant.text], { type: 'text/html' });
+                                                const url = URL.createObjectURL(blob);
+                                                const a = document.createElement('a');
+                                                a.href = url;
+                                                a.download = `prompt-${variantKey}-${Date.now()}.html`;
+                                                a.click();
+                                                URL.revokeObjectURL(url);
+                                            }}
+                                            className={`flex-1 px-token-2 py-token-1 rounded text-xs ${
+                                                theme === 'warm' ? 'bg-amber-100 text-amber-800 hover:bg-amber-200' : theme === 'dark' ? 'bg-slate-800 text-cyan-200 hover:bg-slate-700' : theme === 'contrast' ? 'bg-white text-black border border-black hover:bg-black hover:text-white' : theme === 'paper' ? 'bg-stone-100 text-stone-700 hover:bg-stone-200' : theme === 'reactor' ? 'bg-zinc-900 text-amber-200 hover:bg-zinc-800' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                                            }`}
+                                        >
+                                            💾 下載
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </Card>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
 
 
     return (
@@ -1857,6 +2004,7 @@ const renderAiResult = () => (
                     <>
                         {renderStep4(formData, designPrompt, techPrompt, qualityScore)}
                         {GEMINI_DIRECT_GENERATE_ENABLED && renderAiResult()}
+                        {GEMINI_DIRECT_GENERATE_ENABLED && renderMultiVariant()}
                     </>
                 )}
 

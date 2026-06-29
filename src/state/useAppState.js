@@ -23,7 +23,7 @@ import { getRecommendedA11y } from '../data/sen-a11y-map.js';
 import { generateDesignPrompt, generateTechPrompt } from '../prompts/generators.jsx';
 import promptScorer from '../data/scorer.js';
 import { copyToClipboard } from '../utils/clipboard.js';
-import { generateWithGemini } from '../utils/gemini.js';
+import { generateWithGemini, VARIANT_CONFIG, VARIANT_KEYS } from '../utils/gemini.js';
 import { saveToStorage, loadFromStorage, removeFromStorage } from '../utils/storage.js';
 import { formatTimeAgo } from '../utils/time.js';
 import { handleExportDOCX } from '../utils/docx.js';
@@ -119,6 +119,13 @@ export const useAppState = () => {
     const [aiGenerating, setAiGenerating] = useState(false);
     const [aiResult, setAiResult] = useState('');
     const [aiError, setAiError] = useState(null);
+    // v3.13.0: Multi-variant state (F2 — side-by-side 3 lengths)
+    // Each variant: { text, error, tokenCount, durationMs, loading }
+    const [variants, setVariants] = useState({
+        short:    { text: '', error: null, tokenCount: 0, durationMs: 0, loading: false },
+        standard: { text: '', error: null, tokenCount: 0, durationMs: 0, loading: false },
+        long:     { text: '', error: null, tokenCount: 0, durationMs: 0, loading: false },
+    });
     const [showApiSettings, setShowApiSettings] = useState(false);
 
     // Recovery snackbar 狀態 — 用嚟 auto-dismiss
@@ -294,6 +301,70 @@ export const useAppState = () => {
             setAiGenerating(false);
         }
     }, [formData, geminiApiKey]);
+
+    // === v3.13.0: F2 Multi-variant generation (3x Gemini calls in parallel) ===
+    // Generates short/standard/long variants simultaneously for side-by-side compare.
+    // variantFilter: undefined = all 3, or ['short'] | ['standard'] | ['long'] | ['short', 'standard'] etc.
+    const handleMultiVariantGenerate = useCallback(async (variantFilter) => {
+        if (!geminiApiKey) {
+            setShowApiSettings(true);
+            return;
+        }
+        const fullPrompt = generateDesignPrompt(formData) + "\n\n---\n\n" + generateTechPrompt(formData);
+        // Mark selected variants as loading
+        const targetVariants = variantFilter && variantFilter.length > 0
+            ? variantFilter
+            : ['short', 'standard', 'long'];
+        setVariants(prev => {
+            const next = { ...prev };
+            targetVariants.forEach(v => {
+                next[v] = { text: '', error: null, tokenCount: 0, durationMs: 0, loading: true };
+            });
+            return next;
+        });
+
+        try {
+            // Generate only requested variants
+            const tasks = targetVariants.map(async (variant) => {
+                const cfg = VARIANT_CONFIG[variant];
+                const lengthPrefixes = {
+                    short:    '[請用 ≤ 200 字回應, 精簡扼要, 1-on-1 學生用]\n\n',
+                    standard: '[請用 400-600 字回應, 標準長度, 班房用]\n\n',
+                    long:     '[請用最完整版本回應, 含 rationale + 教學建議, 適合 IEP 報告]\n\n',
+                };
+                const lengthPrefixedPrompt = lengthPrefixes[variant] + fullPrompt;
+                const t0 = performance.now();
+                try {
+                    const text = await generateWithGemini(geminiApiKey, lengthPrefixedPrompt, {
+                        maxOutputTokens: cfg.maxOutputTokens,
+                        temperature: 0.7,
+                    });
+                    setVariants(prev => ({
+                        ...prev,
+                        [variant]: { text, error: null, tokenCount: text.length, durationMs: performance.now() - t0, loading: false },
+                    }));
+                } catch (err) {
+                    setVariants(prev => ({
+                        ...prev,
+                        [variant]: { text: '', error: err.message || String(err), tokenCount: 0, durationMs: performance.now() - t0, loading: false },
+                    }));
+                }
+            });
+            await Promise.all(tasks);
+        } catch (err) {
+            // Global fallback (per-variant already handles its own errors)
+            console.error('Multi-variant generation error:', err);
+        }
+    }, [formData, geminiApiKey]);
+
+    // === v3.13.0: F2 Use a variant as final output (set aiResult + switch to standard output) ===
+    const useVariantAsFinal = useCallback((variant) => {
+        const text = variants[variant]?.text;
+        if (text) {
+            setAiResult(text);
+            setAiError(null);
+        }
+    }, [variants]);
 
     // === Gemini API key save (for ApiSettingsModal) ===
     const saveApiKey = useCallback((newKey) => {
@@ -629,6 +700,12 @@ export const useAppState = () => {
         aiGenerating,
         aiResult,
         aiError,
+        // v3.13.0 F2: Multi-variant state + handler
+        variants,
+        handleMultiVariantGenerate,
+        useVariantAsFinal,
+        VARIANT_CONFIG,
+        VARIANT_KEYS,
         showApiSettings,
         setShowApiSettings,
         // Persistent
