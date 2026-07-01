@@ -13,6 +13,7 @@ import { QualityScoreBadge, QualityScoreDetail, TemplateCard, SuggestionPanel } 
 import { VersionPanel } from './components/VersionPanel.jsx';
 import { DiffView } from './components/DiffView.jsx';
 import { ProfileBankPanel } from './components/ProfileBankPanel.jsx';
+import { AwardCertificateModal } from './components/AwardCertificateModal.jsx';
 import personalLogo from '../assets/personal_logo.png';
 import { mutedTextClass, pillClass, toggleClass, cardClass, ToggleSwitch } from './design-system/index.js';
 import { themeMeta, themeOrder } from './design-system/tokens/colors.js';
@@ -212,6 +213,8 @@ export function App() {
         handleCopyDesign, handleCopyTech, handleExport, handleGeminiGenerate,
         // v3.13.0 F2: Multi-variant
         variants, handleMultiVariantGenerate, useVariantAsFinal, VARIANT_CONFIG, VARIANT_KEYS,
+        // v3.14.0: Award Certificate
+        awardCertOpen, setAwardCertOpen,
         saveApiKey, saveAsUserTemplate, deleteUserTemplate, handleLoadTemplate,
         handleDeleteTemplate, handleImportJSON, handleExportJSON,
         handleGetSuggestions, applySuggestion, handleSelectSuggestion,
@@ -1057,6 +1060,115 @@ const renderStep3 = () => (
                         ))}
                     </div>
                 </div>
+
+                {/* ============================================================
+                   v3.14.0: e. 奬狀模組 (Award Certificate)
+                   從 formData.assessment 拉學生數據 → 生成 6 風格奬狀
+                   Modal preview + browser print (Cmd+P)
+                   ============================================================ */}
+                <div className="mt-token-6 pt-token-4 border-t border-slate-200">
+                    <div className="flex items-start gap-token-3">
+                        <ToggleSwitch
+                            theme={theme}
+                            on={formData.awardCertificate?.enabled === true}
+                            onChange={(next) => updateField('awardCertificate', { ...formData.awardCertificate, enabled: next })}
+                            ariaLabel="啟用奬狀生成模組"
+                        />
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-base ${
+                            theme === 'warm' ? 'bg-pink-100 text-pink-700' : theme === 'dark' ? 'bg-pink-500/20 text-pink-300' : theme === 'contrast' ? 'bg-white border-2 border-black text-pink-600' : theme === 'paper' ? 'bg-pink-50 text-pink-700' : theme === 'reactor' ? 'bg-pink-500/20 text-pink-300' : 'bg-pink-100 text-pink-700'
+                        }`}>
+                            🏆
+                        </div>
+                        <div className="flex-1">
+                            <div className={`font-bold text-sm ${'text-slate-800'}`}>🏆 奬狀模組 (Award Certificate)</div>
+                            <div className={`text-xs ${'text-slate-500'}`}>從「📊 評估」tab 拉學生數據 → 生成 6 風格奬狀。Modal preview + browser 列印 (Cmd+P)。</div>
+                        </div>
+                    </div>
+                    <div className={`mt-3 ml-2 space-y-3 ${formData.awardCertificate?.enabled !== true ? 'opacity-40 pointer-events-none' : ''}`}>
+                        {/* Style picker */}
+                        <div>
+                            <Label theme={theme}>奬狀風格</Label>
+                            <div className="grid grid-cols-3 gap-token-2 mt-2">
+                                {[
+                                    { value: 'rainbow', emoji: '🌈', label: '彩虹', desc: '鮮色 + emoji' },
+                                    { value: 'medal',   emoji: '🏅', label: '獎牌', desc: '金屬 ribbon' },
+                                    { value: 'galaxy',  emoji: '🌌', label: '星空', desc: '深色 + glow' },
+                                    { value: 'art',     emoji: '🎨', label: '藝術', desc: '粉彩 + 筆觸' },
+                                    { value: 'dino',    emoji: '🦕', label: '恐龍', desc: '粗獷 + 綠色' },
+                                    { value: 'flower',  emoji: '🌸', label: '花漾', desc: '粉色 + 植物' },
+                                ].map(opt => (
+                                    <button
+                                        key={opt.value}
+                                        onClick={() => updateField('awardCertificate', { ...formData.awardCertificate, style: opt.value })}
+                                        className={`p-token-2 rounded-lg text-xs font-medium transition-all border text-left flex flex-col gap-token-1 h-full ${
+                                            (formData.awardCertificate?.style || 'rainbow') === opt.value
+                                            ? 'border-pink-500 bg-pink-50 text-pink-700 ring-1 ring-pink-500'
+                                            : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600'
+                                        }`}
+                                    >
+                                        <span className="text-lg">{opt.emoji}</span>
+                                        <span className="font-bold text-sm">{opt.label}</span>
+                                        <span className="text-xs opacity-70">{opt.desc}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        {/* Content sub-toggles */}
+                        <div className="grid grid-cols-2 gap-token-2">
+                            {[
+                                { key: 'showStudentName',    label: '學生姓名', defaultOn: true },
+                                { key: 'showDate',           label: '日期',     defaultOn: true },
+                                { key: 'showSubject',        label: '科目',     defaultOn: true },
+                                { key: 'showScore',          label: '分數',     defaultOn: true },
+                                { key: 'showStrengths',      label: '強項主題', defaultOn: true },
+                                { key: 'showImprovement',   label: '進步幅度', defaultOn: false },
+                            ].map(t => {
+                                const currentVal = formData.awardCertificate?.[t.key];
+                                const isOn = currentVal === undefined ? t.defaultOn : currentVal;
+                                return (
+                                    <label key={t.key} className="flex items-center gap-token-2 px-token-3 py-token-2 rounded-lg border border-slate-200 bg-white cursor-pointer hover:bg-slate-50 transition-colors">
+                                        <ToggleSwitch
+                                            theme={theme}
+                                            size="sm"
+                                            on={isOn}
+                                            onChange={(next) => updateField('awardCertificate', { ...formData.awardCertificate, [t.key]: next })}
+                                            ariaLabel={t.label}
+                                        />
+                                        <span className="text-sm text-slate-700">{t.label}</span>
+                                    </label>
+                                );
+                            })}
+                            {/* Teacher message toggle — full width */}
+                            <label className="col-span-2 flex items-center gap-token-2 px-token-3 py-token-2 rounded-lg border border-slate-200 bg-white cursor-pointer hover:bg-slate-50 transition-colors">
+                                <ToggleSwitch
+                                    theme={theme}
+                                    size="sm"
+                                    on={formData.awardCertificate?.showTeacherMessage === true}
+                                    onChange={(next) => updateField('awardCertificate', { ...formData.awardCertificate, showTeacherMessage: next })}
+                                    ariaLabel="老師個人訊息"
+                                />
+                                <span className="text-sm text-slate-700">老師個人訊息</span>
+                            </label>
+                        </div>
+                        {formData.awardCertificate?.showTeacherMessage === true && (
+                            <TextArea
+                                theme={theme}
+                                value={formData.awardCertificate?.teacherMessage || ''}
+                                onChange={(e) => updateField('awardCertificate', { ...formData.awardCertificate, teacherMessage: e.target.value })}
+                                placeholder="例: 小明這個月在加法應用題上有顯著進步, 繼續加油!"
+                            />
+                        )}
+                        {/* Preview button */}
+                        <button
+                            onClick={() => setAwardCertOpen(true)}
+                            className={`w-full px-token-4 py-token-3 rounded-lg text-sm font-bold flex items-center justify-center gap-token-2 transition-all ${
+                                theme === 'warm' ? 'bg-pink-500 text-white hover:bg-pink-600' : theme === 'dark' ? 'bg-pink-500 text-white hover:bg-pink-400' : theme === 'contrast' ? 'bg-black text-white border-2 border-white hover:bg-white hover:text-black' : theme === 'paper' ? 'bg-pink-700 text-white hover:bg-pink-800' : theme === 'reactor' ? 'bg-pink-500 text-zinc-950 hover:bg-pink-400 shadow-[0_0_12px_rgba(236,72,153,0.4)]' : 'bg-pink-600 text-white hover:bg-pink-700'
+                            }`}
+                        >
+                            👁️ 預覽奬狀 + 列印
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </motion.div>
@@ -1499,6 +1611,30 @@ const renderMultiVariant = () => {
                     currentKey={geminiApiKey}
                     onSave={saveApiKey}
                     onClose={() => setShowApiSettings(false)}
+                />
+            )}
+
+            {/* v3.14.0: Award Certificate preview modal */}
+            {awardCertOpen && (
+                <AwardCertificateModal
+                    open={awardCertOpen}
+                    onClose={() => setAwardCertOpen(false)}
+                    style={formData.awardCertificate?.style || 'rainbow'}
+                    onStyleChange={(s) => updateField('awardCertificate', { ...formData.awardCertificate, style: s })}
+                    certificateProps={{
+                        studentName: (formData.awardCertificate?.showStudentName !== false) ? (formData.assessment?.studentName || '同學') : '',
+                        date: (formData.awardCertificate?.showDate !== false) ? (formData.assessment?.date || new Date().toLocaleDateString('zh-HK')) : '',
+                        subject: (formData.awardCertificate?.showSubject !== false) ? (formData.subjectCategory || '') : '',
+                        score: (formData.awardCertificate?.showScore !== false) ? (formData.assessment?.currentScore || '') : '',
+                        strengths: (formData.awardCertificate?.showStrengths !== false) ? (formData.assessment?.strengths || []) : [],
+                        improvement: (formData.awardCertificate?.showImprovement === true) ? (
+                            formData.assessment?.previousScore > 0 && formData.assessment?.currentScore > 0
+                                ? `+${formData.assessment.currentScore - formData.assessment.previousScore} 分`
+                                : ''
+                        ) : '',
+                        teacherName: formData.teacherName || '',
+                        teacherMessage: (formData.awardCertificate?.showTeacherMessage === true) ? (formData.awardCertificate?.teacherMessage || '') : '',
+                    }}
                 />
             )}
 

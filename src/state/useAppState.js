@@ -130,6 +130,8 @@ export const useAppState = () => {
         long:     { text: '', error: null, tokenCount: 0, durationMs: 0, loading: false },
     });
     const [showApiSettings, setShowApiSettings] = useState(false);
+    // v3.14.0: Award certificate preview modal
+    const [awardCertOpen, setAwardCertOpen] = useState(false);
 
     // Recovery snackbar 狀態 — 用嚟 auto-dismiss
     const [recoveryDismissed, setRecoveryDismissed] = useState(false);
@@ -711,6 +713,9 @@ export const useAppState = () => {
         VARIANT_KEYS,
         showApiSettings,
         setShowApiSettings,
+        // v3.14.0: Award Certificate
+        awardCertOpen,
+        setAwardCertOpen,
         // Persistent
         userTemplates,
         geminiApiKey,
