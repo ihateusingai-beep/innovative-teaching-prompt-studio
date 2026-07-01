@@ -56,7 +56,8 @@ const MAX_USER_TEMPLATES = 50;
 
 // Tab keys — Tabs 模式取代 step gate
 // 4 個 tab 對應原本 4 個 step，但永遠可以自由跳
-const TAB_KEYS = ['basic', 'content', 'rules', 'generate'];
+// v3.14.0: 5 tabs — 加 'assessment' (評估) before 'generate'
+const TAB_KEYS = ['basic', 'content', 'rules', 'assessment', 'generate'];
 const DEFAULT_TAB = 'basic';
 const LAST_TAB_STORAGE_KEY = 'TDA_LAST_TAB_V1';
 
@@ -65,6 +66,8 @@ const TAB_FIELDS = {
     basic: ['teacherName', 'toolName', 'category', 'subjectCategory', 'grade', 'senTypes'],
     content: ['purpose', 'context', 'examples'],
     rules: ['rules', 'accessibility', 'learningDiversity', 'interactionType'],
+    // v3.14.0: 評估 tab — student assessment data (optional, but required if Award Certificate enabled)
+    assessment: ['assessment'],
     generate: [], // 完成 = 按下 "複製 Part 1/2" / "下載" → 無 input field 強制要求
 };
 

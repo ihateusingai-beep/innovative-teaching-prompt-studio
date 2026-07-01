@@ -20,8 +20,8 @@ import {
 } from '../src/data/schema.js';
 
 describe('schema.js — constants', () => {
-    it('SCHEMA_VERSION 必須係當前 2', () => {
-        expect(SCHEMA_VERSION).toBe(2);
+    it('SCHEMA_VERSION 必須係當前 3 (v3.14.0 — awardCertificate + assessment)', () => {
+        expect(SCHEMA_VERSION).toBe(3);
     });
 
     it('getInitialFormData() 必須有所有 required fields', () => {

@@ -1,6 +1,7 @@
 import { defaultRules } from './option-tables.js';
 
-const SCHEMA_VERSION = 2;
+// v3.14.0: bump to 3 — new `awardCertificate` module + `assessment` tab fields
+const SCHEMA_VERSION = 3;
 
 // === Schema definitions for JSON migration ===
 // 每改 formData shape，要 bump SCHEMA_VERSION + 加 migration entry
@@ -33,8 +34,20 @@ const FORM_SCHEMA = {
     rules:                   { type: 'array',  required: false },
     // v3.2.4: 個別化學習報告模組 — 由 3.1 default rule 抽出嚟做獨立 toggle 控制
     // shape: { enabled, showData, showVisualization, showGrowthMindset }
+    personalizedReport: { type: 'object', required: false },
+    // v3.14.0: 奬狀模組 — 由 toggle 控制 inject「奬狀生成器」HTML
+    // shape: { enabled, style: 'rainbow'|'medal'|'galaxy'|'art'|'dino'|'flower',
+    //          showStudentName, showDate, showSubject, showScore, showStrengths,
+    //          showImprovement, showTeacherMessage, teacherMessage }
+    awardCertificate: { type: 'object', required: false },
+    // v3.14.0: 評估數據 (第 5 tab「評估」嘅 form fields)
+    // shape: { studentName, date, totalMinutes, totalQuestions, correctCount,
+    //          accuracyPercent, strengths[], improvementAreas[], previousScore, currentScore }
+    assessment: { type: 'object', required: false },
     // 3 個 sub-toggle 對應原 rule 嘅 a/b/c 三段
     personalizedReport:      { type: 'object', required: false },
+    awardCertificate:       { type: 'object', required: false },
+    assessment:              { type: 'object', required: false },
 };
 
 // Migration map — 由舊 field name / structure migrate 到 v2 shape
@@ -217,6 +230,32 @@ const getInitialFormData = () => ({
         showParentQR: true,          // d2. QR code 畀家長
         showNewsletter: true,        // d3. 每週／每月學習電子報
         showTeacherReflection: true, // d4. 教師反思 prompt
+    },
+    // v3.14.0: 奬狀模組 (master toggle OFF by default — 老師 opt-in)
+    awardCertificate: {
+        enabled: false,
+        style: 'rainbow',         // 'rainbow' | 'medal' | 'galaxy' | 'art' | 'dino' | 'flower'
+        showStudentName: true,
+        showDate: true,
+        showSubject: true,
+        showScore: true,
+        showStrengths: true,       // top 1-3 strengths from assessment.strengths
+        showImprovement: false,
+        showTeacherMessage: false,
+        teacherMessage: '',
+    },
+    // v3.14.0: 評估數據 (第 5 tab)
+    assessment: {
+        studentName: '',
+        date: '',                  // user fills in (or auto today)
+        totalMinutes: 0,
+        totalQuestions: 0,
+        correctCount: 0,
+        accuracyPercent: 0,        // auto-computed from correctCount / totalQuestions
+        strengths: [],             // e.g. ['加法運算', '圖形辨識']
+        improvementAreas: [],      // e.g. ['減法', '應用題']
+        previousScore: 0,          // for improvement % calc
+        currentScore: 0,
     },
 });
 

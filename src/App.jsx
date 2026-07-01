@@ -1783,10 +1783,12 @@ const renderMultiVariant = () => {
                         theme === 'warm' ? 'border-amber-200 bg-amber-50/60' : theme === 'dark' ? 'border-slate-200 bg-slate-50' : theme === 'contrast' ? 'border-slate-200 bg-slate-50' : theme === 'paper' ? 'border-slate-200 bg-slate-50' : theme === 'reactor' ? 'border-slate-200 bg-slate-50' : 'border-slate-200 bg-slate-50'
                     }`}>
                         {[
-                            { key: 'basic', label: '基本', icon: '📋' },
-                            { key: 'content', label: '內容', icon: '📝' },
-                            { key: 'rules', label: '規則', icon: '⚙️' },
-                            { key: 'generate', label: '生成', icon: '✨' },
+                            { key: 'basic',     label: '基本', icon: '📋' },
+                            { key: 'content',   label: '內容', icon: '📝' },
+                            { key: 'rules',     label: '規則', icon: '⚙️' },
+                            // v3.14.0: 新增評估 tab
+                            { key: 'assessment', label: '評估', icon: '📊' },
+                            { key: 'generate',  label: '生成', icon: '✨' },
                         ].map(tab => {
                             const comp = tabCompletion[tab.key];
                             const isActive = activeTab === tab.key;
@@ -1996,6 +1998,139 @@ const renderMultiVariant = () => {
                                 💡 Tip: 任何輸入改動都會即時更新預覽。去到 Step 4 可正式複製。
                             </div>
                         </div>
+                    </motion.div>
+                )}
+
+                {/* v3.14.0: Assessment Tab Rendering — 評估數據 form (學生姓名 + 分數 + 強項 + 改善範疇) */}
+                {activeTab === 'assessment' && (
+                    <motion.div
+                        key="step-assessment"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        <Card theme={theme} className="p-token-6">
+                            <h2 className={`text-xl font-bold mb-token-4 flex items-center gap-token-2 ${
+                                theme === 'warm' ? 'text-amber-900' : theme === 'dark' ? 'text-cyan-100' : theme === 'contrast' ? 'text-black' : theme === 'paper' ? 'text-stone-900' : theme === 'reactor' ? 'text-amber-100' : 'text-slate-800'
+                            }`}>
+                                📊 4. 學生評估數據 (Student Assessment)
+                                <span className="text-sm font-normal text-slate-500">— 奬狀生成嘅 data source</span>
+                            </h2>
+                            <p className={`mb-token-4 text-sm ${mutedTextClass(theme)}`}>
+                                填寫學生姓名、學習時數、答對率同強項等資料。呢啲數據會用喺 v3.14.0 嘅奬狀生成 (Award Certificate) 功能。
+                            </p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-token-4">
+                                {/* 學生姓名 */}
+                                <div>
+                                    <Label theme={theme}>學生姓名</Label>
+                                    <Input
+                                        theme={theme}
+                                        type="text"
+                                        value={formData.assessment?.studentName || ''}
+                                        onChange={(e) => updateField('assessment', { ...formData.assessment, studentName: e.target.value })}
+                                        placeholder="例: 小明"
+                                    />
+                                </div>
+                                {/* 日期 */}
+                                <div>
+                                    <Label theme={theme}>評估日期</Label>
+                                    <Input
+                                        theme={theme}
+                                        type="date"
+                                        value={formData.assessment?.date || ''}
+                                        onChange={(e) => updateField('assessment', { ...formData.assessment, date: e.target.value })}
+                                    />
+                                </div>
+                                {/* 總練習時間 */}
+                                <div>
+                                    <Label theme={theme} optional>總學習時間 (分鐘)</Label>
+                                    <Input
+                                        theme={theme}
+                                        type="number"
+                                        min="0"
+                                        value={formData.assessment?.totalMinutes || 0}
+                                        onChange={(e) => updateField('assessment', { ...formData.assessment, totalMinutes: parseInt(e.target.value) || 0 })}
+                                    />
+                                </div>
+                                {/* 總題數 */}
+                                <div>
+                                    <Label theme={theme} optional>練習總題數</Label>
+                                    <Input
+                                        theme={theme}
+                                        type="number"
+                                        min="0"
+                                        value={formData.assessment?.totalQuestions || 0}
+                                        onChange={(e) => updateField('assessment', { ...formData.assessment, totalQuestions: parseInt(e.target.value) || 0 })}
+                                    />
+                                </div>
+                                {/* 答對題數 */}
+                                <div>
+                                    <Label theme={theme} optional>答對題數</Label>
+                                    <Input
+                                        theme={theme}
+                                        type="number"
+                                        min="0"
+                                        value={formData.assessment?.correctCount || 0}
+                                        onChange={(e) => updateField('assessment', { ...formData.assessment, correctCount: parseInt(e.target.value) || 0 })}
+                                    />
+                                </div>
+                                {/* 答對率（自動計算） */}
+                                <div>
+                                    <Label theme={theme}>答對率 (自動計算)</Label>
+                                    <div className={`w-full px-4 py-3 radius-token-md border ${
+                                        theme === 'warm' ? 'bg-amber-50/50 border-amber-200 text-amber-900' : theme === 'dark' ? 'bg-slate-800/50 border-cyan-500/30 text-cyan-100' : theme === 'contrast' ? 'bg-white border-black text-black' : theme === 'paper' ? 'bg-stone-50 border-stone-400 text-stone-900' : theme === 'reactor' ? 'bg-zinc-900/50 border-amber-500/30 text-amber-100' : 'bg-slate-50 border-slate-200 text-slate-700'
+                                    }`}>
+                                        {formData.assessment?.totalQuestions > 0
+                                            ? `${Math.round((formData.assessment.correctCount / formData.assessment.totalQuestions) * 100)}%`
+                                            : '— 填咗題數同答對題數就會自動計'}
+                                    </div>
+                                </div>
+                                {/* 上次分數 (for improvement %) */}
+                                <div>
+                                    <Label theme={theme} optional>上次分數 (0-100)</Label>
+                                    <Input
+                                        theme={theme}
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        value={formData.assessment?.previousScore || 0}
+                                        onChange={(e) => updateField('assessment', { ...formData.assessment, previousScore: parseInt(e.target.value) || 0 })}
+                                    />
+                                </div>
+                                {/* 今次分數 */}
+                                <div>
+                                    <Label theme={theme} optional>今次分數 (0-100)</Label>
+                                    <Input
+                                        theme={theme}
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        value={formData.assessment?.currentScore || 0}
+                                        onChange={(e) => updateField('assessment', { ...formData.assessment, currentScore: parseInt(e.target.value) || 0 })}
+                                    />
+                                </div>
+                            </div>
+                            {/* 強項 multi-line */}
+                            <div className="mt-token-4">
+                                <Label theme={theme} optional>強項主題 (每行一個)</Label>
+                                <TextArea
+                                    theme={theme}
+                                    value={(formData.assessment?.strengths || []).join('\n')}
+                                    onChange={(e) => updateField('assessment', { ...formData.assessment, strengths: e.target.value.split('\n').filter(s => s.trim()) })}
+                                    placeholder="例:&#10;加法運算&#10;圖形辨識&#10;顏色識別"
+                                />
+                            </div>
+                            <div className="mt-token-4">
+                                <Label theme={theme} optional>改善範疇 (每行一個)</Label>
+                                <TextArea
+                                    theme={theme}
+                                    value={(formData.assessment?.improvementAreas || []).join('\n')}
+                                    onChange={(e) => updateField('assessment', { ...formData.assessment, improvementAreas: e.target.value.split('\n').filter(s => s.trim()) })}
+                                    placeholder="例:&#10;減法&#10;應用題"
+                                />
+                            </div>
+                        </Card>
                     </motion.div>
                 )}
 
