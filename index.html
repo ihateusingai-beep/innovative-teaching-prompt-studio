@@ -6,12 +6,13 @@
     <title>創意教學 Prompt Studio</title>
 
     <!--
-        Innovative Teaching Prompt Studio v3.14.0 — Vite build pipeline
+        Innovative Teaching Prompt Studio v3.14.1 — Vite build pipeline
         - All JS / CSS inlined into single HTML file (via vite-plugin-singlefile)
         - Zero CDN runtime deps (React / Framer / Lucide / Tailwind all bundled)
         - file:// works (pure client-side)
         - v3.13.0: V6 Toggle 48×28 (mobile audit P0) + F2 Multi-variant 3-length parallel generation
         - v3.14.0: 評估 tab (5th tab) + Assessment form + Award Certificate (6 styles + modal preview + A4 print) + Schema v3 bump
+        - v3.14.1: hotfix — auth gate unlock() now resets window.scrollY to 0 (was inheriting stale browser scroll restoration → user saw blank page below the fold)
     -->
 
     <!-- Google Fonts (預先 CDN load — build-time 唔處理 webfont) -->
@@ -57,6 +58,12 @@
         var overlay = document.getElementById('auth-gate-overlay');
         if (overlay) overlay.parentNode.removeChild(overlay);
         document.documentElement.removeAttribute('data-auth-pending');
+        // Reset scroll to top so the form container renders in-viewport
+        // (avoids blank-page look when browser auto-restored a stale scrollY).
+        // Disable scroll restoration first so a future bfcache restore can't
+        // re-introduce the same offset.
+        if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+        window.scrollTo(0, 0);
       }
       function showError(msg) {
         var err = document.getElementById('auth-gate-error');
