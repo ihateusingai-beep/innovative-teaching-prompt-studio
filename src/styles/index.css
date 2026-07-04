@@ -489,6 +489,24 @@ body.theme-reactor .glass-card-elevated {
     }
 }
 
+/* v3.14.2 a11y: respect system prefers-reduced-motion (WCAG 2.3.3) */
+@media (prefers-reduced-motion: reduce) {
+    body.theme-reactor .glass-card,
+    body.theme-reactor [class*="reactor-"],
+    body.theme-reactor [class*="-card"][class*="reactor"],
+    .glass-card[style*="reactor-card-pulse"],
+    *[style*="animation: reactor-card-pulse"] {
+        animation: none !important;
+        transition: none !important;
+    }
+    /* All 6 themes — defensive: any future motion-defining CSS should also stop here */
+    *, *::before, *::after {
+        animation-duration: 0.001s !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001s !important;
+    }
+}
+
 body.theme-reactor .glass-card:hover {
     border-color: rgba(245, 158, 11, 0.65);
     box-shadow:

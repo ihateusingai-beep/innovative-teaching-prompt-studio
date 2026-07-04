@@ -114,8 +114,30 @@ const migrateFormData = (input) => {
     const migrated = {};
     const extra = {};
 
+    // 0a. v3.14.2 (audit F3 follow-up): Support BOTH input formats:
+    //   - Flat:    { teacherName, toolName, ..., __schema_version: N }     (current export format)
+    //   - Wrapped: { formData: { teacherName, ..., schemaVersion: N } }     (legacy / hand-crafted)
+    //   Unwrap wrapped form so the migrate loop sees the actual fields.
+    let unwrapped;
+    let detectedSchemaVer;
+    if (input.formData && typeof input.formData === 'object' && !Array.isArray(input.formData)) {
+        unwrapped = input.formData;
+        detectedSchemaVer = input.schemaVersion;
+        warnings.push('自動展開「formData」wrapper（兼容舊格式）');
+    } else {
+        unwrapped = input;
+        detectedSchemaVer = input.__schema_version ?? input.schemaVersion;
+    }
+
+    // 0b. Detect input schemaVersion (treat missing/unknown as legacy v1 → extra permissive)
+    const rawSchemaVer = Number(detectedSchemaVer);
+    const inputSchemaVersion = Number.isFinite(rawSchemaVer) && rawSchemaVer >= 1 ? rawSchemaVer : 1;
+
+    // 0c. Build the field-renamed input from the UNWRAPPED object.
+    //   Inputs now have formData fields directly (top-level after unwrap).
+    const renamedInput = { ...unwrapped };
+
     // 1. Apply field renames + collect values
-    const renamedInput = { ...input };
     Object.entries(FIELD_RENAMES).forEach(([oldKey, newKey]) => {
         if (oldKey in renamedInput && !(newKey in renamedInput)) {
             renamedInput[newKey] = renamedInput[oldKey];
@@ -145,6 +167,11 @@ const migrateFormData = (input) => {
                 warnings.push(`「${key}」類型不符 (期望 ${spec.type})，已用預設值取代`);
                 // 唔 throw，等 import 仲用得，只係 warn
             }
+        } else if (spec.required && key === 'purpose' && inputSchemaVersion < 2) {
+            // v3.14.2 hotfix (audit F3): v1 schema did NOT require 'purpose'.
+            //   Auto-fill with empty string for v1 imports — keep user data alive.
+            warnings.push(`v1 import 缺少 purpose 欄位（v1 時未引入），已自動填入空字串（建議稍後手動填寫）`);
+            // Do NOT push to errors.
         } else if (spec.required) {
             errors.push(`缺少必填欄位「${key}」`);
         }

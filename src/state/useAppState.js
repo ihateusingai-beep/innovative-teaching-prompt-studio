@@ -444,29 +444,41 @@ export const useAppState = () => {
                         type: 'import',
                         data: cleanFormData,
                         warnings: __warnings,
+                        schemaVersion: __schema_version,
                     });
                 } else {
                     pushHistory();
                     setFormData(cleanFormData);
+                    // F4 (audit v3.14.2): emit success toast when no warnings (clean import);
+                    //   warning toast only when there are non-fatal migration issues.
                     if (__warnings && __warnings.length > 0) {
                         pushWarning('warning', '匯入完成（' + __warnings.length + ' 項警告）', __warnings);
+                    } else {
+                        const versionLabel = __schema_version ? `v${__schema_version}` : '已匯入';
+                        pushWarning('success', `✓ 匯入成功 (${versionLabel})`, [`已載入 ${file.name}`]);
                     }
                 }
             } catch (err) {
-                pushWarning('error', 'JSON 解析失敗', [err.message]);
+                // F4 (audit v3.14.2): improved error UX — combine multi-line errors into single summary
+                const raw = err.message || String(err);
+                const errorLines = raw.split('\n').filter(Boolean).map(s => s.replace(/^匯入失敗：\s*/, '').trim());
+                pushWarning('error', '❌ JSON 解析失敗', errorLines.length > 0 ? errorLines : [raw]);
             }
         };
         reader.readAsText(file);
         event.target.value = ''; // Reset so same file can be re-imported
     }, [formData, setFormData, pushHistory, pushWarning]);
 
-    // === Confirm replace/append dialog handlers ===
+    // === F4 (audit v3.14.2): import success toast on replace/append confirm ===
     const confirmReplace = useCallback(() => {
         if (!pendingSuggestion || pendingSuggestion.type !== 'import') return;
         pushHistory();
         setFormData(pendingSuggestion.data);
         if (pendingSuggestion.warnings && pendingSuggestion.warnings.length > 0) {
             pushWarning('warning', '匯入完成（' + pendingSuggestion.warnings.length + ' 項警告）', pendingSuggestion.warnings);
+        } else {
+            const v = pendingSuggestion.schemaVersion ? `v${pendingSuggestion.schemaVersion}` : '已匯入';
+            pushWarning('success', `✓ 取代成功 (${v})`, ['原 formData 已被取代']);
         }
         setPendingSuggestion(null);
     }, [pendingSuggestion, pushHistory, setFormData, pushWarning]);
@@ -479,19 +491,31 @@ export const useAppState = () => {
             const merged = { ...prev };
             for (const [key, value] of Object.entries(pendingSuggestion.data)) {
                 if (Array.isArray(value) && Array.isArray(prev[key])) {
-                    merged[key] = Array.from(new Set([...prev[key], ...value]));
-                } else if (typeof value === 'string' && (!prev[key] || prev[key].length === 0)) {
+                    // Arrays: append non-duplicates to existing
+                    const existing = prev[key] || [];
+                    const seen = new Set(existing.map(v => typeof v === 'string' ? v : JSON.stringify(v)));
+                    const toAdd = value.filter(v => !seen.has(typeof v === 'string' ? v : JSON.stringify(v)));
+                    merged[key] = [...existing, ...toAdd];
+                } else if (Array.isArray(value)) {
                     merged[key] = value;
-                } else if (typeof value === 'boolean') {
-                    // boolean 直接 overwrite
+                } else if (typeof value === 'string' && value !== '' && (!prev[key] || prev[key] === '')) {
+                    // Empty string overwrite: skip (preserve existing)
+                    // Non-empty string: only fill if existing is empty
                     merged[key] = value;
+                } else if (typeof value !== 'string' && value !== null && value !== undefined) {
+                    // Objects / numbers / booleans: only fill if existing is empty / null
+                    if (!prev[key] || prev[key] === '' || prev[key] === null) {
+                        merged[key] = value;
+                    }
                 }
-                // 其他情況（已有 value）→ 保留原值
             }
             return merged;
         });
         if (pendingSuggestion.warnings && pendingSuggestion.warnings.length > 0) {
             pushWarning('warning', '合併匯入完成（' + pendingSuggestion.warnings.length + ' 項警告）', pendingSuggestion.warnings);
+        } else {
+            const v = pendingSuggestion.schemaVersion ? `v${pendingSuggestion.schemaVersion}` : '已匯入';
+            pushWarning('success', `✓ 合併成功 (${v})`, ['已合併入當前 formData']);
         }
         setPendingSuggestion(null);
     }, [pendingSuggestion, pushHistory, setFormData, pushWarning]);

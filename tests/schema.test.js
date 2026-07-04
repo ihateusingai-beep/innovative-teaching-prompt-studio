@@ -93,6 +93,39 @@ describe('migrateFormData() — legacy rename (v1 → v2)', () => {
     });
 });
 
+describe('migrateFormData() — input format unwrapping (audit F3 follow-up, v3.14.2)', () => {
+    it('flat input format (current export): works correctly', () => {
+        const result = migrateFormData({
+            __schema_version: 1,
+            teacherName: '張老師 (v1)',
+            toolName: 'v1 tool',
+            isGemini: true,
+            rules: ['r1'],
+        });
+        expect(result.teacherName).toBe('張老師 (v1)');
+        expect(result.toolName).toBe('v1 tool');
+        expect(result.useGeminiStyle).toBe(true);
+        expect(result.__warnings.some(w => w.includes('formData'))).toBe(false);
+    });
+
+    it('wrapped input format ({formData: {...}, schemaVersion: N}): works correctly', () => {
+        // Defensive: hand-crafted JSON or earlier export format
+        const result = migrateFormData({
+            formData: {
+                teacherName: '張老師 (wrapped)',
+                toolName: 'wrapped tool',
+                isGemini: false,
+                rules: ['r1'],
+            },
+            schemaVersion: 1,
+        });
+        expect(result.teacherName).toBe('張老師 (wrapped)');
+        expect(result.toolName).toBe('wrapped tool');
+        expect(result.useGeminiStyle).toBe(false);
+        expect(result.__warnings.some(w => w.includes('formData'))).toBe(true);
+    });
+});
+
 describe('migrateFormData() — value transforms (v1 → v2)', () => {
     it('gameStyle array → string (first element)', () => {
         const result = migrateFormData({
@@ -126,10 +159,29 @@ describe('migrateFormData() — type mismatch fallback', () => {
         expect(result.__warnings.some(w => w.includes('accessibility'))).toBe(true);
     });
 
-    it('required field 缺失 → throws Error with userMessage', () => {
+    it('v1 input without purpose → auto-fill empty + warning (v3.14.2 F3 fix)', () => {
+        // v3.14.2 audit F3 fix: v1 schema didn't require 'purpose' (added in v2+).
+        //   Imports without schemaVersion default to v1 → auto-fill empty + warning.
+        const result = migrateFormData({ teacherName: 'Tom' });
+        expect(result.purpose).toBe('');
+        expect(result.__warnings.some(w => w.includes('v1 import 缺少 purpose'))).toBe(true);
+    });
+
+    it('v2+ input without purpose → throws Error with userMessage', () => {
+        // v2 introduced 'purpose' as required. v2/v3 imports missing it still throw (strict).
         try {
-            migrateFormData({ teacherName: 'Tom' }); // 冇 purpose
-            // 唔應該到呢度
+            migrateFormData({ teacherName: 'Tom', schemaVersion: 2 });
+            expect.fail('Expected throw');
+        } catch (err) {
+            expect(err).toBeInstanceOf(Error);
+            expect(err.userMessage).toContain('缺少必填欄位');
+            expect(err.userMessage).toContain('purpose');
+        }
+    });
+
+    it('v3 input without purpose → throws Error with userMessage', () => {
+        try {
+            migrateFormData({ teacherName: 'Tom', schemaVersion: 3 });
             expect.fail('Expected throw');
         } catch (err) {
             expect(err).toBeInstanceOf(Error);
