@@ -14,8 +14,9 @@ import { migrateFormData } from '../data/schema.js';
 //   clearAutosave(): 清 localStorage entry
 //
 // localStorage key: 'TDA_AUTOSAVE_V1'
+// v3.15.0 A1: debounce 1000ms → 500ms (faster save + lower data loss window)
 const AUTOSAVE_KEY = 'TDA_AUTOSAVE_V1';
-const AUTOSAVE_DEBOUNCE_MS = 1000;
+const AUTOSAVE_DEBOUNCE_MS = 500;
 const AUTOSAVE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export const useAutosave = (formData) => {

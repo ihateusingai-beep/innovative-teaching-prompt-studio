@@ -4,6 +4,7 @@ import { ArrowRight, ArrowLeft, Save, Sparkles, Wand2, Eye, Copy, Download, Uplo
 
 import { useAppState } from './state/useAppState.js';
 import { formatTimeAgo } from './utils/time.js';
+import { useTimeAgo } from './hooks/useTimeAgo.js';
 import { SCHEMA_VERSION } from './data/schema.js';
 import { BUILTIN_TEMPLATES } from './data/templates.js';
 import { SEN_TO_A11Y_MAP, getRecommendedA11y } from './data/sen-a11y-map.js';
@@ -228,6 +229,8 @@ export function App() {
         categories, subjects, builtinTemplates, triggerJSONImport,
         showGameStyle, showExamples,
     } = s;
+    // v3.15.0 A1: live "X 秒前" badge — must be top-level hook call
+    const savedLabel = useTimeAgo(lastSavedAt);
 const renderStep1 = () => (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-token-4">
         {/* === Sub-section 0: 範本庫（快速開始） === */}
@@ -1907,7 +1910,7 @@ const renderMultiVariant = () => {
                                 ↪️
                             </button>
                         </div>
-                        {/* Auto-save indicator — W9-10 Q2: pulse on save */}
+                        {/* Auto-save indicator — v3.15.0 A1: live 'X 秒前' refresh (1s tick) */}
                         <motion.div
                             key={lastSavedAt || 'idle'} // re-mount 觸發 pulse animation on save
                             initial={lastSavedAt ? { scale: 1.15 } : { scale: 1 }}
@@ -1921,7 +1924,7 @@ const renderMultiVariant = () => {
                             title={lastSavedAt ? `上次儲存: ${new Date(lastSavedAt).toLocaleTimeString('zh-HK')}` : '尚未儲存'}
                         >
                             <Save size={12} />
-                            {lastSavedAt ? `已儲存 ${formatTimeAgo(lastSavedAt)}` : '儲存中...'}
+                            {lastSavedAt && savedLabel ? `已儲存 ${savedLabel}` : '儲存中...'}
                         </motion.div>
                         {/* Hidden File Input */}
                         <input 
