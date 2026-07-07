@@ -114,7 +114,20 @@ const promptScorer = (data) => {
     const grade = total >= 80 ? 'excellent' : total >= 60 ? 'good' : total >= 40 ? 'fair' : 'poor';
     const gradeLabel = { excellent: '優秀', good: '良好', fair: '尚可', poor: '需改善' }[grade];
 
-    return { total, grade, gradeLabel, breakdown: scores, suggestions };
+    // v3.15.0 A2: 4 external groups mapped from 5 internal dimensions.
+    // - purpose       ← clarity        (purpose 字數 + 動詞具體度)
+    // - context       ← completeness   (required fields 填寫率)
+    // - structure     ← rulesDetail + examples  (合併兩個結構維度)
+    // - accessibility ← senFit         (SEN 適配 + a11y 設定)
+    // UI 顯示 4-dim (per spec); internal 仍係 5-dim (heuristic 唔重 tune)。
+    const groups = {
+        purpose:       { score: scores.clarity,       max: 25, label: '核心用途', icon: '🎯' },
+        context:       { score: scores.completeness,  max: 30, label: '內容完整', icon: '📋' },
+        structure:     { score: scores.rulesDetail + scores.examples, max: 30, label: '結構', icon: '🏗️' },
+        accessibility: { score: scores.senFit,        max: 15, label: '無障礙',   icon: '♿' },
+    };
+
+    return { total, grade, gradeLabel, breakdown: scores, groups, suggestions };
 };
 
 export default promptScorer;

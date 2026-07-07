@@ -26,13 +26,19 @@ export const QualityScoreBadge = ({ theme, score, onClick }) => (
 );
 
 // === Quality Score Detail Modal ===
+// v3.15.0 A2: dynamic 4-dim groups render (purpose / context / structure / accessibility).
+// Internal scorer 仍係 5-dim heuristic; UI 顯示 grouped 4-dim with max-scale bars。
+// suggestion 結構由 string[] 升級到 {key, severity, message, detail, improvement} array。
 export const QualityScoreDetail = ({ theme, score, onClose }) => {
-    const categories = [
-        { key: 'completeness', label: '完整度', icon: '📋' },
-        { key: 'clarity', label: '清晰度', icon: '💡' },
-        { key: 'specificity', label: '具體度', icon: '🎯' },
-        { key: 'pedagogy', label: '教學度', icon: '📚' },
-    ];
+    // Fallback for old shape (cached / pre-A2 scoring) — 內部 dimension 直接 render
+    const groups = score.groups || (
+        score.breakdown && {
+            purpose:       { score: score.breakdown.clarity      || 0, max: 25, label: '核心用途', icon: '🎯' },
+            context:       { score: score.breakdown.completeness || 0, max: 30, label: '內容完整', icon: '📋' },
+            structure:     { score: (score.breakdown.rulesDetail || 0) + (score.breakdown.examples || 0), max: 30, label: '結構', icon: '🏗️' },
+            accessibility: { score: score.breakdown.senFit       || 0, max: 15, label: '無障礙',   icon: '♿' },
+        }
+    );
     return (
         <motion.div
             initial={{ opacity: 0 }}
@@ -55,24 +61,27 @@ export const QualityScoreDetail = ({ theme, score, onClose }) => {
                     {score.grade} · {score.total}/100
                 </div>
                 <div className="space-y-3 mb-4">
-                    {categories.map(cat => (
-                        <div key={cat.key} className={`flex items-center justify-between p-token-3 rounded-lg ${'bg-slate-50'}`}>
-                            <span className={`text-sm font-bold ${'text-slate-700'}`}>
-                                {cat.icon} {cat.label}
-                            </span>
-                            <div className="flex items-center gap-2">
-                                <div className={`w-32 h-2 rounded-full overflow-hidden ${'bg-slate-200'}`}>
-                                    <div
-                                        className={`h-full transition-all ${scoreColor(score.grade, theme).split(' ')[0]}`}
-                                        style={{ width: `${score[cat.key] || 0}%` }}
-                                    ></div>
-                                </div>
-                                <span className={`text-sm font-bold w-10 text-right ${'text-blue-700'}`}>
-                                    {score[cat.key] || 0}
+                    {Object.entries(groups).map(([key, group]) => {
+                        const pct = group.max > 0 ? Math.round((group.score / group.max) * 100) : 0;
+                        return (
+                            <div key={key} className={`flex items-center justify-between p-token-3 rounded-lg ${'bg-slate-50'}`}>
+                                <span className={`text-sm font-bold ${'text-slate-700'}`}>
+                                    {group.icon} {group.label}
                                 </span>
+                                <div className="flex items-center gap-2">
+                                    <div className={`w-32 h-2 rounded-full overflow-hidden ${'bg-slate-200'}`}>
+                                        <div
+                                            className={`h-full transition-all ${scoreColor(score.grade, theme).split(' ')[0]}`}
+                                            style={{ width: `${pct}%` }}
+                                        ></div>
+                                    </div>
+                                    <span className={`text-sm font-bold w-12 text-right ${'text-blue-700'}`}>
+                                        {group.score}/{group.max}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
                 {score.suggestions && score.suggestions.length > 0 && (
                     <div className={`p-token-3 rounded-lg ${'bg-amber-50 border border-amber-200'}`}>
@@ -80,9 +89,11 @@ export const QualityScoreDetail = ({ theme, score, onClose }) => {
                             💡 改善建議
                         </p>
                         <ul className={`text-xs space-y-1 ${'text-slate-600'}`}>
-                            {score.suggestions.map((s, i) => (
-                                <li key={i}>• {s}</li>
-                            ))}
+                            {score.suggestions.map((s, i) => {
+                                // v3.15.0 A2: support both string (legacy) and object (new) suggestion shapes
+                                const text = typeof s === 'string' ? s : s.message;
+                                return (<li key={i}>• {text}</li>);
+                            })}
                         </ul>
                     </div>
                 )}
