@@ -164,12 +164,34 @@ export const useAppState = () => {
 
     const fileInputRef = useRef(null);
 
+    // === v3.15.0 (V1): Reduced-motion override ===
+    // States: 'system' (follow OS) | 'on' (force reduce) | 'off' (force allow)
+    // Persisted in localStorage so user choice survives reload.
+    const [motionPref, setMotionPref, motionPrefLoaded] = useLocalStorage('TDA_MOTION_PREF_V1', 'system');
+    const cycleMotionPref = useCallback(() => {
+        setMotionPref(prev => {
+            if (prev === 'system') return 'on';
+            if (prev === 'on') return 'off';
+            return 'system'; // 'off' → 'system'
+        });
+    }, [setMotionPref]);
+
     // === Theme sync to <body> className === (v3.12.0: 6 themes)
     useEffect(() => {
         const ALL_THEMES = ['theme-cyber', 'theme-plain', 'theme-warm', 'theme-dark', 'theme-contrast', 'theme-paper', 'theme-reactor'];
         document.body.classList.remove(...ALL_THEMES);
         document.body.classList.add('theme-' + theme);
     }, [theme]);
+
+    // === v3.15.0 (V1): Motion pref sync — add body class so CSS can override
+    //   - tda-motion-on:  force all animations off (override prefers-reduced-motion: no-preference)
+    //   - tda-motion-off: force animations on (override prefers-reduced-motion: reduce)
+    //   - (no class):     follow system media query
+    useEffect(() => {
+        document.body.classList.remove('tda-motion-on', 'tda-motion-off');
+        if (motionPref === 'on')  document.body.classList.add('tda-motion-on');
+        if (motionPref === 'off') document.body.classList.add('tda-motion-off');
+    }, [motionPref]);
 
     // === Active tab → localStorage ===
     useEffect(() => {
@@ -719,6 +741,11 @@ export const useAppState = () => {
         theme,
         setTheme,
         toggleTheme,
+        // v3.15.0 V1: Reduced-motion override
+        motionPref,
+        setMotionPref,
+        cycleMotionPref,
+        motionPrefLoaded,
         onboardingStep,
         onboardingActive,
         setOnboardingActive,

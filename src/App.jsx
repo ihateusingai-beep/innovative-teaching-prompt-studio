@@ -185,6 +185,8 @@ export function App() {
         activeTab, setActiveTab, handleNextTab, handlePrevTab, tabCompletion, TAB_KEYS,
 // Theme
         toggleTheme, theme, setTheme,
+// v3.15.0 V1: Reduced-motion override
+        motionPref, setMotionPref, cycleMotionPref, motionPrefLoaded,
 // Quality / preview
         copiedDesign, copiedTech, showScoreDetail, setShowScoreDetail, previewOpen, setPreviewOpen, previewTab, setPreviewTab,
 // W5-6 Prompt Versions
@@ -1829,6 +1831,25 @@ const renderMultiVariant = () => {
                                 ))}
                             </select>
                         </label>
+                        {/* v3.15.0 V1: Reduced-motion override (3-state cycle) */}
+                        <button
+                            onClick={cycleMotionPref}
+                            aria-label={`動畫偏好：${motionPref === 'system' ? '跟系統' : motionPref === 'on' ? '強制關' : '強制開'} — 撳一下切換`}
+                            title={
+                                motionPref === 'system' ? '🎬 動畫：跟系統 (撳一下強制關)'
+                                : motionPref === 'on'    ? '🔇 動畫：強制關 (撳一下強制開)'
+                                                    : '✨ 動畫：強制開 (撳一下跟系統)'
+                            }
+                            className={`p-token-2 rounded-full transition-all duration-200 border ${
+                                motionPref === 'on'  ? 'bg-amber-100 text-amber-700 border-amber-300 hover:bg-amber-200'
+                                : motionPref === 'off' ? 'bg-cyan-100 text-cyan-700 border-cyan-300 hover:bg-cyan-200'
+                                                      : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+                            }`}
+                        >
+                            <span className="text-base">
+                                {motionPref === 'on' ? '🔇' : motionPref === 'off' ? '✨' : '🎬'}
+                            </span>
+                        </button>
                         <div
                             className={`hidden md:flex px-token-4 py-token-2 rounded-full text-sm font-bold flex items-center gap-token-2 tracking-wider ${
                             'bg-slate-100 text-slate-600 border border-slate-200'

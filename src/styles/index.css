@@ -507,6 +507,34 @@ body.theme-reactor .glass-card-elevated {
     }
 }
 
+/* v3.15.0 V1: User override of prefers-reduced-motion (manual opt-in toggle)
+   - body.tda-motion-on  : 強制關閉所有動畫 (overrides no-preference)
+   - body.tda-motion-off : 強制啟用所有動畫 (overrides reduce)
+   The system media-query (above) still applies if neither override class is set.
+   These override the @media rule unconditionally (media-query + class) so users
+   can lock animation state regardless of OS setting. */
+body.tda-motion-on *,
+body.tda-motion-on *::before,
+body.tda-motion-on *::after {
+    animation: none !important;
+    transition: none !important;
+    animation-duration: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0s !important;
+}
+
+body.tda-motion-off * {
+    /* Force-on: cancel any reduced-motion overrides that fired via system setting.
+       Animation values fall back to element-level CSS rules (no override). */
+    animation-duration: revert !important;
+    animation-iteration-count: revert !important;
+    transition-duration: revert !important;
+}
+/* And the Reactor-specific pulse override re-enables the pulse when forcing on. */
+body.tda-motion-off.theme-reactor .glass-card {
+    animation: reactor-card-pulse 4s ease-in-out infinite !important;
+}
+
 body.theme-reactor .glass-card:hover {
     border-color: rgba(245, 158, 11, 0.65);
     box-shadow:
