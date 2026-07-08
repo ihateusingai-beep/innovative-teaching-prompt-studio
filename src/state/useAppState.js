@@ -120,6 +120,10 @@ export const useAppState = () => {
     const [onboardingActive, setOnboardingActive] = useState(false);
     const [activeSuggestionField, setActiveSuggestionField] = useState(null);
     const [pendingSuggestion, setPendingSuggestion] = useState(null);
+    // v3.15.0 A3: Import diff state — shows per-field status, supports undo (5 min window)
+    const [importDiff, setImportDiff] = useState(null);  // { fileName, cleanFormData, fieldStatus, warnings, schemaVersion, legacyExtra, appliedAt }
+    const UNDO_WINDOW_MS = 5 * 60 * 1000;
+    const canUndoImport = importDiff?.appliedAt && (Date.now() - importDiff.appliedAt) < UNDO_WINDOW_MS;
     const [aiGenerating, setAiGenerating] = useState(false);
     const [aiResult, setAiResult] = useState('');
     const [aiError, setAiError] = useState(null);
@@ -544,27 +548,17 @@ export const useAppState = () => {
             try {
                 const parsed = JSON.parse(e.target.result);
                 const migrated = migrateFormData(parsed);
-                const { __schema_version, __legacy_extra, __warnings, ...cleanFormData } = migrated;
-                if (Object.keys(formData).some(k => formData[k] && (Array.isArray(formData[k]) ? formData[k].length > 0 : formData[k] !== ''))) {
-                    // Has existing data — show replace/append dialog
-                    setPendingSuggestion({
-                        type: 'import',
-                        data: cleanFormData,
-                        warnings: __warnings,
-                        schemaVersion: __schema_version,
-                    });
-                } else {
-                    pushHistory();
-                    setFormData(cleanFormData);
-                    // F4 (audit v3.14.2): emit success toast when no warnings (clean import);
-                    //   warning toast only when there are non-fatal migration issues.
-                    if (__warnings && __warnings.length > 0) {
-                        pushWarning('warning', '匯入完成（' + __warnings.length + ' 項警告）', __warnings);
-                    } else {
-                        const versionLabel = __schema_version ? `v${__schema_version}` : '已匯入';
-                        pushWarning('success', `✓ 匯入成功 (${versionLabel})`, [`已載入 ${file.name}`]);
-                    }
-                }
+                const { __schema_version, __legacy_extra, __warnings, __field_status, ...cleanFormData } = migrated;
+                // v3.15.0 A3: 永遠顯示 ImportDiffModal — 用戶可以 review 變化 + 撤銷 (5 min)
+                setImportDiff({
+                    fileName: file.name,
+                    cleanFormData,
+                    fieldStatus: __field_status || {},
+                    warnings: __warnings || [],
+                    schemaVersion: __schema_version,
+                    legacyExtra: __legacy_extra || {},
+                    appliedAt: null,  // null until user confirms
+                });
             } catch (err) {
                 // F4 (audit v3.14.2): improved error UX — combine multi-line errors into single summary
                 const raw = err.message || String(err);
@@ -574,7 +568,37 @@ export const useAppState = () => {
         };
         reader.readAsText(file);
         event.target.value = ''; // Reset so same file can be re-imported
-    }, [formData, setFormData, pushHistory, pushWarning]);
+    }, [pushWarning]);
+
+    // v3.15.0 A3: Confirm import from diff modal — applies + stores undo snapshot
+    const confirmImportFromDiff = useCallback(() => {
+        if (!importDiff) return;
+        pushHistory();
+        setFormData(importDiff.cleanFormData);
+        setImportDiff(prev => prev ? { ...prev, appliedAt: Date.now() } : null);
+        if (importDiff.warnings && importDiff.warnings.length > 0) {
+            pushWarning('warning', '匯入完成（' + importDiff.warnings.length + ' 項警告）', importDiff.warnings);
+        } else {
+            const v = importDiff.schemaVersion ? `v${importDiff.schemaVersion}` : '已匯入';
+            pushWarning('success', `✓ 匯入成功 (${v})`, [`已載入 ${importDiff.fileName} · 5 分鐘內可撤銷`]);
+        }
+    }, [importDiff, setFormData, pushHistory, pushWarning]);
+
+    // v3.15.0 A3: Undo import (within 5 min window)
+    const undoImport = useCallback(() => {
+        if (!importDiff || !importDiff.appliedAt) return;
+        const ageMs = Date.now() - importDiff.appliedAt;
+        if (ageMs > UNDO_WINDOW_MS) {
+            pushWarning('warning', '已過咗 5 分鐘撤銷期限', ['undo 視窗已過']);
+            setImportDiff(null);
+            return;
+        }
+        // v3.15.0 A3: undo 透過 undo system 而唔係直接 setFormData
+        // 因為 import 前 pushHistory 咗，undo() 會 pop 入 history
+        undo();
+        setImportDiff(null);
+        pushWarning('info', '↩️ 已撤銷匯入', [`${importDiff.fileName} 嘅變更已還原`]);
+    }, [importDiff, undo, pushWarning]);
 
     // === F4 (audit v3.14.2): import success toast on replace/append confirm ===
     const confirmReplace = useCallback(() => {
@@ -889,6 +913,9 @@ export const useAppState = () => {
         archiveUserTemplate,
         handleImportJSON,
         handleExportJSON,
+        // v3.15.0 A3: import diff + undo
+        importDiff, setImportDiff,
+        confirmImportFromDiff, undoImport, canUndoImport, UNDO_WINDOW_MS,
         handleGetSuggestions,
         applySuggestion,
         handleSelectSuggestion,

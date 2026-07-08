@@ -12,6 +12,7 @@ import { Card, Label, Input, TextArea, Select, CollapsibleSection } from './comp
 import { ApiSettingsModal, CoachMark, ConfirmReplaceDialog } from './components/modals.jsx';
 import { QualityScoreBadge, QualityScoreDetail, SuggestionPanel } from './components/widgets.jsx';
 import { TemplateCard, TemplateEditorModal } from './components/TemplateCard.jsx';
+import { ImportDiffModal } from './components/ImportDiffModal.jsx';
 import { VersionPanel } from './components/VersionPanel.jsx';
 import { DiffView } from './components/DiffView.jsx';
 import { ProfileBankPanel } from './components/ProfileBankPanel.jsx';
@@ -219,10 +220,12 @@ export function App() {
         variants, handleMultiVariantGenerate, useVariantAsFinal, VARIANT_CONFIG, VARIANT_KEYS,
         // v3.14.0: Award Certificate
         awardCertOpen, setAwardCertOpen,
-        saveApiKey, saveAsUserTemplate, deleteUserTemplate, handleLoadTemplate,
+        saveApiKey,         saveAsUserTemplate, deleteUserTemplate, handleLoadTemplate,
         handleDeleteTemplate, handleImportJSON, handleExportJSON,
         // v3.15.0 F1: extended user template handlers
         updateUserTemplate, duplicateUserTemplate, archiveUserTemplate,
+        // v3.15.0 A3: import diff + undo
+        importDiff, setImportDiff, confirmImportFromDiff, undoImport, canUndoImport, UNDO_WINDOW_MS,
         handleGetSuggestions, applySuggestion, handleSelectSuggestion,
         handleCoachNext, handleCoachSkip, handleReset,
         confirmReplace, confirmAppend, cancelSuggestion,
@@ -1740,6 +1743,22 @@ const renderMultiVariant = () => {
                     initialTemplate={templateEditor.initial}
                     onSave={handleTemplateEditorSave}
                     onClose={() => setTemplateEditor({ open: false, mode: 'create', initial: null })}
+                />
+            )}
+
+            {/* v3.15.0 A3: Import Diff Modal — pre + post apply states */}
+            {importDiff && (
+                <ImportDiffModal
+                    theme={theme}
+                    fileName={importDiff.fileName}
+                    fieldStatus={importDiff.fieldStatus}
+                    warnings={importDiff.warnings}
+                    schemaVersion={importDiff.schemaVersion}
+                    legacyExtra={importDiff.legacyExtra}
+                    isApplied={!!importDiff.appliedAt}
+                    onConfirm={confirmImportFromDiff}
+                    onClose={() => setImportDiff(null)}
+                    onUndo={undoImport}
                 />
             )}
 

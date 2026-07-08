@@ -147,35 +147,60 @@ const migrateFormData = (input) => {
     });
 
     // 2. Process each schema field
+    // v3.15.0 A3: per-field try/catch — single field failure 不會 block 其餘 fields
+    // Track per-field status for ImportDiffModal display:
+    //   'ok'        — value present + type matches
+    //   'migrated'  — value present but type/structure transformed
+    //   'fallback'  — value invalid → used default
+    //   'auto-fill' — required field missing, auto-filled (e.g. v1 purpose)
+    //   'missing'   — optional field missing (forward-fill from default)
+    //   'failed'    — required field missing AND no auto-fill rule (error)
+    const fieldStatus = {};
     Object.entries(FORM_SCHEMA).forEach(([key, spec]) => {
-        if (key in renamedInput) {
-            let value = renamedInput[key];
+        try {
+            if (key in renamedInput) {
+                let value = renamedInput[key];
+                let transformed = false;
 
-            // Apply value-level transformer (e.g. array → string)
-            if (FIELD_TRANSFORMS[key]) {
-                const original = value;
-                value = FIELD_TRANSFORMS[key](value);
-                if (original !== value) {
-                    warnings.push(`「${key}」已從舊結構轉換成新結構`);
+                // Apply value-level transformer (e.g. array → string)
+                if (FIELD_TRANSFORMS[key]) {
+                    const original = value;
+                    try {
+                        value = FIELD_TRANSFORMS[key](value);
+                    } catch (transformErr) {
+                        warnings.push(`「${key}」transformer 拋錯，已用預設值取代 (${transformErr.message || 'unknown'})`);
+                        value = undefined;
+                    }
+                    if (original !== value) {
+                        warnings.push(`「${key}」已從舊結構轉換成新結構`);
+                        transformed = true;
+                    }
                 }
-            }
 
-            if (matchesType(value, spec.type)) {
-                migrated[key] = value;
+                if (matchesType(value, spec.type)) {
+                    migrated[key] = value;
+                    fieldStatus[key] = transformed ? 'migrated' : 'ok';
+                } else {
+                    // Type mismatch — fallback to default + warn
+                    warnings.push(`「${key}」類型不符 (期望 ${spec.type})，已用預設值取代`);
+                    fieldStatus[key] = 'fallback';
+                }
+            } else if (spec.required && key === 'purpose' && inputSchemaVersion < 2) {
+                // v3.14.2 hotfix (audit F3): v1 schema did NOT require 'purpose'.
+                //   Auto-fill with empty string for v1 imports — keep user data alive.
+                warnings.push(`v1 import 缺少 purpose 欄位（v1 時未引入），已自動填入空字串（建議稍後手動填寫）`);
+                fieldStatus[key] = 'auto-fill';
+            } else if (spec.required) {
+                errors.push(`缺少必填欄位「${key}」`);
+                fieldStatus[key] = 'failed';
             } else {
-                // Type mismatch — fallback to default + warn
-                warnings.push(`「${key}」類型不符 (期望 ${spec.type})，已用預設值取代`);
-                // 唔 throw，等 import 仲用得，只係 warn
+                fieldStatus[key] = 'missing';
             }
-        } else if (spec.required && key === 'purpose' && inputSchemaVersion < 2) {
-            // v3.14.2 hotfix (audit F3): v1 schema did NOT require 'purpose'.
-            //   Auto-fill with empty string for v1 imports — keep user data alive.
-            warnings.push(`v1 import 缺少 purpose 欄位（v1 時未引入），已自動填入空字串（建議稍後手動填寫）`);
-            // Do NOT push to errors.
-        } else if (spec.required) {
-            errors.push(`缺少必填欄位「${key}」`);
+        } catch (fieldErr) {
+            // A3: top-level catch — single field 完全 fail 都唔影響其他 fields
+            warnings.push(`「${key}」處理時拋錯，已用預設值取代 (${fieldErr.message || 'unknown'})`);
+            fieldStatus[key] = 'fallback';
         }
-        // 其他情況（optional + missing）→ forward-fill 由 default 提供
     });
 
     // 3. Forward-fill from defaults
@@ -204,6 +229,8 @@ const migrateFormData = (input) => {
     migrated.__schema_version = SCHEMA_VERSION;
     migrated.__legacy_extra = extra;
     migrated.__warnings = warnings;
+    // v3.15.0 A3: per-field status map for ImportDiffModal rendering
+    migrated.__field_status = fieldStatus;
 
     return migrated;
 };
