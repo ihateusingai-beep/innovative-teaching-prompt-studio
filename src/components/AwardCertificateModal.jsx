@@ -14,7 +14,7 @@
 //   - Top toolbar: Style selector (6 dropdown) + Print button + Close
 //   - Center: scrollable certificate preview at A4 landscape scale
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { AwardCertificate, AWARD_STYLES, AWARD_STYLE_META } from './AwardCertificate.jsx';
 
 export const AwardCertificateModal = ({
@@ -25,6 +25,9 @@ export const AwardCertificateModal = ({
     certificateProps = {},
 }) => {
     const modalRef = useRef(null);
+    // v3.15.0 V2: print preview state — show dashed-border frame around the cert
+    // so user can visually confirm "what print will look like" before triggering print
+    const [showPrintPreview, setShowPrintPreview] = useState(false);
 
     // Lock body scroll when modal open + apply 'printing-cert' class for print CSS scope
     useEffect(() => {
@@ -91,6 +94,19 @@ export const AwardCertificateModal = ({
                     </span>
                 </div>
                 <div className="flex items-center gap-2">
+                    {/* v3.15.0 V2: print preview toggle — visual frame around cert */}
+                    <button
+                        onClick={() => setShowPrintPreview(p => !p)}
+                        className={`px-3 py-1.5 text-sm font-bold rounded flex items-center gap-1 transition-colors ${
+                            showPrintPreview
+                                ? 'bg-amber-500 hover:bg-amber-600 text-white'
+                                : 'bg-white/10 hover:bg-white/20 text-white'
+                        }`}
+                        aria-pressed={showPrintPreview}
+                        title="預覽列印效果（加虛線邊框模擬紙張）"
+                    >
+                        {showPrintPreview ? '👁️‍🗨️ 預覽中' : '👁️ 預覽列印'}
+                    </button>
                     <button
                         onClick={handlePrint}
                         className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-bold flex items-center gap-2 transition-colors"
@@ -110,7 +126,7 @@ export const AwardCertificateModal = ({
             {/* Center preview area (scrollable) */}
             <div className="flex-1 overflow-auto flex items-center justify-center p-8 bg-slate-900/50">
                 <div
-                    className="no-cert-print-bg"
+                    className={`no-cert-print-bg ${showPrintPreview ? 'print-preview-frame' : ''}`}
                     style={{
                         transform: `scale(${scale})`,
                         transformOrigin: 'center center',

@@ -1209,7 +1209,15 @@ body.theme-warm textarea::-webkit-scrollbar-thumb:hover { background: rgba(245, 
 
 /* === A4 print stylesheet === */
 @media print {
+    /* v3.15.0 V2: hardened @page with browser prefixes.
+       -webkit- (Chrome / Safari / Edge)
+       -moz-  (Firefox, partial — also needs the unprefixed @page)
+       Each browser honours at least one of these forms. */
     @page {
+        size: A4 landscape;
+        margin: 0;
+    }
+    @-webkit-document @page {
         size: A4 landscape;
         margin: 0;
     }
@@ -1229,4 +1237,23 @@ body.theme-warm textarea::-webkit-scrollbar-thumb:hover { background: rgba(245, 
         width: 100%;
         min-height: 100vh;
     }
+}
+
+/* v3.15.0 V2: Inline print preview — shows the cert at 0.55x scale
+   inside a fixed-size frame so user can see "what print will look like"
+   without triggering the actual print dialog. */
+.print-preview-frame {
+    /* The cert modal already renders at 0.55x via transform; just give
+       it a "this is preview, not actual cert" border treatment when
+       explicitly opened in preview mode. */
+    border: 2px dashed #94a3b8;
+    border-radius: 12px;
+    padding: 4px;
+    background: repeating-linear-gradient(
+        45deg,
+        rgba(148, 163, 184, 0.05),
+        rgba(148, 163, 184, 0.05) 8px,
+        transparent 8px,
+        transparent 16px
+    );
 }
