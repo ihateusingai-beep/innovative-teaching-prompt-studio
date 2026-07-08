@@ -28,6 +28,7 @@ import { saveToStorage, loadFromStorage, removeFromStorage } from '../utils/stor
 import { formatTimeAgo } from '../utils/time.js';
 import { handleExportDOCX } from '../utils/docx.js';
 import { extractTemplateFields } from '../utils/template-loader.js';
+import { migrateUserTemplate, migrateUserTemplates, MAX_NAME_LENGTH, MAX_DESC_LENGTH, MAX_USER_TAGS, MAX_TAG_LENGTH } from '../data/userTemplateSchema.js';
 
 import { useFormData } from '../hooks/useFormData.js';
 import { useAutosave } from '../hooks/useAutosave.js';
@@ -148,7 +149,27 @@ export const useAppState = () => {
     }, []);
 
     // === Persistent storage hooks ===
-    const [userTemplates, setUserTemplates] = useLocalStorage('TDA_USER_TEMPLATES_V1', []);
+    // v3.15.0 F1: user templates now migrated on read (legacy shape → F1 shape)
+    // 儲存仲係 'TDA_USER_TEMPLATES_V1' (key 唔變); 載入時用 migrateUserTemplates 升級
+    const [userTemplatesRaw, setUserTemplatesRaw] = useLocalStorage('TDA_USER_TEMPLATES_V1', []);
+    const [userTemplatesMigrated, setUserTemplatesMigrated] = useState(false);
+    const userTemplates = useMemo(
+        () => userTemplatesMigrated ? migrateUserTemplates(userTemplatesRaw) : userTemplatesRaw,
+        [userTemplatesRaw, userTemplatesMigrated]
+    );
+    // Marker effect: 第一次 mount 已經 migrate 過即用戶係 F1 之前
+    // 用 setUserTemplatesRaw 入返 F1 shape (寫返 localStorage)
+    useEffect(() => {
+        if (userTemplatesMigrated) return;
+        const migrated = migrateUserTemplates(userTemplatesRaw);
+        if (migrated.length !== userTemplatesRaw.length ||
+            migrated.some((t, i) => t.updatedAt !== userTemplatesRaw[i]?.updatedAt)) {
+            setUserTemplatesRaw(migrated);
+        }
+        setUserTemplatesMigrated(true);
+    }, [userTemplatesRaw, userTemplatesMigrated, setUserTemplatesRaw]);
+    // Note: setUserTemplates 仲可以直接用 (e.g. deleteUserTemplate); 寫入時用 F1 shape
+    const setUserTemplates = setUserTemplatesRaw;
     const [geminiApiKey, setGeminiApiKey] = useLocalStorage('TDA_GEMINI_API_KEY_V1', '');
     const [onboardingDone, setOnboardingDone] = useLocalStorage('TDA_ONBOARDING_DONE_V1', false);
 
@@ -399,35 +420,90 @@ export const useAppState = () => {
     }, [setGeminiApiKey]);
 
     // === Save current as user template ===
-    const saveAsUserTemplate = useCallback((name, description) => {
+    // v3.15.0 F1: 接受 name / description / category / tags, 寫入 F1 shape
+    const saveAsUserTemplate = useCallback((name, description, category = '', tags = []) => {
         if (userTemplates.length >= MAX_USER_TEMPLATES) {
-            alert(`已達上限 ${MAX_USER_TEMPLATES} 個範本，請刪除舊範本後再儲存。`);
-            return false;
+            return { ok: false, error: `已達上限 ${MAX_USER_TEMPLATES} 個範本，請刪除舊範本後再儲存。` };
         }
-        const newTemplate = {
-            id: 'user_' + Date.now(),
-            name,
-            description: description || `${formData.category} · ${formData.subjectCategory}`,
+        const now = Date.now();
+        const newTemplate = migrateUserTemplate({
+            id: 'user_' + now,
+            name: name.slice(0, MAX_NAME_LENGTH),
+            description: (description || `${formData.category} · ${formData.subjectCategory}`).slice(0, MAX_DESC_LENGTH),
+            category,
+            tags: tags.slice(0, MAX_USER_TAGS).map(t => t.slice(0, MAX_TAG_LENGTH)),
+            icon: '⭐',
             data: { ...formData },
-            createdAt: Date.now(),
-        };
+            createdAt: now,
+            updatedAt: now,
+            lastUsed: 0,
+            useCount: 0,
+            archived: false,
+        });
         setUserTemplates([...userTemplates, newTemplate]);
-        return true;
+        return { ok: true, id: newTemplate.id };
     }, [formData, userTemplates, setUserTemplates]);
+
+    // === v3.15.0 F1: Update existing user template (edit) ===
+    // Returns same shape as saveAsUserTemplate. 用 updatedAt 標記 last edit time.
+    const updateUserTemplate = useCallback((id, updates) => {
+        const idx = userTemplates.findIndex(t => t.id === id);
+        if (idx === -1) return { ok: false, error: '找不到此範本' };
+        const next = [...userTemplates];
+        const merged = migrateUserTemplate({
+            ...next[idx],
+            ...updates,
+            // Truncate string fields defensively
+            name: (updates.name || next[idx].name).slice(0, MAX_NAME_LENGTH),
+            description: (updates.description !== undefined ? updates.description : next[idx].description).slice(0, MAX_DESC_LENGTH),
+            tags: Array.isArray(updates.tags)
+                ? updates.tags.slice(0, MAX_USER_TAGS).map(t => String(t).slice(0, MAX_TAG_LENGTH))
+                : next[idx].tags,
+            updatedAt: Date.now(),
+        });
+        next[idx] = merged;
+        setUserTemplates(next);
+        return { ok: true, id };
+    }, [userTemplates, setUserTemplates]);
+
+    // === v3.15.0 F1: Duplicate user template ===
+    // 複製整個 template 改 name 加 (副本), reset useCount / lastUsed
+    const duplicateUserTemplate = useCallback((id) => {
+        const src = userTemplates.find(t => t.id === id);
+        if (!src) return { ok: false, error: '找不到此範本' };
+        if (userTemplates.length >= MAX_USER_TEMPLATES) {
+            return { ok: false, error: `已達上限 ${MAX_USER_TEMPLATES} 個範本` };
+        }
+        const now = Date.now();
+        const copy = migrateUserTemplate({
+            ...src,
+            id: 'user_' + now,
+            name: src.name + ' (副本)',
+            createdAt: now,
+            updatedAt: now,
+            lastUsed: 0,
+            useCount: 0,
+            archived: false,
+        });
+        setUserTemplates([...userTemplates, copy]);
+        return { ok: true, id: copy.id };
+    }, [userTemplates, setUserTemplates]);
+
+    // === v3.15.0 F1: Archive (soft delete) / Unarchive ===
+    const archiveUserTemplate = useCallback((id, archived = true) => {
+        const next = userTemplates.map(t =>
+            t.id === id ? { ...t, archived, updatedAt: Date.now() } : t
+        );
+        setUserTemplates(next);
+        return { ok: true };
+    }, [userTemplates, setUserTemplates]);
 
     const handleSaveTemplate = useCallback(() => {
         // Legacy alias — 保留以防有舊 call site
         const name = prompt('為呢個 template 命名：');
         if (!name) return;
-        const newTemplate = {
-            id: 'user_' + Date.now(),
-            name,
-            icon: '⭐',
-            description: `${formData.category} · ${formData.subjectCategory}`,
-            data: { ...formData },
-        };
-        setUserTemplates([...userTemplates, newTemplate]);
-    }, [formData, userTemplates, setUserTemplates]);
+        saveAsUserTemplate(name, '');
+    }, [saveAsUserTemplate]);
 
     // === Delete user template ===
     const deleteUserTemplate = useCallback((id) => {
@@ -438,12 +514,21 @@ export const useAppState = () => {
     // === Load template ===
     // 3-shape 兼容邏輯抽咗去 src/utils/template-loader.js (extractTemplateFields)，
     // 純 function 易 unit test；呢度只負責 push history + setFormData + jump tab.
+    // v3.15.0 F1: usage tracking — increment useCount + update lastUsed for user templates
     const handleLoadTemplate = useCallback((template) => {
         pushHistory();
         const fields = extractTemplateFields(template);
         setFormData({ ...getInitialFormData(), ...fields });
         setActiveTab('basic');
-    }, [setFormData, pushHistory]);
+        // F1: track usage on user template load (id starts with 'user_')
+        if (template && typeof template.id === 'string' && template.id.startsWith('user_')) {
+            setUserTemplates(prev => prev.map(t =>
+                t.id === template.id
+                    ? { ...t, useCount: (t.useCount || 0) + 1, lastUsed: Date.now() }
+                    : t
+            ));
+        }
+    }, [setFormData, pushHistory, setUserTemplates]);
 
     const handleDeleteTemplate = useCallback((id) => {
         if (!confirm('刪除呢個 template？')) return;
@@ -798,6 +883,10 @@ export const useAppState = () => {
         handleLoadTemplate,
         handleDeleteTemplate,
         deleteUserTemplate,
+        // v3.15.0 F1: extended user template handlers
+        updateUserTemplate,
+        duplicateUserTemplate,
+        archiveUserTemplate,
         handleImportJSON,
         handleExportJSON,
         handleGetSuggestions,

@@ -10,7 +10,8 @@ import { BUILTIN_TEMPLATES } from './data/templates.js';
 import { SEN_TO_A11Y_MAP, getRecommendedA11y } from './data/sen-a11y-map.js';
 import { Card, Label, Input, TextArea, Select, CollapsibleSection } from './components/ui.jsx';
 import { ApiSettingsModal, CoachMark, ConfirmReplaceDialog } from './components/modals.jsx';
-import { QualityScoreBadge, QualityScoreDetail, TemplateCard, SuggestionPanel } from './components/widgets.jsx';
+import { QualityScoreBadge, QualityScoreDetail, SuggestionPanel } from './components/widgets.jsx';
+import { TemplateCard, TemplateEditorModal } from './components/TemplateCard.jsx';
 import { VersionPanel } from './components/VersionPanel.jsx';
 import { DiffView } from './components/DiffView.jsx';
 import { ProfileBankPanel } from './components/ProfileBankPanel.jsx';
@@ -209,7 +210,7 @@ export function App() {
         // Recovery
         lastSavedAt, recoverySnapshot, acceptRecovery, dismissRecovery,
         // W9-10 Q3: inline warning banner
-        warnings, dismissWarning,
+        warnings, dismissWarning, pushWarning,
         // Undo / Redo
         canUndo, canRedo, pushHistory, undo, redo,
         // Handlers
@@ -220,6 +221,8 @@ export function App() {
         awardCertOpen, setAwardCertOpen,
         saveApiKey, saveAsUserTemplate, deleteUserTemplate, handleLoadTemplate,
         handleDeleteTemplate, handleImportJSON, handleExportJSON,
+        // v3.15.0 F1: extended user template handlers
+        updateUserTemplate, duplicateUserTemplate, archiveUserTemplate,
         handleGetSuggestions, applySuggestion, handleSelectSuggestion,
         handleCoachNext, handleCoachSkip, handleReset,
         confirmReplace, confirmAppend, cancelSuggestion,
@@ -231,6 +234,49 @@ export function App() {
     } = s;
     // v3.15.0 A1: live "X 秒前" badge — must be top-level hook call
     const savedLabel = useTimeAgo(lastSavedAt);
+    // v3.15.0 F1: template editor modal state
+    const [templateEditor, setTemplateEditor] = useState({ open: false, mode: 'create', initial: null });
+    const [tagFilter, setTagFilter] = useState([]); // selected tag chips (multi)
+    const [showArchived, setShowArchived] = useState(false); // toggle to view archived
+    const handleSaveTemplateClick = () => {
+        setTemplateEditor({ open: true, mode: 'create', initial: null });
+    };
+    const handleEditTemplateClick = (template) => {
+        setTemplateEditor({ open: true, mode: 'edit', initial: template });
+    };
+    const handleTemplateEditorSave = (formValues) => {
+        if (templateEditor.mode === 'create') {
+            const r = saveAsUserTemplate(formValues.name, formValues.description, formValues.category, formValues.tags);
+            return r;
+        } else {
+            const r = updateUserTemplate(templateEditor.initial.id, formValues);
+            return r;
+        }
+    };
+    const handleShareTemplate = async (template) => {
+        try {
+            const { encodeTemplateShare } = await import('./data/userTemplateSchema.js');
+            const code = encodeTemplateShare(template);
+            await navigator.clipboard.writeText(code);
+            // F1: use pushWarning (3-arg signature) for inline confirmation
+            pushWarning('success', '📋 已複製分享碼', [`長度 ${code.length} 字 · 可以貼俾同事`]);
+        } catch (e) {
+            pushWarning('warning', '複製分享碼失敗', [e.message || '未知錯誤']);
+        }
+    };
+    // v3.15.0 F1: tag filter — collect all unique tags from user templates
+    const allTags = useMemo(() => {
+        const set = new Set();
+        userTemplates.forEach(t => (t.tags || []).forEach(tag => tag && set.add(tag)));
+        return Array.from(set).sort();
+    }, [userTemplates]);
+    const visibleUserTemplates = useMemo(() => {
+        return userTemplates.filter(t => {
+            if (!showArchived && t.archived) return false;
+            if (tagFilter.length === 0) return true;
+            return tagFilter.every(tag => (t.tags || []).includes(tag));
+        });
+    }, [userTemplates, tagFilter, showArchived]);
 const renderStep1 = () => (
     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-token-4">
         {/* === Sub-section 0: 範本庫（快速開始） === */}
@@ -268,21 +314,73 @@ const renderStep1 = () => (
 
                 {userTemplates.length > 0 && (
                     <div>
-                        <h4 className={`text-sm font-bold mb-2 ${'text-amber-700'}`}>
-                            ⭐ 我嘅範本 ({userTemplates.length} / {MAX_USER_TEMPLATES})
-                        </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-token-3">
-                            {userTemplates.map(t => (
-                                <TemplateCard
-                                    key={t.id}
-                                    theme={theme}
-                                    template={t}
-                                    onLoad={handleLoadTemplate}
-                                    onDelete={deleteUserTemplate}
-                                    isUser={true}
-                                />
-                            ))}
+                        <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+                            <h4 className={`text-sm font-bold ${'text-amber-700'}`}>
+                                ⭐ 我嘅範本 ({visibleUserTemplates.length} / {userTemplates.length} 顯示 · 上限 {MAX_USER_TEMPLATES})
+                            </h4>
+                            <div className="flex items-center gap-2">
+                                {userTemplates.some(t => t.archived) && (
+                                    <button
+                                        onClick={() => setShowArchived(prev => !prev)}
+                                        className={`text-xs px-2 py-1 rounded ${showArchived ? 'bg-slate-700 text-white' : 'bg-slate-200 text-slate-700'}`}
+                                    >
+                                        {showArchived ? '隱藏封存' : '顯示封存'}
+                                    </button>
+                                )}
+                            </div>
                         </div>
+                        {/* v3.15.0 F1: Tag filter chips */}
+                        {allTags.length > 0 && (
+                            <div className="mb-3 flex flex-wrap gap-1.5">
+                                <span className={`text-xs font-bold mr-1 ${'text-slate-600'}`}>🔍 tag filter:</span>
+                                {allTags.map(tag => (
+                                    <button
+                                        key={tag}
+                                        onClick={() => setTagFilter(prev =>
+                                            prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+                                        )}
+                                        className={`text-xs px-2 py-1 rounded transition-colors ${
+                                            tagFilter.includes(tag)
+                                                ? 'bg-emerald-500 text-white'
+                                                : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                                        }`}
+                                    >
+                                        #{tag}
+                                    </button>
+                                ))}
+                                {tagFilter.length > 0 && (
+                                    <button
+                                        onClick={() => setTagFilter([])}
+                                        className="text-xs px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200"
+                                    >
+                                        ✕ 清除
+                                    </button>
+                                )}
+                            </div>
+                        )}
+                        {visibleUserTemplates.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-token-3">
+                                {visibleUserTemplates.map(t => (
+                                    <TemplateCard
+                                        key={t.id}
+                                        theme={theme}
+                                        template={t}
+                                        onLoad={handleLoadTemplate}
+                                        onEdit={handleEditTemplateClick}
+                                        onDuplicate={duplicateUserTemplate}
+                                        onArchive={archiveUserTemplate}
+                                        onShare={handleShareTemplate}
+                                        onDelete={deleteUserTemplate}
+                                        isUser={true}
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <p className={`text-xs italic p-3 rounded ${'bg-slate-100 text-slate-500'}`}>
+                                沒有符合當前 filter 嘅範本。
+                                {userTemplates.some(t => t.archived) && !showArchived && ' 試下按「顯示封存」睇返。'}
+                            </p>
+                        )}
                     </div>
                 )}
 
@@ -290,15 +388,7 @@ const renderStep1 = () => (
                     'border-slate-300 bg-slate-50'
                 }`}>
                     <button
-                        onClick={() => {
-                            const name = prompt('為當前設定命名範本：', formData.toolName || '我嘅範本');
-                            if (name && name.trim()) {
-                                const description = prompt('（可選）簡短描述呢個範本：', '');
-                                if (saveAsUserTemplate(name.trim(), description || '')) {
-                                    alert(`✅ 範本「${name.trim()}」已儲存！`);
-                                }
-                            }
-                        }}
+                        onClick={handleSaveTemplateClick}
                         disabled={!formData.toolName && !formData.purpose}
                         className={`px-token-4 py-token-2 rounded-lg font-bold text-sm transition-all ${
                             (!formData.toolName && !formData.purpose)
@@ -1640,6 +1730,16 @@ const renderMultiVariant = () => {
                         teacherName: formData.teacherName || '',
                         teacherMessage: (formData.awardCertificate?.showTeacherMessage === true) ? (formData.awardCertificate?.teacherMessage || '') : '',
                     }}
+                />
+            )}
+
+            {/* v3.15.0 F1: Template Editor Modal (create + edit) */}
+            {templateEditor.open && (
+                <TemplateEditorModal
+                    theme={theme}
+                    initialTemplate={templateEditor.initial}
+                    onSave={handleTemplateEditorSave}
+                    onClose={() => setTemplateEditor({ open: false, mode: 'create', initial: null })}
                 />
             )}
 
