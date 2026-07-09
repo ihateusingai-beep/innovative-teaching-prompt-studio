@@ -1257,3 +1257,24 @@ body.theme-warm textarea::-webkit-scrollbar-thumb:hover { background: rgba(245, 
         transparent 16px
     );
 }
+
+/* === v3.16.0 V7: GlassCard tones (6 tones × 2 variants) ===
+   GlassCard primitive 用 body.theme-* base + tone modifier。
+   frosted variant 用 rgba 半透明 + backdrop-filter。 */
+.glass-card { background: rgba(255,255,255,0.60); border-color: rgba(148,163,184,0.30); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.glass-card.glass-card-info    { background: rgba(59,130,246,0.08);  border-color: rgba(59,130,246,0.30); }
+.glass-card.glass-card-success { background: rgba(16,185,129,0.08);  border-color: rgba(16,185,129,0.30); }
+.glass-card.glass-card-warn    { background: rgba(245,158,11,0.08);  border-color: rgba(245,158,11,0.30); }
+.glass-card.glass-card-danger  { background: rgba(239,68,68,0.08);   border-color: rgba(239,68,68,0.30); }
+.glass-card.glass-card-cyan    { background: rgba(6,182,212,0.08);   border-color: rgba(6,182,212,0.30); }
+
+.glass-card-flat { border-width: 1px; }
+.glass-card-flat.glass-card-info    { background: rgba(59,130,246,0.10);  border-color: rgba(59,130,246,0.40); }
+.glass-card-flat.glass-card-success { background: rgba(16,185,129,0.10);  border-color: rgba(16,185,129,0.40); }
+.glass-card-flat.glass-card-warn    { background: rgba(245,158,11,0.10);  border-color: rgba(245,158,11,0.40); }
+.glass-card-flat.glass-card-danger  { background: rgba(239,68,68,0.10);   border-color: rgba(239,68,68,0.40); }
+.glass-card-flat.glass-card-cyan    { background: rgba(6,182,212,0.10);   border-color: rgba(6,182,212,0.40); }
+.glass-card-flat.glass-card-plain   { background: rgba(255,255,255,0.85); border-color: rgba(148,163,184,0.40); }
+
+body.theme-dark .glass-card,
+body.theme-reactor .glass-card { background: rgba(15,23,42,0.60); border-color: rgba(148,163,184,0.30); }
