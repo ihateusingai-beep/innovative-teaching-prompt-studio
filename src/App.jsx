@@ -13,6 +13,7 @@ import { ApiSettingsModal, CoachMark, ConfirmReplaceDialog } from './components/
 import { QualityScoreBadge, QualityScoreDetail, SuggestionPanel } from './components/widgets.jsx';
 import { TemplateCard, TemplateEditorModal } from './components/TemplateCard.jsx';
 import { ImportDiffModal } from './components/ImportDiffModal.jsx';
+import { EmptyState, getEmptyStateForTab } from './components/EmptyState.jsx';
 import { VersionPanel } from './components/VersionPanel.jsx';
 import { DiffView } from './components/DiffView.jsx';
 import { ProfileBankPanel } from './components/ProfileBankPanel.jsx';
@@ -2122,16 +2123,50 @@ const renderMultiVariant = () => {
                             <AnimatePresence mode="wait">
                                 {activeTab === 'basic' && (
                                     <motion.div key="basic" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                                        {/* v3.16.0 U2: EmptyState at top of basic tab when no toolName/purpose */}
+                                        {(() => {
+                                            const preset = getEmptyStateForTab('basic', formData);
+                                            return preset ? (
+                                                <div className="mb-4">
+                                                    <EmptyState
+                                                        {...preset}
+                                                        onCtaClick={() => document.getElementById('basic-section')?.scrollIntoView({ behavior: 'smooth' })}
+                                                    />
+                                                </div>
+                                            ) : null;
+                                        })()}
                                         {renderStep1()}
                                     </motion.div>
                                 )}
                                 {activeTab === 'content' && (
                                     <motion.div key="content" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                                        {(() => {
+                                            const preset = getEmptyStateForTab('content', formData);
+                                            return preset ? (
+                                                <div className="mb-4">
+                                                    <EmptyState
+                                                        {...preset}
+                                                        onCtaClick={() => document.getElementById('content-section')?.scrollIntoView({ behavior: 'smooth' })}
+                                                    />
+                                                </div>
+                                            ) : null;
+                                        })()}
                                         {renderStep2()}
                                     </motion.div>
                                 )}
                                 {activeTab === 'rules' && (
                                     <motion.div key="rules" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                                        {(() => {
+                                            const preset = getEmptyStateForTab('rules', formData);
+                                            return preset ? (
+                                                <div className="mb-4">
+                                                    <EmptyState
+                                                        {...preset}
+                                                        onCtaClick={() => document.getElementById('rules-section')?.scrollIntoView({ behavior: 'smooth' })}
+                                                    />
+                                                </div>
+                                            ) : null;
+                                        })()}
                                         {renderStep3()}
                                     </motion.div>
                                 )}
@@ -2289,6 +2324,15 @@ const renderMultiVariant = () => {
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.3 }}
                     >
+                        {/* v3.16.0 U2: EmptyState for assessment tab */}
+                        {(() => {
+                            const preset = getEmptyStateForTab('assessment', formData);
+                            return preset ? (
+                                <div className="mb-4 max-w-3xl mx-auto">
+                                    <EmptyState {...preset} onCtaClick={() => {}} />
+                                </div>
+                            ) : null;
+                        })()}
                         <Card theme={theme} className="p-token-6">
                             <h2 className={`text-xl font-bold mb-token-4 flex items-center gap-token-2 ${
                                 theme === 'warm' ? 'text-amber-900' : theme === 'dark' ? 'text-cyan-100' : theme === 'contrast' ? 'text-black' : theme === 'paper' ? 'text-stone-900' : theme === 'reactor' ? 'text-amber-100' : 'text-slate-800'
@@ -2416,6 +2460,18 @@ const renderMultiVariant = () => {
                 {/* Generate Tab Rendering (Wide Layout) — W1-2: 由 step 4 改 activeTab === 'generate' */}
                 {activeTab === 'generate' && (
                     <>
+                        {/* v3.16.0 U2: EmptyState for generate tab */}
+                        {(() => {
+                            const preset = getEmptyStateForTab('generate', formData);
+                            return preset ? (
+                                <div className="mb-4 max-w-3xl mx-auto">
+                                    <EmptyState
+                                        {...preset}
+                                        onCtaClick={() => setActiveTab('basic')}
+                                    />
+                                </div>
+                            ) : null;
+                        })()}
                         {renderStep4(formData, designPrompt, techPrompt, qualityScore)}
                         {GEMINI_DIRECT_GENERATE_ENABLED && renderAiResult()}
                         {GEMINI_DIRECT_GENERATE_ENABLED && renderMultiVariant()}
