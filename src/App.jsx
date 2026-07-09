@@ -15,6 +15,7 @@ import { TemplateCard, TemplateEditorModal } from './components/TemplateCard.jsx
 import { ImportDiffModal } from './components/ImportDiffModal.jsx';
 import { EmptyState, getEmptyStateForTab } from './components/EmptyState.jsx';
 import { QualityAnalyzerPanel, autoFixByDim } from './components/QualityAnalyzerPanel.jsx';
+import { RosterPanel } from './components/RosterPanel.jsx';
 import { VersionPanel } from './components/VersionPanel.jsx';
 import { DiffView } from './components/DiffView.jsx';
 import { ProfileBankPanel } from './components/ProfileBankPanel.jsx';
@@ -226,6 +227,9 @@ export function App() {
         handleDeleteTemplate, handleImportJSON, handleExportJSON,
         // v3.15.0 F1: extended user template handlers
         updateUserTemplate, duplicateUserTemplate, archiveUserTemplate,
+        // v3.16.0 F2: class roster
+        studentRoster, setStudentRoster,
+        addStudent, updateStudent, removeStudent, applyStudentToAssessment,
         // v3.15.0 A3: import diff + undo
         importDiff, setImportDiff, confirmImportFromDiff, undoImport, canUndoImport, UNDO_WINDOW_MS,
         handleGetSuggestions, applySuggestion, handleSelectSuggestion,
@@ -2347,11 +2351,39 @@ const renderMultiVariant = () => {
                         {(() => {
                             const preset = getEmptyStateForTab('assessment', formData);
                             return preset ? (
-                                <div className="mb-4 max-w-3xl mx-auto">
+                                <div className="mb-4 max-w-4xl mx-auto">
                                     <EmptyState {...preset} onCtaClick={() => {}} />
                                 </div>
                             ) : null;
                         })()}
+
+                        {/* v3.16.0 F2: Class Roster Panel — bulk ops for multi-student workflow */}
+                        <div className="mb-4 max-w-4xl mx-auto">
+                            <RosterPanel
+                                theme={theme}
+                                roster={studentRoster}
+                                onAdd={(name, senType, notes) => addStudent(name, senType, notes)}
+                                onUpdate={(id, updates) => updateStudent(id, updates)}
+                                onRemove={(id) => removeStudent(id)}
+                                onApplyStudent={(id) => applyStudentToAssessment(id)}
+                                onBulkGenerateAll={() => {
+                                    if (studentRoster.length === 0) return;
+                                    pushWarning('info', `✨ 準備批量 generate ${studentRoster.length} 份 prompts`, [
+                                        '將每位學生嘅 assessment 套入 formData 順序生成',
+                                        '提示：bulk generate 仍需要逐個 click 確認，AI 自動化 deferred',
+                                    ]);
+                                }}
+                                onBulkPrintAllCerts={() => {
+                                    if (studentRoster.length === 0) return;
+                                    setAwardCertOpen(true);
+                                    pushWarning('info', `🖨️ 奬狀 modal 已開啟`, [
+                                        `共 ${studentRoster.length} 份奬狀，逐個 click 「載入」填入後再 print`,
+                                        'MVP 階段：sequential load + print（fully automated batch PDF deferred Phase 3）',
+                                    ]);
+                                }}
+                            />
+                        </div>
+
                         <Card theme={theme} className="p-token-6">
                             <h2 className={`text-xl font-bold mb-token-4 flex items-center gap-token-2 ${
                                 theme === 'warm' ? 'text-amber-900' : theme === 'dark' ? 'text-cyan-100' : theme === 'contrast' ? 'text-black' : theme === 'paper' ? 'text-stone-900' : theme === 'reactor' ? 'text-amber-100' : 'text-slate-800'

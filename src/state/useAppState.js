@@ -29,6 +29,12 @@ import { formatTimeAgo } from '../utils/time.js';
 import { handleExportDOCX } from '../utils/docx.js';
 import { extractTemplateFields } from '../utils/template-loader.js';
 import { migrateUserTemplate, migrateUserTemplates, MAX_NAME_LENGTH, MAX_DESC_LENGTH, MAX_USER_TAGS, MAX_TAG_LENGTH } from '../data/userTemplateSchema.js';
+import {
+    migrateStudent,
+    migrateRoster,
+    validateStudentName,
+    MAX_ROSTER_STUDENTS,
+} from '../data/studentRosterSchema.js';
 
 import { useFormData } from '../hooks/useFormData.js';
 import { useAutosave } from '../hooks/useAutosave.js';
@@ -174,6 +180,25 @@ export const useAppState = () => {
     }, [userTemplatesRaw, userTemplatesMigrated, setUserTemplatesRaw]);
     // Note: setUserTemplates 仲可以直接用 (e.g. deleteUserTemplate); 寫入時用 F1 shape
     const setUserTemplates = setUserTemplatesRaw;
+
+    // === v3.16.0 F2: Class Roster (multi-student) ===
+    // Same migration pattern: legacy shape → F2 shape on read.
+    const [studentRosterRaw, setStudentRosterRaw] = useLocalStorage('TDA_STUDENT_ROSTER_V1', []);
+    const [studentRosterMigrated, setStudentRosterMigrated] = useState(false);
+    const studentRoster = useMemo(
+        () => studentRosterMigrated ? migrateRoster(studentRosterRaw) : studentRosterRaw,
+        [studentRosterRaw, studentRosterMigrated]
+    );
+    useEffect(() => {
+        if (studentRosterMigrated) return;
+        const migrated = migrateRoster(studentRosterRaw);
+        if (migrated.length !== studentRosterRaw.length ||
+            migrated.some((s, i) => s.updatedAt !== studentRosterRaw[i]?.updatedAt)) {
+            setStudentRosterRaw(migrated);
+        }
+        setStudentRosterMigrated(true);
+    }, [studentRosterRaw, studentRosterMigrated, setStudentRosterRaw]);
+    const setStudentRoster = setStudentRosterRaw;
     const [geminiApiKey, setGeminiApiKey] = useLocalStorage('TDA_GEMINI_API_KEY_V1', '');
     const [onboardingDone, setOnboardingDone] = useLocalStorage('TDA_ONBOARDING_DONE_V1', false);
 
@@ -501,6 +526,74 @@ export const useAppState = () => {
         setUserTemplates(next);
         return { ok: true };
     }, [userTemplates, setUserTemplates]);
+
+    // === v3.16.0 F2: Class Roster CRUD ===
+    const addStudent = useCallback((name, senType = '', notes = '', assessment = null) => {
+        const validation = validateStudentName(name);
+        if (!validation.ok) return validation;
+        if (studentRoster.length >= MAX_ROSTER_STUDENTS) {
+            return { ok: false, error: `已達上限 ${MAX_ROSTER_STUDENTS} 個學生` };
+        }
+        // Duplicate name check
+        if (studentRoster.some(s => s.name === validation.name)) {
+            return { ok: false, error: `已有同名學生「${validation.name}」` };
+        }
+        const now = Date.now();
+        const newStudent = migrateStudent({
+            id: `student_${now}_${Math.random().toString(36).slice(2, 7)}`,
+            name: validation.name,
+            senType,
+            notes,
+            assessment,
+            createdAt: now,
+            updatedAt: now,
+        });
+        setStudentRoster([...studentRoster, newStudent]);
+        return { ok: true, id: newStudent.id };
+    }, [studentRoster, setStudentRoster]);
+
+    const updateStudent = useCallback((id, updates) => {
+        const idx = studentRoster.findIndex(s => s.id === id);
+        if (idx === -1) return { ok: false, error: '找不到此學生' };
+        const next = [...studentRoster];
+        next[idx] = migrateStudent({
+            ...next[idx],
+            ...updates,
+            updatedAt: Date.now(),
+        });
+        setStudentRoster(next);
+        return { ok: true, id };
+    }, [studentRoster, setStudentRoster]);
+
+    const removeStudent = useCallback((id) => {
+        if (!confirm('刪除此學生？相關嘅 assessment data 都會一齊刪除。')) return { ok: false };
+        setStudentRoster(studentRoster.filter(s => s.id !== id));
+        return { ok: true };
+    }, [studentRoster, setStudentRoster]);
+
+    const applyStudentToAssessment = useCallback((studentId) => {
+        const student = studentRoster.find(s => s.id === studentId);
+        if (!student) return { ok: false, error: '找不到此學生' };
+        pushHistory();
+        const assessment = {
+            ...formData.assessment,
+            studentName: student.name,
+            date: student.assessment.date || new Date().toLocaleDateString('zh-HK'),
+            totalMinutes: student.assessment.totalMinutes,
+            totalQuestions: student.assessment.totalQuestions,
+            correctCount: student.assessment.correctCount,
+            accuracyPercent: student.assessment.accuracyPercent,
+            strengths: [...student.assessment.strengths],
+            improvementAreas: [...student.assessment.improvementAreas],
+            previousScore: student.assessment.previousScore,
+            currentScore: student.assessment.currentScore,
+        };
+        setFormData({ ...formData, assessment });
+        pushWarning('success', `已載入「${student.name}」嘅評估資料`, [
+            '已自動填入 studentName / date / 答對題數 / 強項 / 改善範圍',
+        ]);
+        return { ok: true };
+    }, [studentRoster, formData, pushHistory, setFormData, pushWarning]);
 
     const handleSaveTemplate = useCallback(() => {
         // Legacy alias — 保留以防有舊 call site
@@ -911,6 +1004,9 @@ export const useAppState = () => {
         updateUserTemplate,
         duplicateUserTemplate,
         archiveUserTemplate,
+        // v3.16.0 F2: class roster
+        studentRoster, setStudentRoster,
+        addStudent, updateStudent, removeStudent, applyStudentToAssessment,
         handleImportJSON,
         handleExportJSON,
         // v3.15.0 A3: import diff + undo
