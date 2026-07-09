@@ -29,7 +29,7 @@ jobs:
           cache: 'npm'
       - run: npm ci
       - name: Unit tests (vitest, all *.test.{js,jsx} except smoke)
-        run: npm test
+        run: npm test 2>&1 | tee /tmp/unit-test.log; echo "EXIT=$?"
       - name: Production bundle smoke (jsdom loads dist/index.html, catches ReferenceErrors)
         run: npm run test:smoke
   build:
