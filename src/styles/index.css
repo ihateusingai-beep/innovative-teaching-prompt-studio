@@ -1278,3 +1278,34 @@ body.theme-warm textarea::-webkit-scrollbar-thumb:hover { background: rgba(245, 
 
 body.theme-dark .glass-card,
 body.theme-reactor .glass-card { background: rgba(15,23,42,0.60); border-color: rgba(148,163,184,0.30); }
+
+/* === v3.16.0 TRIM: CSS-only modal animations (replaces framer-motion in 4 files)
+   .tda-fade-in: overlay fade (opacity 0 → 1) — for modal backdrops
+   .tda-scale-in: content pop-in (scale 0.95 → 1 + opacity) — for modal cards
+   .tda-fade-up: subtle fade + slide-up — for empty states
+   .tda-fade-down: subtle fade + slide-down — for suggestion panels
+   All GPU-accelerated + respect prefers-reduced-motion (v3.15.0 V1 guard). */
+@keyframes tda-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+@keyframes tda-scale-in {
+    from { opacity: 0; transform: scale(0.92); }
+    to   { opacity: 1; transform: scale(1); }
+}
+@keyframes tda-fade-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes tda-fade-down {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.tda-fade-in   { animation: tda-fade-in 200ms ease-out; will-change: opacity; }
+.tda-scale-in  { animation: tda-scale-in 220ms cubic-bezier(0.16, 1, 0.3, 1); will-change: opacity, transform; }
+.tda-fade-up   { animation: tda-fade-up 280ms ease-out; will-change: opacity, transform; }
+.tda-fade-down { animation: tda-fade-down 220ms ease-out; will-change: opacity, transform; }
+
+@media (prefers-reduced-motion: reduce) {
+    .tda-fade-in, .tda-scale-in, .tda-fade-up, .tda-fade-down { animation: none; }
+}

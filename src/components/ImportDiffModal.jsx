@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { X, FileJson, AlertCircle, CheckCircle2, ArrowRight, Undo2 } from 'lucide-react';
 import { Card } from './ui.jsx';
 
@@ -41,18 +40,13 @@ export const ImportDiffModal = ({
         ok: { icon: '✓', label: '原樣匯入', color: 'emerald' },
     };
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4"
+        <div
+            className="tda-fade-in fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4"
             onClick={onClose}
         >
-            <motion.div
-                initial={{ scale: 0.9 }}
-                animate={{ scale: 1 }}
+            <div
+                className="tda-scale-in w-full max-w-lg max-h-[80vh] flex flex-col"
                 onClick={e => e.stopPropagation()}
-                className="w-full max-w-lg max-h-[80vh] flex flex-col"
             >
                 <Card theme={theme} className="p-6 flex flex-col flex-1 overflow-hidden">
                     <div className="flex items-center justify-between mb-3">
@@ -168,7 +162,7 @@ export const ImportDiffModal = ({
                         )}
                     </div>
                 </Card>
-            </motion.div>
-        </motion.div>
+            </div>
+        </div>
     );
 };

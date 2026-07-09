@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight, BookOpen, Target, Gamepad2, Trophy, BarChart3, FileText, AlertCircle } from 'lucide-react';
 import { Card } from './ui.jsx';
 
@@ -31,11 +30,7 @@ export const EmptyState = ({
     };
     const c = colorMap[variant] || colorMap.plain;
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-        >
+        <div className="tda-fade-up">
             <Card theme="plain" className={`p-8 text-center ${c.bg} ${c.border} border-2 border-dashed`}>
                 <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${c.bg} ${c.icon}`}>
                     {Icon && <Icon size={32} strokeWidth={1.5} />}
@@ -63,7 +58,7 @@ export const EmptyState = ({
                     </p>
                 )}
             </Card>
-        </motion.div>
+        </div>
     );
 };
 

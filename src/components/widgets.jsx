@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Star, Trash2, FileText, Sparkles } from 'lucide-react';
 import { Card } from './ui.jsx';
 
@@ -40,18 +39,13 @@ export const QualityScoreDetail = ({ theme, score, onClose }) => {
         }
     );
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4"
+        <div
+            className="tda-fade-in fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4"
             onClick={onClose}
         >
-            <motion.div
-                initial={{ scale: 0.9 }}
-                animate={{ scale: 1 }}
+            <div
+                className="tda-scale-in w-full max-w-md p-6 rounded-2xl plain-border bg-white"
                 onClick={e => e.stopPropagation()}
-                className={`w-full max-w-md p-6 rounded-2xl ${'plain-border bg-white'}`}
             >
                 <h3 className={`text-lg font-bold mb-4 flex items-center gap-2 ${'text-slate-800'}`}>
                     <Star size={20} className={'text-blue-600'} />
@@ -103,8 +97,8 @@ export const QualityScoreDetail = ({ theme, score, onClose }) => {
                 >
                     知道了
                 </button>
-            </motion.div>
-        </motion.div>
+            </div>
+        </div>
     );
 };
 
@@ -154,11 +148,8 @@ export const TemplateCard = ({ theme, template, onLoad, onDelete, isUser }) => (
 
 // === AI Suggestion Panel ===
 export const SuggestionPanel = ({ theme, field, candidates, onSelect, onClose }) => (
-    <motion.div
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -8 }}
-        className={`mt-2 p-token-3 rounded-lg border ${'bg-blue-50 border-blue-300'}`}
+    <div
+        className="tda-fade-down mt-2 p-token-3 rounded-lg border bg-blue-50 border-blue-300"
     >
         <div className="flex justify-between items-center mb-2">
             <span className={`text-xs font-bold flex items-center gap-1 ${'text-blue-700'}`}>
@@ -187,5 +178,5 @@ export const SuggestionPanel = ({ theme, field, candidates, onSelect, onClose })
                 </button>
             ))}
         </div>
-    </motion.div>
+    </div>
 );

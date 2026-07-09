@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Save, X, FileText, Pencil, Trash2, Copy, Archive, ArchiveRestore } from 'lucide-react';
 import { Card } from './ui.jsx';
 import { formatTimeAgo } from '../utils/time.js';
@@ -184,18 +183,13 @@ export const TemplateEditorModal = ({
     };
 
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4"
+        <div
+            className="tda-fade-in fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4"
             onClick={onClose}
         >
-            <motion.div
-                initial={{ scale: 0.9 }}
-                animate={{ scale: 1 }}
+            <div
+                className="tda-scale-in w-full max-w-md"
                 onClick={e => e.stopPropagation()}
-                className="w-full max-w-md"
             >
                 <Card theme={theme} className="p-6">
                     <div className="flex items-center justify-between mb-4">
@@ -317,7 +311,7 @@ export const TemplateEditorModal = ({
                         </button>
                     </div>
                 </Card>
-            </motion.div>
-        </motion.div>
+            </div>
+        </div>
     );
 };
