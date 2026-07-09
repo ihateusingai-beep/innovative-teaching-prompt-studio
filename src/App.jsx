@@ -14,6 +14,7 @@ import { QualityScoreBadge, QualityScoreDetail, SuggestionPanel } from './compon
 import { TemplateCard, TemplateEditorModal } from './components/TemplateCard.jsx';
 import { ImportDiffModal } from './components/ImportDiffModal.jsx';
 import { EmptyState, getEmptyStateForTab } from './components/EmptyState.jsx';
+import { QualityAnalyzerPanel, autoFixByDim } from './components/QualityAnalyzerPanel.jsx';
 import { VersionPanel } from './components/VersionPanel.jsx';
 import { DiffView } from './components/DiffView.jsx';
 import { ProfileBankPanel } from './components/ProfileBankPanel.jsx';
@@ -1301,6 +1302,24 @@ const renderStep4 = (formData, designPrompt, techPrompt, qualityScore) => (
                 onClick={() => setShowScoreDetail(prev => !prev)}
             />
         </div>
+
+        {/* v3.16.0 F3: Quality Analyzer — inline expand panel with 一鍵改善 */}
+        <QualityAnalyzerPanel
+            theme={theme}
+            score={qualityScore}
+            onAutoFix={(dim) => {
+                const r = autoFixByDim(dim, formData);
+                if (r.changed) {
+                    pushHistory();
+                    setFormData({ ...formData, ...r.patch });
+                    pushWarning('success', `✨ 已套用「${dim}」維度嘅一鍵改善`, [
+                        `Heuristic auto-fill · 改動：${Object.keys(r.patch).join(', ')}`
+                    ]);
+                } else {
+                    pushWarning('info', `ℹ️ 呢個維度已經填好`, [`無需改善`]);
+                }
+            }}
+        />
 
         {showScoreDetail && (
             <QualityScoreDetail
