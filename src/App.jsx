@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowRight, ArrowLeft, Save, Sparkles, Wand2, Eye, Copy, Download, Upload, RotateCcw, History, Key, Star, X, FileText, FileJson, Trash2, Sun, Moon, ChevronDown, ChevronLeft, ChevronRight, Plus, CheckCircle, CheckCircle2, ExternalLink, Github, Monitor, Bot, Zap, BookOpen, Gamepad2, HeartHandshake, MessageCircle, FlaskConical, Users, Accessibility, Code, BarChart3 } from 'lucide-react';
 
