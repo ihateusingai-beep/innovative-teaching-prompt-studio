@@ -15,8 +15,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # v3.16.0 SMOKE: run unit tests + production-bundle smoke BEFORE build/deploy.
+  # Catches ReferenceError class of bug (useMemo import regression) that
+  # unit tests + dev-mode jsdom miss but production terser minified build breaks.
+  test:
+    name: Unit tests + production bundle smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - name: Unit tests (vitest, all *.test.{js,jsx} except smoke)
+        run: npm test
+      - name: Production bundle smoke (jsdom loads dist/index.html, catches ReferenceErrors)
+        run: npm run test:smoke
   build:
     runs-on: ubuntu-latest
+    needs: test  # Block deploy if tests / smoke fail
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
