@@ -14,12 +14,15 @@
 //   - Quality Score always computed (for header badge)
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { BookOpen, Gamepad2, HeartHandshake, MessageCircle, FlaskConical } from 'lucide-react';
 
 import { getInitialFormData, migrateFormData } from '../data/schema.js';
 import { getSuggestions } from '../data/suggestions.js';
 import { BUILTIN_TEMPLATES } from '../data/templates.js';
 import { getRecommendedA11y } from '../data/sen-a11y-map.js';
+// PATCH 2026-07-12 (P2-d): categories + subjects now imported from the
+// single source of truth (data/option-tables.js). App.jsx also imports from
+// the same file — there is no longer a local copy in this module.
+import { categories, subjects } from '../data/option-tables.js';
 import { generateDesignPrompt, generateTechPrompt } from '../prompts/generators.jsx';
 import promptScorer from '../data/scorer.js';
 import { copyToClipboard } from '../utils/clipboard.js';
@@ -42,17 +45,6 @@ import { useUndoRedo } from '../hooks/useUndoRedo.js';
 import { useLocalStorage } from '../hooks/useLocalStorage.js';
 import { usePromptVersions } from '../hooks/usePromptVersions.js';
 import { useProfileBank } from '../hooks/useProfileBank.js';
-
-// === Option arrays (kept inline because they reference icon components) ===
-const categories = [
-    { value: "教學工具", label: "📚 教學工具", icon: BookOpen },
-    { value: "教學遊戲", label: "🎮 教學遊戲", icon: Gamepad2 },
-    { value: "情緒支援", label: "❤️ 情緒支援", icon: HeartHandshake },
-    { value: "溝通輔助", label: "🗣️ 溝通輔助", icon: MessageCircle },
-    { value: "實驗模擬", label: "🧪 實驗模擬", icon: FlaskConical },
-];
-
-const subjects = ["語文", "數學", "英文", "人文", "科學", "生活技能", "電腦", "班主任課", "其他"];
 
 // User-saved templates 數量上限（避免 localStorage quota）
 const MAX_USER_TEMPLATES = 50;
@@ -358,6 +350,13 @@ export const useAppState = () => {
     }, [formData]);
 
     // === Gemini direct generation ===
+    // BUGFIX 2026-07-11: args order was (fullPrompt, geminiApiKey, cb) — wrong!
+    // generateWithGemini signature is (apiKey, prompt, options). Old call sent
+    // the full prompt string as apiKey and the actual key as prompt, then put
+    // the chunk callback in the options slot. Streaming callback was never fired
+    // and Gemini would always 400 (invalid key = the prompt text).
+    // Note: generateWithGemini is non-streaming today, so onChunk is best-effort
+    // and only fires when the final result is available.
     const handleGeminiGenerate = useCallback(async () => {
         if (!geminiApiKey) {
             setShowApiSettings(true);
@@ -368,8 +367,8 @@ export const useAppState = () => {
         setAiResult('');
         try {
             const fullPrompt = generateDesignPrompt(formData) + "\n\n---\n\n" + generateTechPrompt(formData);
-            const result = await generateWithGemini(fullPrompt, geminiApiKey, (chunk) => {
-                setAiResult(prev => prev + chunk);
+            const result = await generateWithGemini(geminiApiKey, fullPrompt, {
+                onChunk: (chunk) => setAiResult(prev => prev + chunk),
             });
             setAiResult(result);
         } catch (err) {
@@ -412,9 +411,14 @@ export const useAppState = () => {
                 const lengthPrefixedPrompt = lengthPrefixes[variant] + fullPrompt;
                 const t0 = performance.now();
                 try {
+                    // BUGFIX 2026-07-12 (Drift #4): was hardcoded temperature 0.7
+                    // for every variant — short/standard/long were effectively
+                    // length-only. Now reads cfg.temperature (0.9/0.7/0.3) so
+                    // each variant samples a distinct point on the creativity
+                    // vs. determinism axis (see VARIANT_CONFIG comment).
                     const text = await generateWithGemini(geminiApiKey, lengthPrefixedPrompt, {
                         maxOutputTokens: cfg.maxOutputTokens,
-                        temperature: 0.7,
+                        temperature: cfg.temperature,
                     });
                     setVariants(prev => ({
                         ...prev,
@@ -594,13 +598,6 @@ export const useAppState = () => {
         ]);
         return { ok: true };
     }, [studentRoster, formData, pushHistory, setFormData, pushWarning]);
-
-    const handleSaveTemplate = useCallback(() => {
-        // Legacy alias — 保留以防有舊 call site
-        const name = prompt('為呢個 template 命名：');
-        if (!name) return;
-        saveAsUserTemplate(name, '');
-    }, [saveAsUserTemplate]);
 
     // === Delete user template ===
     const deleteUserTemplate = useCallback((id) => {
@@ -794,30 +791,19 @@ export const useAppState = () => {
         setActiveSuggestionField(null);
     }, [formData, updateField]);
 
-    const handleSelectSuggestion = useCallback((candidate) => {
-        if (activeSuggestionField === 'rules') {
-            // W9-10 #6: AI 建議加入嘅 rule 預設係 user 自訂（非 default）
-            const newRules = [...formData.rules, { text: candidate.text, __isDefault: false }];
-            updateField('rules', newRules);
-        } else if (activeSuggestionField === 'examples') {
-            const newExamples = [...formData.examples, {
-                text: candidate.text,
-                level: formData.examples[formData.examples.length - 1]?.level || "初階",
-                count: 10,
-                mechanism: "3選1答案",
-            }];
-            updateField('examples', newExamples);
-        } else {
-            updateField(activeSuggestionField, candidate.text);
-        }
-        setActiveSuggestionField(null);
-    }, [activeSuggestionField, formData, updateField]);
-
     // === CoachMark nav ===
-    const handleCoachNext = useCallback((delta) => {
+    // BUGFIX 2026-07-11: was `next >= 5` — hard-coded magic number that drifted
+    // from ONBOARDING_STEPS.length (5 today, but adding a step would silently
+    // break "next" on the last-but-one step). The actual off-by-one risk is
+    // that `prev || 0` resets to 0 if already-null, so an extra `next` of 0
+    // could re-trigger step 0 — harmless given setOnboardingActive is already
+    // false, but still worth guarding. Now accepts an optional `total` so the
+    // caller (App.jsx) controls the bound instead of hardcoding 5 here.
+    const handleCoachNext = useCallback((delta, total) => {
+        const totalSteps = typeof total === 'number' && total > 0 ? total : 5;
         setOnboardingStep(prev => {
             const next = (prev || 0) + delta;
-            if (next >= 5) {
+            if (next >= totalSteps) {
                 setOnboardingActive(false);
                 setOnboardingDone(true);
                 return null;
@@ -995,7 +981,6 @@ export const useAppState = () => {
         handleExport,
         handleGeminiGenerate,
         saveApiKey,
-        handleSaveTemplate,
         saveAsUserTemplate,
         handleLoadTemplate,
         handleDeleteTemplate,
@@ -1014,7 +999,6 @@ export const useAppState = () => {
         confirmImportFromDiff, undoImport, canUndoImport, UNDO_WINDOW_MS,
         handleGetSuggestions,
         applySuggestion,
-        handleSelectSuggestion,
         handleCoachNext,
         handleCoachSkip,
         handleReset,

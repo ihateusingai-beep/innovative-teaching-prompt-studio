@@ -25,6 +25,12 @@ export const saveGeminiKey = (key) => {
 
 // 直接 hit Gemini API (non-streaming)
 // return: text string | throw error
+// options:
+//   - temperature: number (default 0.7)
+//   - maxOutputTokens: number (default 4096)
+//   - onChunk: (chunk: string) => void — non-streaming callback, fires once
+//     with the final result. Reserved for future SSE streaming support; for
+//     now it gives callers a uniform hook without breaking existing call sites.
 export const generateWithGemini = async (apiKey, prompt, options = {}) => {
     if (!apiKey) {
         throw new Error('請先設定 Gemini API key');
@@ -51,6 +57,9 @@ export const generateWithGemini = async (apiKey, prompt, options = {}) => {
         const reason = data?.candidates?.[0]?.finishReason || 'unknown';
         throw new Error(`Gemini 冇回傳內容 (finishReason: ${reason})。可能 prompt 觸發 safety filter。`);
     }
+    if (typeof options.onChunk === 'function') {
+        try { options.onChunk(text); } catch (_) { /* ignore listener errors */ }
+    }
     return text;
 };
 
@@ -58,10 +67,17 @@ export const generateWithGemini = async (apiKey, prompt, options = {}) => {
 // 3 parallel calls with different maxOutputTokens to produce short/standard/long variants
 // for side-by-side comparison UI. Returns array of {variant, text, error} in same order.
 
+// BUGFIX 2026-07-12 (Drift #4): temperatures added so the 3 variants are
+// actually distinct. Old config had only maxOutputTokens — every variant used
+// temperature 0.7, so "short / standard / long" boiled down to a length
+// variation on the same probability distribution. New profile:
+//   - short    0.9 → hot / exploratory (try alternative framings)
+//   - standard 0.7 → default (deterministic enough for classroom review)
+//   - long     0.3 → cool / grounded (rationale + pedagogy, less hallucination)
 export const VARIANT_CONFIG = {
-    short:    { maxOutputTokens: 600,  label: '簡短版',  emoji: '🎯', desc: '≤ 200 字, 適合 1-on-1 學生' },
-    standard: { maxOutputTokens: 1500, label: '標準版',  emoji: '📖', desc: '400-600 字, 班房用' },
-    long:     { maxOutputTokens: 4000, label: '完整版',  emoji: '📚', desc: '含 rationale, 適合 IEP 報告' },
+    short:    { maxOutputTokens: 600,  temperature: 0.9, label: '簡短版',  emoji: '🎯', desc: '≤ 200 字, 適合 1-on-1 學生' },
+    standard: { maxOutputTokens: 1500, temperature: 0.7, label: '標準版',  emoji: '📖', desc: '400-600 字, 班房用' },
+    long:     { maxOutputTokens: 4000, temperature: 0.3, label: '完整版',  emoji: '📚', desc: '含 rationale, 適合 IEP 報告' },
 };
 
 export const VARIANT_KEYS = ['short', 'standard', 'long'];
@@ -70,7 +86,10 @@ export const VARIANT_KEYS = ['short', 'standard', 'long'];
  * Generate all 3 variants in parallel.
  * @param {string} apiKey - Gemini API key
  * @param {string} prompt - Full prompt (design + tech)
- * @param {(variant: string, partial: string) => void} onChunk - Optional streaming callback (per variant)
+ * @param {(variant: string, partial: string) => void} onChunk - Optional callback
+ *   fired per variant with the final text (non-streaming today; reserved for
+ *   future SSE streaming). Signature differs from generateWithGemini's
+ *   options.onChunk (variant, text) vs (chunk).
  * @returns {Promise<{short, standard, long}>} Map of variant → {text, error, tokenCount, durationMs}
  */
 export const generateMultiVariant = async (apiKey, prompt, onChunk) => {

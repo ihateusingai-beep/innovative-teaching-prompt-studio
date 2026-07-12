@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowRight, ArrowLeft, Save, Sparkles, Wand2, Eye, Copy, Download, Upload, RotateCcw, History, Key, Star, X, FileText, FileJson, Trash2, Sun, Moon, ChevronDown, ChevronLeft, ChevronRight, Plus, CheckCircle, CheckCircle2, ExternalLink, Github, Monitor, Bot, Zap, BookOpen, Gamepad2, HeartHandshake, MessageCircle, FlaskConical, Users, Accessibility, Code, BarChart3 } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Save, Sparkles, Wand2, Eye, Copy, Download, Upload, RotateCcw, History, Key, Star, X, FileText, FileJson, Trash2, Sun, Moon, ChevronDown, ChevronLeft, ChevronRight, Plus, CheckCircle, CheckCircle2, ExternalLink, Github, Monitor, Bot, Zap, Users, Accessibility, Code, BarChart3 } from 'lucide-react';
 
 import { useAppState } from './state/useAppState.js';
 import { formatTimeAgo } from './utils/time.js';
@@ -23,6 +23,16 @@ import { AwardCertificateModal } from './components/AwardCertificateModal.jsx';
 import personalLogo from '../assets/personal_logo.png';
 import { mutedTextClass, pillClass, toggleClass, cardClass, ToggleSwitch } from './design-system/index.js';
 import { themeMeta, themeOrder } from './design-system/tokens/colors.js';
+// PATCH 2026-07-12 (P2-d): categories / subjects / senTypeOptions /
+// accessibilityOptions / learningDiversityOptions moved to option-tables.js as
+// single source of truth. Local const blocks below were deleted.
+import {
+    categories,
+    subjects,
+    senTypeOptions,
+    accessibilityOptions,
+    learningDiversityOptions,
+} from './data/option-tables.js';
 
 // === Feature flags ===
 // GEMINI_DIRECT_GENERATE_ENABLED: 控制 Gemini API 直接生成 HTML 嘅 UI 嘅顯隱
@@ -30,18 +40,6 @@ import { themeMeta, themeOrder } from './design-system/tokens/colors.js';
 //   true  → 顯示（原有 Gemini 直接 generate → download HTML 嘅 user flow）
 // v3.13.0: re-enabled with F2 multi-variant 3-card side-by-side comparison UI
 const GEMINI_DIRECT_GENERATE_ENABLED = true;
-
-const categories = [
-    { value: "教學工具", label: "📚 教學工具", icon: BookOpen },
-    { value: "教學遊戲", label: "🎮 教學遊戲", icon: Gamepad2 },
-    { value: "情緒支援", label: "❤️ 情緒支援", icon: HeartHandshake },
-    { value: "溝通輔助", label: "🗣️ 溝通輔助", icon: MessageCircle },
-    { value: "實驗模擬", label: "🧪 實驗模擬", icon: FlaskConical },
-    { value: "生活技能", label: "🌱 生活技能", icon: Sparkles },
-    { value: "評估回饋", label: "✅ 評估回饋", icon: CheckCircle2 },
-];
-
-const subjects = ["語文", "數學", "英文", "人文", "科學", "生活技能", "電腦", "班主任課", "其他"];
 
 const gameStyles = [
     "扭蛋機 (Gachapon)", 
@@ -112,48 +110,6 @@ const interactionTypes = [
     "時間限制挑戰",
     "其他"
 ];
-
-const learningDiversityOptions = [
-    { label: "簡化內容 (Simplify Content)", desc: "使用簡單詞彙、短句，避免冗長說明；一次只教一個概念。" },
-    { label: "多感官輸入 (Multi-sensory)", desc: "結合圖片、聲音、動作、觸覺等多管道刺激，提升理解與記憶。" },
-    { label: "結構化與重複 (Structure & Repetition)", desc: "提供清晰步驟、固定流程與反覆練習機會。" },
-    { label: "即時回饋與獎勵 (Instant Feedback)", desc: "每完成一步即給予肯定（聲音、動畫、貼紙等），增強動機。" },
-    { label: "視覺輔助 (Visual Aids)", desc: "使用圖卡、流程圖、顏色區分、大字體、高對比界面。" },
-    { label: "生活化內容 (Real-life Context)", desc: "教學連結日常生活（如購物、交通、衛生），提升實用性。" },
-    { label: "語音朗讀題目 (TTS Question - HK)", desc: "題目提供廣東話語音朗讀功能。" },
-    { label: "語音朗讀答案 (TTS Answer - HK)", desc: "答案提供廣東話語音朗讀功能。" },
-    { label: "視覺提示 (Visual Cues)", desc: "加入箭頭、色塊、進度條等視覺提示。" }
-];
-
-// SEN 類型 — 每個有對應嘅 design implication，AI 收到呢啲會針對性設計
-// 香港 SEN 類別參考教育局「全校參與模式融合教育」分類
-const senTypeOptions = [
-    { id: "adhd", label: "ADHD 專注力不足/過度活躍", desc: "短任務、清晰指示、減少干擾、加入動態操作" },
-    { id: "asd", label: "ASD 自閉症譜系", desc: "視覺時間表、避免抽象比喻、固定流程、減少感官過載" },
-    { id: "dyslexia", label: "讀寫困難 (Dyslexia)", desc: "易讀字型 (OpenDyslexic / Noto Sans TC)、大行距、語音輔助" },
-    { id: "dyscalculia", label: "數學障礙 (Dyscalculia)", desc: "具體教具圖示、分步驟拆解、避開抽象數字符號" },
-    { id: "id", label: "智障 / 認知發展遲緩", desc: "簡化詞彙、圖卡為主、重複練習、生活化情境" },
-    { id: "hearing", label: "聽障", desc: "視覺為主、字幕、手語影片空間、避純音訊反饋" },
-    { id: "visual", label: "視障", desc: "高對比、大字體、語音導航、避純視覺線索" },
-    { id: "physical", label: "肢體傷殘", desc: "大點擊區域、鍵盤導航、減少精細動作" },
-    { id: "speech", label: "語言障礙", desc: "圖卡替代口語、文字輸入、避用語音評估" },
-    { id: "behavioral", label: "情緒行為問題", desc: "正向強化、清楚後果、避免懲罰、社交故事" },
-];
-
-// 無障礙 (a11y) 維度 — 老師揀要執行嘅 a11y 維度，AI 會注入具體 checklist
-// 預設揀晒 5 個核心項（取消剔 = 老師明示唔需要）
-const accessibilityOptions = [
-    { id: "contrast", label: "色彩對比 (WCAG AA 4.5:1)", desc: "文字/背景對比 ≥ 4.5:1，重要元素用高對比色塊" },
-    { id: "keyboard", label: "鍵盤導航 (Keyboard)", desc: "全部功能可用 Tab/Enter/Esc/方向鍵操作，focus 樣式清晰" },
-    { id: "screenReader", label: "Screen Reader 友善", desc: "語意化 HTML (button/nav/main)、aria-label、alt 文字" },
-    { id: "reducedMotion", label: "減少動畫 (Reduced Motion)", desc: "respect prefers-reduced-motion，避 auto-play 動畫" },
-    { id: "tts", label: "TTS 廣東話支援", desc: "Web Speech API lang='zh-HK'，所有文字內容可朗讀" },
-    { id: "fontSize", label: "可調字體大小", desc: "提供 6 級字體調節（14/16/18/22/26/32px）" },
-    { id: "highContrast", label: "高對比模式切換", desc: "提供 toggle 一鍵切到純黑白高對比配色" },
-    { id: "captions", label: "字幕 / 視覺替代", desc: "所有音效配視覺替代（圖示/震動/文字），照顧聽障" },
-];
-
-
 
 const values = [
     "堅毅", "尊重他人", "責任感", "國民身份認同", "承擔精神", 
@@ -232,7 +188,7 @@ export function App() {
         addStudent, updateStudent, removeStudent, applyStudentToAssessment,
         // v3.15.0 A3: import diff + undo
         importDiff, setImportDiff, confirmImportFromDiff, undoImport, canUndoImport, UNDO_WINDOW_MS,
-        handleGetSuggestions, applySuggestion, handleSelectSuggestion,
+        handleGetSuggestions, applySuggestion,
         handleCoachNext, handleCoachSkip, handleReset,
         confirmReplace, confirmAppend, cancelSuggestion,
         // Computed
@@ -1405,21 +1361,7 @@ const renderStep4 = (formData, designPrompt, techPrompt, qualityScore) => (
                     <span className="hidden sm:inline">{geminiApiKey ? '✓ API' : '⚙️ API'}</span>
                 </button>
                 <button
-                    onClick={async () => {
-                        if (aiGenerating) return;
-                        try {
-                            setAiError(null);
-                            setAiResult('');
-                            setAiGenerating(true);
-                            // techPrompt 由 params 傳入（已 compute 過）
-                            const text = await generateWithGemini('tech', techPrompt);
-                            setAiResult(text);
-                        } catch (err) {
-                            setAiError(err.message || String(err));
-                        } finally {
-                            setAiGenerating(false);
-                        }
-                    }}
+                    onClick={handleGeminiGenerate}
                     disabled={aiGenerating || !geminiApiKey}
                     className={`px-token-4 py-token-2 rounded-lg flex items-center gap-token-2 text-sm font-bold transition-all border shadow-sm text-white ${
                         aiGenerating
@@ -1791,7 +1733,7 @@ const renderMultiVariant = () => {
                 <CoachMark
                     theme={theme}
                     step={ONBOARDING_STEPS[onboardingStep]}
-                    onNext={handleCoachNext}
+                    onNext={(delta) => handleCoachNext(delta, ONBOARDING_STEPS.length)}
                     onSkip={handleCoachSkip}
                     total={ONBOARDING_STEPS.length}
                     index={onboardingStep}
@@ -1995,6 +1937,20 @@ const renderMultiVariant = () => {
                             <span className="text-base">
                                 {motionPref === 'on' ? '🔇' : motionPref === 'off' ? '✨' : '🎬'}
                             </span>
+                        </button>
+                        {/* PATCH 2026-07-12 (P2-a): wire up the previously-dead handleReset.
+                            handleReset was destructured from useAppState but no button
+                            bound to it — the reset path was unreachable from the UI.
+                            Added here next to the motion toggle so the destructive
+                            action sits with the other utility controls (small, neutral,
+                            one click → confirm dialog → full formData wipe). */}
+                        <button
+                            onClick={handleReset}
+                            aria-label="重設所有資料"
+                            title="重設所有資料（會彈確認 dialog）"
+                            className="p-token-2 rounded-full transition-all duration-200 border bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100"
+                        >
+                            <RotateCcw size={16} />
                         </button>
                         <div
                             className={`hidden md:flex px-token-4 py-token-2 rounded-full text-sm font-bold flex items-center gap-token-2 tracking-wider ${
@@ -2368,10 +2324,31 @@ const renderMultiVariant = () => {
                                 onApplyStudent={(id) => applyStudentToAssessment(id)}
                                 onBulkGenerateAll={() => {
                                     if (studentRoster.length === 0) return;
-                                    pushWarning('info', `✨ 準備批量 generate ${studentRoster.length} 份 prompts`, [
-                                        '將每位學生嘅 assessment 套入 formData 順序生成',
-                                        '提示：bulk generate 仍需要逐個 click 確認，AI 自動化 deferred',
-                                    ]);
+                                    // BUGFIX 2026-07-12 (Drift #5): the old handler was a
+                                    // pushWarning-only stub — comment claimed
+                                    // "setFormData for each student sequentially" but the
+                                    // body did nothing. Now it actually walks the roster
+                                    // via applyStudentToAssessment (which already pushes
+                                    // history per student). Final formData lands on the
+                                    // last student so the teacher can review + decide
+                                    // whether to fire Gemini (one bulk API call is too
+                                    // expensive + would hide per-student review).
+                                    let successCount = 0;
+                                    let failCount = 0;
+                                    for (const student of studentRoster) {
+                                        const r = applyStudentToAssessment(student.id);
+                                        if (r?.ok) successCount += 1;
+                                        else failCount += 1;
+                                    }
+                                    pushWarning(
+                                        failCount === 0 ? 'success' : 'warning',
+                                        `✨ 已順序載入 ${successCount} 位學生嘅 assessment`,
+                                        [
+                                            `最後載入：${studentRoster[studentRoster.length - 1]?.name || '—'}`,
+                                            'AI 生成仍需逐位 click 確認（bulk API 開銷大，留畀老師手動）',
+                                            failCount > 0 ? `⚠️ ${failCount} 位失敗` : null,
+                                        ].filter(Boolean),
+                                    );
                                 }}
                                 onBulkPrintAllCerts={() => {
                                     if (studentRoster.length === 0) return;
