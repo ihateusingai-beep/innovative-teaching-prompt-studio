@@ -186,13 +186,16 @@ describe('v3.16.0 F2 — RosterPanel rendering', () => {
 
     it('shows bulk action buttons when roster non-empty', () => {
         render(<RosterPanel theme="plain" roster={[sampleStudent]} onAdd={() => ({ ok: true })} onUpdate={() => ({ ok: true })} onRemove={() => ({ ok: true })} onBulkGenerateAll={() => {}} onBulkPrintAllCerts={() => {}} />);
-        expect(screen.getByText(/全部 generate \(1 人\)/)).toBeTruthy();
+        // BUGFIX 2026-07-12: label changed from "全部 generate" to "全部 apply"
+        // to match new semantics (walk roster, leave last student loaded, no
+        // bulk Gemini fire). See App.jsx onBulkGenerateAll handler.
+        expect(screen.getByText(/全部 apply \(1 人\)/)).toBeTruthy();
         expect(screen.getByText(/全部列印奬狀 \(1 份\)/)).toBeTruthy();
     });
 
     it('does NOT show bulk buttons when roster empty', () => {
         render(<RosterPanel theme="plain" roster={[]} onAdd={() => ({ ok: true })} onUpdate={() => ({ ok: true })} onRemove={() => ({ ok: true })} onBulkGenerateAll={() => {}} onBulkPrintAllCerts={() => {}} />);
-        expect(screen.queryByText(/全部 generate/)).toBeNull();
+        expect(screen.queryByText(/全部 apply/)).toBeNull();
     });
 
     it('click 載入 button calls onApplyStudent with student id', () => {

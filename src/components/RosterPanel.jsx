@@ -8,10 +8,14 @@ import { COMMON_SEN_TYPES, MAX_NAME_LENGTH, MAX_NOTES_LENGTH, MAX_ROSTER_STUDENT
 //   - Add new student (name + senType + notes)
 //   - View list of students with edit/delete
 //   - Click a student → apply to current formData.assessment (populates fields)
-//   - Bulk "Generate all prompts" (v3.16.0 F2 MVP — setFormData for each student sequentially)
-//   - Bulk "Print all certs" (calls onPrintAllCerts — sequential cert modal renders)
+//   - Bulk "Apply all" (v3.16.0 F2 MVP — walks roster, applyStudentToAssessment
+//     for each, final formData lands on the LAST student. AI generation is
+//     NOT bulk-fired: 1 call per student would burn API quota and remove
+//     per-student review. Teacher still clicks "直接生成 HTML" per student.)
+//   - Bulk "Print all certs" (calls onBulkPrintAllCerts — sequential cert modal renders)
 //
-// Deferred to Phase 3: CSV import, IndexedDB queue, sort + filter, drag-reorder.
+// Deferred to Phase 3: CSV import, IndexedDB queue, sort + filter, drag-reorder,
+// fully automated batch Gemini calls.
 export const RosterPanel = ({
     theme,
     roster = [],
@@ -87,10 +91,10 @@ export const RosterPanel = ({
                                 <button
                                     onClick={onBulkGenerateAll}
                                     className="text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold flex items-center gap-1 transition-colors"
-                                    title="逐一將每位學生嘅 assessment data 填入 formData，並 regen prompts"
+                                    title="依序列入每位學生嘅 assessment data（最後一位為當前 formData），AI 生成仍需逐個 click"
                                 >
                                     <Sparkles size={12} />
-                                    ✨ 全部 generate ({roster.length} 人)
+                                    ✨ 全部 apply ({roster.length} 人)
                                 </button>
                             )}
                             {onBulkPrintAllCerts && (

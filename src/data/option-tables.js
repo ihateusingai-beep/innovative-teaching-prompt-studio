@@ -19,6 +19,24 @@ const senTypeOptions = [
     { id: "behavioral", label: "情緒行為問題", desc: "正向強化、清楚後果、避免懲罰、社交故事" },
 ];
 
+// PATCH 2026-07-12 (P2-d): categories + subjects moved here from App.jsx +
+// useAppState.js so there is exactly one source of truth. Previously both files
+// declared their own local copies — useAppState.js had 5 categories, App.jsx
+// had 7 (with 生活技能 + 評估回饋) but the App.jsx one was shadowed by the
+// destructure, so users only ever saw 5. Templates in data/templates.js
+// reference the 5 — that's the canonical set; the App.jsx 7 was drift.
+import { BookOpen, Gamepad2, HeartHandshake, MessageCircle, FlaskConical } from 'lucide-react';
+const categories = [
+    { value: "教學工具", label: "📚 教學工具", icon: BookOpen },
+    { value: "教學遊戲", label: "🎮 教學遊戲", icon: Gamepad2 },
+    { value: "情緒支援", label: "❤️ 情緒支援", icon: HeartHandshake },
+    { value: "溝通輔助", label: "🗣️ 溝通輔助", icon: MessageCircle },
+    { value: "實驗模擬", label: "🧪 實驗模擬", icon: FlaskConical },
+];
+
+// PATCH 2026-07-12 (P2-d): same single-source treatment as categories.
+const subjects = ["語文", "數學", "英文", "人文", "科學", "生活技能", "電腦", "班主任課", "其他"];
+
 const accessibilityOptions = [
     { id: "contrast", label: "色彩對比 (WCAG AA 4.5:1)", desc: "文字/背景對比 ≥ 4.5:1，重要元素用高對比色塊" },
     { id: "keyboard", label: "鍵盤導航 (Keyboard)", desc: "全部功能可用 Tab/Enter/Esc/方向鍵操作，focus 樣式清晰" },
@@ -165,5 +183,7 @@ export {
     learningDiversityOptions,
     defaultRules,
     personalizedReportSections,
+    categories,
+    subjects,
     // composePersonalizedReportRule 由上面 export const 直接 export，唔重複列
 };
