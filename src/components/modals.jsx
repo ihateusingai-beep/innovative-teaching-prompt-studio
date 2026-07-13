@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Key, X } from 'lucide-react';
 
-// === Modals: API Settings + Coach Mark + Confirm Replace ===
+// === Modals: API Settings + Coach Mark + Confirm Dialog ===
+// (PATCH 2026-07-12: replaced dead ConfirmReplaceDialog with generic ConfirmDialog
+//  used by destructive-action handlers handleReset / removeStudent / deleteUserTemplate)
 
 export const ApiSettingsModal = ({ theme, currentKey, onSave, onClose }) => {
     const [draftKey, setDraftKey] = useState(currentKey || '');
@@ -132,46 +134,75 @@ export const CoachMark = ({ theme, step, onNext, onSkip, total, index }) => {
     );
 };
 
-export const ConfirmReplaceDialog = ({ theme, pendingText, onReplace, onAppend, onCancel }) => (
-    <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4"
-        onClick={onCancel}
-    >
-        <motion.div
-            initial={{ scale: 0.9 }}
-            animate={{ scale: 1 }}
-            onClick={e => e.stopPropagation()}
-            className={`w-full max-w-sm p-6 rounded-2xl ${'plain-border bg-white'}`}
-        >
-            <h4 className={`font-bold mb-3 ${'text-slate-800'}`}>
-                匯入衝突
-            </h4>
-            <p className={`text-sm mb-5 ${'text-slate-600'}`}>
-                已有內容。要<span className="font-bold"> 取代 </span>現有資料，定<span className="font-bold"> 附加 </span>喺現有資料之後？
-            </p>
-            <div className="flex gap-2 justify-end">
-                <button
-                    onClick={onCancel}
-                    className={`px-3 py-1.5 rounded-lg text-sm ${'bg-slate-200 text-slate-700'}`}
+// === ConfirmDialog (PATCH 2026-07-12) ===
+// Generic destructive-action confirm modal. Replaces the 3 native `confirm()` callsites
+// (handleReset / removeStudent / deleteUserTemplate) + the dead ConfirmReplaceDialog
+// that v3.15.0 A3 ImportDiffModal made obsolete. Why: the W9-10 Q3 migration moved
+// every other blocking dialog to non-blocking `pushWarning` banners — these 3 were
+// drift. Pushed to a real modal (not alert/confirm) so they sit consistently in the
+// existing `fixed inset-0 z-[100]` overlay family (same shell as ApiSettingsModal).
+//
+// API:
+//   <ConfirmDialog
+//     open={bool} title=…  message=…  danger?=false
+//     confirmLabel?=「確認」 cancelLabel?=「取消」
+//     onConfirm={fn} onCancel={fn} />
+export const ConfirmDialog = ({
+    theme, // accepted for symmetry with the other modals (ApiSettingsModal / CoachMark);
+           // not yet applied to ConfirmDialog chrome — destructive actions deserve a
+           // high-contrast, white-on-rose treatment that reads the same in every theme.
+    open,
+    title,
+    message,
+    danger = false,
+    confirmLabel = '確認',
+    cancelLabel = '取消',
+    onConfirm,
+    onCancel,
+}) => (
+    <AnimatePresence>
+        {open && (
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center p-4"
+                onClick={onCancel}
+            >
+                <motion.div
+                    initial={{ scale: 0.9 }}
+                    animate={{ scale: 1 }}
+                    onClick={e => e.stopPropagation()}
+                    className={`w-full max-w-sm p-6 rounded-2xl ${'plain-border bg-white'}`}
                 >
-                    取消
-                </button>
-                <button
-                    onClick={onAppend}
-                    className={`px-3 py-1.5 rounded-lg text-sm ${'bg-amber-500 text-white'}`}
-                >
-                    附加
-                </button>
-                <button
-                    onClick={onReplace}
-                    className={`px-3 py-1.5 rounded-lg text-sm ${'bg-blue-600 text-white'}`}
-                >
-                    取代
-                </button>
-            </div>
-        </motion.div>
-    </motion.div>
+                    <h4 className={`font-bold mb-3 ${'text-slate-800'}`}>
+                        {title}
+                    </h4>
+                    {message && (
+                        <p className={`text-sm mb-5 ${'text-slate-600'}`}>
+                            {message}
+                        </p>
+                    )}
+                    <div className="flex gap-2 justify-end">
+                        <button
+                            onClick={onCancel}
+                            className={`px-3 py-1.5 rounded-lg text-sm font-bold ${'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}
+                        >
+                            {cancelLabel}
+                        </button>
+                        <button
+                            onClick={onConfirm}
+                            className={`px-3 py-1.5 rounded-lg text-sm font-bold text-white ${
+                                danger
+                                    ? 'bg-rose-600 hover:bg-rose-700'
+                                    : 'bg-blue-600 hover:bg-blue-700'
+                            }`}
+                        >
+                            {confirmLabel}
+                        </button>
+                    </div>
+                </motion.div>
+            </motion.div>
+        )}
+    </AnimatePresence>
 );

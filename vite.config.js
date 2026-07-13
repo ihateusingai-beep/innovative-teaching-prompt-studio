@@ -17,13 +17,18 @@ const MANGLE_RESERVED = [
     'triggerJSONImport',
     'showGameStyle', 'showExamples',
     'handleCopyDesign', 'handleCopyTech', 'handleExport', 'handleGeminiGenerate',
-    'handleSaveTemplate', 'saveAsUserTemplate', 'handleLoadTemplate',
-    'handleDeleteTemplate', 'deleteUserTemplate',
-    'handleImportJSON', 'handleExportJSON', 'handleGetSuggestions', 'applySuggestion',
-    'handleSelectSuggestion', 'handleCoachNext', 'handleCoachSkip',
+    'saveAsUserTemplate', 'handleLoadTemplate',
+    'deleteUserTemplate',
+    'handleImportJSON', 'handleExportJSON', 'applySuggestion',
+    'handleCoachNext', 'handleCoachSkip',
     'handleNextTab', 'handlePrevTab', 'handleReset',
-    'confirmReplace', 'confirmAppend', 'cancelSuggestion', 'saveApiKey',
+    'saveApiKey',
     'setTab', 'tabCompletion', 'toggleSection',
+    // PATCH 2026-07-12: askConfirm flow
+    'confirmAction', 'askConfirm', 'resolveConfirm', 'cancelConfirm',
+    // v3.17.0 1.1: auto-fill from default profile
+    'defaultProfileId', 'setDefaultProfileId', 'clearDefaultProfile',
+    'autoApplyEnabled', 'setAutoApplyEnabled',
     // W9-10 Q3: inline warning banner queue
     'warnings', 'pushWarning', 'dismissWarning',
     // W9-10 #6: rules object shape helpers

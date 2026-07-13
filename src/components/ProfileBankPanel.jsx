@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Users, Lock, Plus, Trash2, Edit3, X, Download, Upload, Check, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { Users, Lock, Plus, Trash2, Edit3, X, Download, Upload, Check, Eye, EyeOff, Sparkles, Star, StarOff, Settings } from 'lucide-react';
 
 // === ProfileBankPanel ===
 // Full modal for managing encrypted SEN student profile bank.
@@ -16,6 +16,12 @@ import { Users, Lock, Plus, Trash2, Edit3, X, Download, Upload, Check, Eye, EyeO
 //   onApplyProfile(profile): caller 負責 merge formData
 //   onClose
 //   asModal: centered modal vs inline (default true)
+//   defaultProfileId: string | null — which profile is auto-applied on app mount
+//   setDefaultProfileId: setter
+//   clearDefaultProfile: convenience setter(null) for "清除預設" button
+//   autoApplyEnabled: bool — global toggle for the auto-apply feature
+//   setAutoApplyEnabled: setter
+//   toggleClass: theme-aware toggle styling helper (passed from parent)
 
 const SEN_LABELS = [
     'ADHD 專注力不足/過度活躍',
@@ -53,6 +59,12 @@ export const ProfileBankPanel = ({
     onApplyProfile,
     onClose,
     asModal = true,
+    // v3.17.0 1.1: auto-fill from default profile
+    defaultProfileId = null,
+    setDefaultProfileId = () => {},
+    clearDefaultProfile = () => {},
+    autoApplyEnabled = true,
+    setAutoApplyEnabled = () => {},
 }) => {
     const {
         vaultExists,
@@ -384,6 +396,55 @@ export const ProfileBankPanel = ({
                 />
             </div>
 
+            {/* v3.17.0 1.1: Default Profile + auto-apply toggle */}
+            <div className={`p-token-3 rounded-lg border ${
+                theme === 'warm' ? 'border-amber-300 bg-amber-50/60' : theme === 'dark' ? 'border-cyan-300 bg-cyan-50/60' : theme === 'contrast' ? 'border-cyan-300 bg-cyan-50/60' : theme === 'paper' ? 'border-cyan-300 bg-cyan-50/60' : theme === 'reactor' ? 'border-cyan-300 bg-cyan-50/60' : 'border-cyan-300 bg-cyan-50/60'
+            }`}>
+                <div className="flex items-start justify-between gap-token-3">
+                    <div className="flex items-start gap-token-2 flex-1 min-w-0">
+                        <Settings size={16} className="flex-none mt-0.5 text-cyan-700" />
+                        <div className="flex-1 min-w-0">
+                            <div className={`text-sm font-bold ${textPri}`}>
+                                預設 Profile + 自動套用
+                            </div>
+                            <div className={`text-xs ${textSec} mt-0.5`}>
+                                {defaultProfileId
+                                    ? (() => {
+                                        const def = profiles.find(p => p.id === defaultProfileId);
+                                        return def
+                                            ? `預設: 「${def.name}」 — 開新 session 自動套用佢嘅 SEN 類型 + 年級`
+                                            : '⚠️ 預設 profile 已被刪除。撳「清除預設」或者揀返另一個。';
+                                    })()
+                                    : '未設預設。喺下面任何 profile 撳「⭐ 設為預設」。'}
+                            </div>
+                        </div>
+                    </div>
+                    {defaultProfileId && (
+                        <button
+                            onClick={clearDefaultProfile}
+                            className={`flex-none px-token-3 py-token-1.5 rounded-lg text-xs font-bold flex items-center gap-token-1 ${
+                                'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                            }`}
+                            title="清除預設 profile 設定（下次 mount 唔會自動套用）"
+                        >
+                            <X size={12} />
+                            清除預設
+                        </button>
+                    )}
+                </div>
+                <label className="flex items-center gap-token-2 mt-3 pt-3 border-t border-cyan-200 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        checked={autoApplyEnabled}
+                        onChange={(e) => setAutoApplyEnabled(e.target.checked)}
+                        className="w-4 h-4 rounded border-cyan-400 text-cyan-600 focus:ring-cyan-500"
+                    />
+                    <span className={`text-xs ${textSec}`}>
+                        <strong>自動套用預設 profile</strong> — App mount 嗰陣,如果 formData 空白就自動帶入預設 profile 嘅設定
+                    </span>
+                </label>
+            </div>
+
             {/* Profile list */}
             <div>
                 <label className={`block text-xs font-bold mb-2 ${textSec}`}>
@@ -399,16 +460,28 @@ export const ProfileBankPanel = ({
                     </div>
                 ) : (
                     <div className="space-y-token-2 max-h-[40vh] overflow-y-auto">
-                        {profiles.map(p => (
+                        {profiles.map(p => {
+                            const isDefault = p.id === defaultProfileId;
+                            return (
                             <div
                                 key={p.id}
                                 className={`p-token-3 rounded-lg border ${
-                                    theme === 'warm' ? 'border-amber-200 bg-amber-50/40' : theme === 'dark' ? 'border-slate-200 bg-white' : theme === 'contrast' ? 'border-slate-200 bg-white' : theme === 'paper' ? 'border-slate-200 bg-white' : theme === 'reactor' ? 'border-slate-200 bg-white' : 'border-slate-200 bg-white'
+                                    isDefault
+                                        ? 'border-cyan-400 bg-cyan-50/40 ring-1 ring-cyan-200'
+                                        : (theme === 'warm' ? 'border-amber-200 bg-amber-50/40' : theme === 'dark' ? 'border-slate-200 bg-white' : theme === 'contrast' ? 'border-slate-200 bg-white' : theme === 'paper' ? 'border-slate-200 bg-white' : theme === 'reactor' ? 'border-slate-200 bg-white' : 'border-slate-200 bg-white')
                                 }`}
                             >
                                 <div className="flex items-start justify-between gap-token-2">
                                     <div className="flex-1 min-w-0">
-                                        <div className={`text-sm font-bold truncate ${textPri}`}>{p.name}</div>
+                                        <div className="flex items-center gap-token-2">
+                                            <span className={`text-sm font-bold truncate ${textPri}`}>{p.name}</span>
+                                            {isDefault && (
+                                                <span className="flex-none inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-cyan-500 text-white font-bold" title="呢個 profile 會喺 App mount 嗰陣自動套用">
+                                                    <Star size={10} fill="currentColor" />
+                                                    預設中
+                                                </span>
+                                            )}
+                                        </div>
                                         <div className={`text-xs ${textSec} mt-0.5`}>
                                             {p.preset?.grade || '未設年級'} ·
                                             {p.preset?.senTypes?.length
@@ -432,6 +505,24 @@ export const ProfileBankPanel = ({
                                         >
                                             <Sparkles size={14} />
                                         </button>
+                                        {/* v3.17.0 1.1: 設為預設 / 已是預設 toggle button */}
+                                        <button
+                                            onClick={() => {
+                                                if (isDefault) {
+                                                    clearDefaultProfile();
+                                                } else {
+                                                    setDefaultProfileId(p.id);
+                                                }
+                                            }}
+                                            className={`p-token-2 rounded-lg ${
+                                                isDefault
+                                                    ? 'bg-cyan-500 text-white hover:bg-cyan-600'
+                                                    : btnSec
+                                            }`}
+                                            title={isDefault ? '取消呢個 profile 作為預設' : '設為預設 profile — App mount 嗰陣自動套用'}
+                                        >
+                                            {isDefault ? <Star size={14} fill="currentColor" /> : <StarOff size={14} />}
+                                        </button>
                                         <button
                                             onClick={() => handleStartEdit(p)}
                                             className={`p-token-2 rounded-lg ${btnSec}`}
@@ -449,7 +540,8 @@ export const ProfileBankPanel = ({
                                     </div>
                                 </div>
                             </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </div>

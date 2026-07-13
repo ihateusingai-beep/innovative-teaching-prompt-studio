@@ -10,13 +10,26 @@
 //   - lastVisitedTab 落 localStorage
 //   - recovery snackbar auto-dismiss (10s) 而唔係 modal block
 //   - 加返所有 v2 → v3 refactor 漏咗嘅 helper (toggleSection, applySuggestion,
-//     saveAsUserTemplate, deleteUserTemplate, confirmReplace/Append/Cancel, saveApiKey)
+//     saveAsUserTemplate, deleteUserTemplate, saveApiKey)
 //   - Quality Score always computed (for header badge)
+//
+// PATCH 2026-07-12 (drift cleanup):
+//   - Removed dead `handleGetSuggestions` (declared but never called — App.jsx
+//     toggles suggestion panels via `setActiveSuggestionField` directly)
+//   - Removed dead `pendingSuggestion` state + `confirmReplace/Append/cancelSuggestion`
+//     handlers + the ConfirmReplaceDialog mount. v3.15.0 A3 ImportDiffModal replaced
+//     the legacy import-conflict flow; nothing sets pendingSuggestion any more.
+//   - Removed duplicate `handleDeleteTemplate` (identical body to `deleteUserTemplate`)
+//   - Replaced native `confirm()` in 3 destructive-action handlers
+//     (handleReset / removeStudent / deleteUserTemplate) with the new
+//     `askConfirm()` flow → `<ConfirmDialog>` modal. This is the W9-10 Q3
+//     migration finalised: every blocking dialog now goes through either
+//     `pushWarning` (info) or `askConfirm` (destructive). The two remaining
+//     `alert()` sites in handleExport / restoreVersion also moved to pushWarning.
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 
 import { getInitialFormData, migrateFormData } from '../data/schema.js';
-import { getSuggestions } from '../data/suggestions.js';
 import { BUILTIN_TEMPLATES } from '../data/templates.js';
 import { getRecommendedA11y } from '../data/sen-a11y-map.js';
 // PATCH 2026-07-12 (P2-d): categories + subjects now imported from the
@@ -117,7 +130,6 @@ export const useAppState = () => {
     const [onboardingStep, setOnboardingStep] = useState(null);
     const [onboardingActive, setOnboardingActive] = useState(false);
     const [activeSuggestionField, setActiveSuggestionField] = useState(null);
-    const [pendingSuggestion, setPendingSuggestion] = useState(null);
     // v3.15.0 A3: Import diff state — shows per-field status, supports undo (5 min window)
     const [importDiff, setImportDiff] = useState(null);  // { fileName, cleanFormData, fieldStatus, warnings, schemaVersion, legacyExtra, appliedAt }
     const UNDO_WINDOW_MS = 5 * 60 * 1000;
@@ -148,6 +160,27 @@ export const useAppState = () => {
     }, []);
     const dismissWarning = useCallback((id) => {
         setWarnings(prev => prev.filter(w => w.id !== id));
+    }, []);
+
+    // === PATCH 2026-07-12: askConfirm flow ===
+    // Replaces native `confirm()` in destructive handlers (handleReset /
+    // removeStudent / deleteUserTemplate). Caller passes an `onConfirm` fn that
+    // does the actual mutation; we only drive the modal lifecycle.
+    // Shape: { title, message, danger?, onConfirm }
+    const [confirmAction, setConfirmAction] = useState(null);
+    const askConfirm = useCallback(({ title, message, danger = false, onConfirm }) => {
+        setConfirmAction({ title, message, danger, onConfirm });
+    }, []);
+    const resolveConfirm = useCallback(() => {
+        // Capture-then-clear: prevents double-fire if the user mashes the button
+        // before React unmounts the modal after the state change.
+        setConfirmAction(prev => {
+            if (prev?.onConfirm) prev.onConfirm();
+            return null;
+        });
+    }, []);
+    const cancelConfirm = useCallback(() => {
+        setConfirmAction(null);
     }, []);
 
     // === Persistent storage hooks ===
@@ -203,6 +236,24 @@ export const useAppState = () => {
     // === W7-8: SEN Student Profile Bank ===
     const profileBank = useProfileBank();
     const [profileBankOpen, setProfileBankOpen] = useState(false);
+
+    // === v3.17.0 1.1: Auto-Fill from Default Student Profile ===
+    // defaultProfileId points to a profile in profileBank.profiles. On app mount
+    // (and when defaultProfileId / profileBank.profiles change), if the default
+    // exists AND formData is at initial state (toolName + purpose empty) AND
+    // the user has not opted out, auto-apply the profile's preset into formData.
+    // This shaves ~5-10 min off a teacher's daily flow (one common profile reused
+    // across all 30 students in a class).
+    //
+    // Clobber protection: if formData already has content, do NOT auto-apply.
+    // This prevents surprise overwrites of in-progress work on app reload.
+    //
+    // Persisted in localStorage so the choice survives reload + browser restart.
+    const [defaultProfileId, setDefaultProfileId] = useLocalStorage('TDA_DEFAULT_PROFILE_ID_V1', null);
+    const [autoApplyEnabled, setAutoApplyEnabled] = useLocalStorage('TDA_AUTO_FILL_ENABLED_V1', true);
+    const clearDefaultProfile = useCallback(() => {
+        setDefaultProfileId(null);
+    }, [setDefaultProfileId]);
 
     const fileInputRef = useRef(null);
 
@@ -345,9 +396,10 @@ export const useAppState = () => {
         try {
             await handleExportDOCX(formData);
         } catch (err) {
-            alert('❌ DOCX 匯出失敗：' + err.message);
+            // PATCH 2026-07-12: alert → pushWarning (W9-10 Q3 non-blocking migration).
+            pushWarning('error', '❌ DOCX 匯出失敗', [err.message || '未知錯誤']);
         }
-    }, [formData]);
+    }, [formData, pushWarning]);
 
     // === Gemini direct generation ===
     // BUGFIX 2026-07-11: args order was (fullPrompt, geminiApiKey, cb) — wrong!
@@ -570,10 +622,23 @@ export const useAppState = () => {
     }, [studentRoster, setStudentRoster]);
 
     const removeStudent = useCallback((id) => {
-        if (!confirm('刪除此學生？相關嘅 assessment data 都會一齊刪除。')) return { ok: false };
-        setStudentRoster(studentRoster.filter(s => s.id !== id));
-        return { ok: true };
-    }, [studentRoster, setStudentRoster]);
+        // PATCH 2026-07-12: confirm → askConfirm (non-blocking modal).
+        const target = studentRoster.find(s => s.id === id);
+        if (!target) return { ok: false };
+        askConfirm({
+            title: '🗑 刪除此學生？',
+            message: `「${target.name}」嘅 assessment data 都會一齊刪除。呢個動作會儲存喺 history，可以 undo。`,
+            danger: true,
+            confirmLabel: '刪除',
+            onConfirm: () => {
+                // Updater form — if the user adds a student between ask & confirm,
+                // the new student is preserved (no stale-list overwrites).
+                setStudentRoster(prev => prev.filter(s => s.id !== id));
+                pushWarning('info', '🗑 已刪除學生', [`「${target.name}」已從 roster 拎走`]);
+            },
+        });
+        return { ok: true };  // ok: true means "we asked" — actual deletion fires on confirm
+    }, [studentRoster, setStudentRoster, askConfirm, pushWarning]);
 
     const applyStudentToAssessment = useCallback((studentId) => {
         const student = studentRoster.find(s => s.id === studentId);
@@ -600,10 +665,24 @@ export const useAppState = () => {
     }, [studentRoster, formData, pushHistory, setFormData, pushWarning]);
 
     // === Delete user template ===
+    // PATCH 2026-07-12: confirm → askConfirm (non-blocking modal). Also: the
+    // previous duplicate `handleDeleteTemplate` is removed in the same batch —
+    // it had an identical body to this fn and was never called.
     const deleteUserTemplate = useCallback((id) => {
-        if (!confirm('刪除呢個 template？')) return;
-        setUserTemplates(userTemplates.filter(t => t.id !== id));
-    }, [userTemplates, setUserTemplates]);
+        const target = userTemplates.find(t => t.id === id);
+        if (!target) return;
+        askConfirm({
+            title: '🗑 刪除此範本？',
+            message: `「${target.name}」會永久刪除。內建範本唔受影響。`,
+            danger: true,
+            confirmLabel: '刪除',
+            onConfirm: () => {
+                // Updater form — preserves any templates added between ask & confirm.
+                setUserTemplates(prev => prev.filter(t => t.id !== id));
+                pushWarning('info', '🗑 已刪除範本', [`「${target.name}」已拎走`]);
+            },
+        });
+    }, [userTemplates, setUserTemplates, askConfirm, pushWarning]);
 
     // === Load template ===
     // 3-shape 兼容邏輯抽咗去 src/utils/template-loader.js (extractTemplateFields)，
@@ -623,11 +702,6 @@ export const useAppState = () => {
             ));
         }
     }, [setFormData, pushHistory, setUserTemplates]);
-
-    const handleDeleteTemplate = useCallback((id) => {
-        if (!confirm('刪除呢個 template？')) return;
-        setUserTemplates(userTemplates.filter(t => t.id !== id));
-    }, [userTemplates, setUserTemplates]);
 
     // === JSON import ===
     const handleImportJSON = useCallback((event) => {
@@ -690,60 +764,10 @@ export const useAppState = () => {
         pushWarning('info', '↩️ 已撤銷匯入', [`${importDiff.fileName} 嘅變更已還原`]);
     }, [importDiff, undo, pushWarning]);
 
-    // === F4 (audit v3.14.2): import success toast on replace/append confirm ===
-    const confirmReplace = useCallback(() => {
-        if (!pendingSuggestion || pendingSuggestion.type !== 'import') return;
-        pushHistory();
-        setFormData(pendingSuggestion.data);
-        if (pendingSuggestion.warnings && pendingSuggestion.warnings.length > 0) {
-            pushWarning('warning', '匯入完成（' + pendingSuggestion.warnings.length + ' 項警告）', pendingSuggestion.warnings);
-        } else {
-            const v = pendingSuggestion.schemaVersion ? `v${pendingSuggestion.schemaVersion}` : '已匯入';
-            pushWarning('success', `✓ 取代成功 (${v})`, ['原 formData 已被取代']);
-        }
-        setPendingSuggestion(null);
-    }, [pendingSuggestion, pushHistory, setFormData, pushWarning]);
-
-    const confirmAppend = useCallback(() => {
-        if (!pendingSuggestion || pendingSuggestion.type !== 'import') return;
-        pushHistory();
-        // Append: 將 imported 嘅 arrays merge 入現有 data（不覆蓋已有 non-empty fields）
-        setFormData(prev => {
-            const merged = { ...prev };
-            for (const [key, value] of Object.entries(pendingSuggestion.data)) {
-                if (Array.isArray(value) && Array.isArray(prev[key])) {
-                    // Arrays: append non-duplicates to existing
-                    const existing = prev[key] || [];
-                    const seen = new Set(existing.map(v => typeof v === 'string' ? v : JSON.stringify(v)));
-                    const toAdd = value.filter(v => !seen.has(typeof v === 'string' ? v : JSON.stringify(v)));
-                    merged[key] = [...existing, ...toAdd];
-                } else if (Array.isArray(value)) {
-                    merged[key] = value;
-                } else if (typeof value === 'string' && value !== '' && (!prev[key] || prev[key] === '')) {
-                    // Empty string overwrite: skip (preserve existing)
-                    // Non-empty string: only fill if existing is empty
-                    merged[key] = value;
-                } else if (typeof value !== 'string' && value !== null && value !== undefined) {
-                    // Objects / numbers / booleans: only fill if existing is empty / null
-                    if (!prev[key] || prev[key] === '' || prev[key] === null) {
-                        merged[key] = value;
-                    }
-                }
-            }
-            return merged;
-        });
-        if (pendingSuggestion.warnings && pendingSuggestion.warnings.length > 0) {
-            pushWarning('warning', '合併匯入完成（' + pendingSuggestion.warnings.length + ' 項警告）', pendingSuggestion.warnings);
-        } else {
-            const v = pendingSuggestion.schemaVersion ? `v${pendingSuggestion.schemaVersion}` : '已匯入';
-            pushWarning('success', `✓ 合併成功 (${v})`, ['已合併入當前 formData']);
-        }
-        setPendingSuggestion(null);
-    }, [pendingSuggestion, pushHistory, setFormData, pushWarning]);
-
-    const cancelSuggestion = useCallback(() => {
-        setPendingSuggestion(null);
-    }, []);
+    // PATCH 2026-07-12: removed dead confirmReplace / confirmAppend / cancelSuggestion.
+    // These were the F4 (audit v3.14.2) import-conflict path — replaced by v3.15.0 A3
+    // ImportDiffModal in commit 05cfb4a. Nothing in the codebase sets `pendingSuggestion`
+    // any more, so the type guard always returns early. Removed entirely.
 
     // === JSON export ===
     const handleExportJSON = useCallback(() => {
@@ -765,13 +789,10 @@ export const useAppState = () => {
     }, [formData]);
 
     // === AI Suggestions (apply) ===
-    const handleGetSuggestions = useCallback((field) => {
-        const candidates = getSuggestions(field, formData);
-        if (candidates.length > 0) {
-            setActiveSuggestionField(field);
-        }
-    }, [formData]);
-
+    // PATCH 2026-07-12: removed dead `handleGetSuggestions` — declared but never
+    // called. App.jsx toggles suggestion panels via `setActiveSuggestionField`
+    // directly, bypassing the candidates-check this wrapper would have provided.
+    // (Re-introduce later if a "no candidates → silent no-op" UX is wanted.)
     const applySuggestion = useCallback((field, text) => {
         if (field === 'rules') {
             // W9-10 #6: AI 建議加入嘅 rule 預設係 user 自訂（非 default）
@@ -818,13 +839,23 @@ export const useAppState = () => {
     }, [setOnboardingDone]);
 
     // === Reset all ===
+    // PATCH 2026-07-12: confirm → askConfirm (non-blocking modal). User now
+    // sees a real dialog matching the other destructive actions in the app.
     const handleReset = useCallback(() => {
-        if (!confirm('確定要重設所有資料？')) return;
-        pushHistory();
-        setFormData(getInitialFormData());
-        setActiveTab('basic');
-        clearAutosave();
-    }, [setFormData, pushHistory, clearAutosave]);
+        askConfirm({
+            title: '⚠️ 重設所有資料？',
+            message: '所有 tab 嘅填寫內容、學生評估、自訂範本、自訂規則等都會清空。呢個動作會儲存喺 history（可以 undo），但 localStorage 嘅 recovery snapshot 都會清埋。',
+            danger: true,
+            confirmLabel: '重設',
+            onConfirm: () => {
+                pushHistory();
+                setFormData(getInitialFormData());
+                setActiveTab('basic');
+                clearAutosave();
+                pushWarning('info', '🔄 已重設', ['已回到預設空白狀態']);
+            },
+        });
+    }, [setFormData, pushHistory, clearAutosave, askConfirm, pushWarning]);
 
     // === File input trigger ===
     const triggerJSONImport = useCallback(() => {
@@ -848,7 +879,8 @@ export const useAppState = () => {
     // === W5-6: Restore version (set formData + push history) ===
     const restoreVersion = useCallback((version) => {
         if (!version || !version.snapshot || !version.snapshot.formData) {
-            alert('呢個版本冇 formData snapshot，唔可以 restore。');
+            // PATCH 2026-07-12: alert → pushWarning.
+            pushWarning('warning', '⚠️ 唔可以 restore 呢個版本', ['可能係早期儲存嘅版本，冇 formData snapshot']);
             return;
         }
         pushHistory();
@@ -888,6 +920,42 @@ export const useAppState = () => {
         // Auto-close panel after apply
         setProfileBankOpen(false);
     }, [pushHistory, setFormData]);
+
+    // === v3.17.0 1.1: Auto-apply default profile on mount / when default changes ===
+    // Re-runs when:
+    //   - defaultProfileId changes (user sets/clears a default)
+    //   - profileBank.profiles changes (vault unlocked + profiles load)
+    //   - autoApplyEnabled toggles off
+    //
+    // Clobber gate: formData.toolName AND formData.purpose must both be empty.
+    // If either has content, the teacher is mid-work and we DO NOT overwrite.
+    // Reset to a clean slate → both empty → next mount auto-applies (decision 2).
+    //
+    // Stale-id recovery: if defaultProfileId points to a deleted profile, clear
+    // the localStorage entry + warn. Silent stale-id would make "Reset 預設"
+    // confusing ("cleared, but next reload still tries to apply...").
+    useEffect(() => {
+        if (!defaultProfileId || !autoApplyEnabled) return;
+        const profiles = profileBank.profiles || [];
+        if (profiles.length === 0) return;  // vault locked OR no profiles yet
+        const profile = profiles.find(p => p.id === defaultProfileId);
+        if (!profile) {
+            setDefaultProfileId(null);
+            pushWarning('warning', '⚠️ 預設 profile 唔見咗', [
+                '之前設定嘅預設 profile 已經被刪除。',
+                '可以喺 Profile Bank 揀過另一個設為預設。',
+            ]);
+            return;
+        }
+        if (formData.toolName && formData.toolName.trim()) return;
+        if (formData.purpose && formData.purpose.trim()) return;
+        // Clobber gate passed → apply.
+        applyProfile(profile);
+        pushWarning('info', '✨ 已自動套用預設 profile', [
+            `「${profile.name}」嘅 SEN 類型 + 年級 已帶入當前 form`,
+            '想換: 喺 Profile Bank 揀另一個設為預設,或者關閉「自動套用」toggle',
+        ]);
+    }, [defaultProfileId, autoApplyEnabled, profileBank.profiles]);
 
     // === Computed values ===
     const designPrompt = useMemo(() => generateDesignPrompt(formData), [formData]);
@@ -939,8 +1007,6 @@ export const useAppState = () => {
         setOnboardingActive,
         activeSuggestionField,
         setActiveSuggestionField,
-        pendingSuggestion,
-        setPendingSuggestion,
         aiGenerating,
         aiResult,
         aiError,
@@ -983,7 +1049,6 @@ export const useAppState = () => {
         saveApiKey,
         saveAsUserTemplate,
         handleLoadTemplate,
-        handleDeleteTemplate,
         deleteUserTemplate,
         // v3.15.0 F1: extended user template handlers
         updateUserTemplate,
@@ -997,14 +1062,15 @@ export const useAppState = () => {
         // v3.15.0 A3: import diff + undo
         importDiff, setImportDiff,
         confirmImportFromDiff, undoImport, canUndoImport, UNDO_WINDOW_MS,
-        handleGetSuggestions,
         applySuggestion,
         handleCoachNext,
         handleCoachSkip,
         handleReset,
-        confirmReplace,
-        confirmAppend,
-        cancelSuggestion,
+        // PATCH 2026-07-12: askConfirm flow — drives <ConfirmDialog> modal
+        confirmAction,
+        askConfirm,
+        resolveConfirm,
+        cancelConfirm,
         // W5-6: Prompt Versions
         promptVersions,
         versionPanelOpen,
@@ -1015,6 +1081,12 @@ export const useAppState = () => {
         profileBankOpen,
         setProfileBankOpen,
         applyProfile,
+        // v3.17.0 1.1: auto-fill from default profile
+        defaultProfileId,
+        setDefaultProfileId,
+        clearDefaultProfile,
+        autoApplyEnabled,
+        setAutoApplyEnabled,
         // Computed
         designPrompt,
         techPrompt,

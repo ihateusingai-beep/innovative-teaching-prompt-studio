@@ -61,7 +61,7 @@ tda/
 │   │   └── useAppState.js  # Centralized state + handlers (the App state aggregator)
 │   └── components/         # UI primitives
 │       ├── ui.jsx          # Card, Label, Input, TextArea, Select, CollapsibleSection
-│       ├── modals.jsx      # ApiSettingsModal, CoachMark, ConfirmReplaceDialog
+│       ├── modals.jsx      # ApiSettingsModal, CoachMark, ConfirmDialog
 │       └── widgets.jsx     # QualityScoreBadge, QualityScoreDetail, TemplateCard, SuggestionPanel
 └── dist/                   # Build output (gitignored)
     └── index.html          # 410KB single-file IIFE bundle — THIS is what users get

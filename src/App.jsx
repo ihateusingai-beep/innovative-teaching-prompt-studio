@@ -7,9 +7,17 @@ import { formatTimeAgo } from './utils/time.js';
 import { useTimeAgo } from './hooks/useTimeAgo.js';
 import { SCHEMA_VERSION } from './data/schema.js';
 import { BUILTIN_TEMPLATES } from './data/templates.js';
+// PATCH 2026-07-12: re-add missing `getSuggestions` import. Was dropped
+// somewhere between b701ac5 and d405c0b (the option-tables SSOT refactor
+// moved many imports but `getSuggestions` is a separate file). 3 call sites
+// in renderStep2/3 reference it directly via App.jsx scope. Latent P0:
+// conditional JSX (only renders when user clicks "✨ AI 幫我諗") kept the
+// ReferenceError from tripping the smoke test, which only checks initial
+// load ReferenceErrors — not after user interaction. Fix: import back.
+import { getSuggestions } from './data/suggestions.js';
 import { SEN_TO_A11Y_MAP, getRecommendedA11y } from './data/sen-a11y-map.js';
 import { Card, Label, Input, TextArea, Select, CollapsibleSection } from './components/ui.jsx';
-import { ApiSettingsModal, CoachMark, ConfirmReplaceDialog } from './components/modals.jsx';
+import { ApiSettingsModal, CoachMark, ConfirmDialog } from './components/modals.jsx';
 import { QualityScoreBadge, QualityScoreDetail, SuggestionPanel } from './components/widgets.jsx';
 import { TemplateCard, TemplateEditorModal } from './components/TemplateCard.jsx';
 import { ImportDiffModal } from './components/ImportDiffModal.jsx';
@@ -155,12 +163,15 @@ export function App() {
         promptVersions, versionPanelOpen, setVersionPanelOpen, restoreVersion,
         // W7-8 Student Profile Bank
         profileBank, profileBankOpen, setProfileBankOpen, applyProfile,
+        // v3.17.0 1.1: auto-fill from default profile
+        defaultProfileId, setDefaultProfileId, clearDefaultProfile,
+        autoApplyEnabled, setAutoApplyEnabled,
         // Sections
         expandedSections, setExpandedSections, toggleSection,
         // Onboarding
         onboardingStep, onboardingActive, setOnboardingActive,
         // Suggestion
-        activeSuggestionField, setActiveSuggestionField, pendingSuggestion, setPendingSuggestion,
+        activeSuggestionField, setActiveSuggestionField,
         // AI
         aiGenerating, aiResult, aiError, showApiSettings, setShowApiSettings,
         // Form data
@@ -180,7 +191,7 @@ export function App() {
         // v3.14.0: Award Certificate
         awardCertOpen, setAwardCertOpen,
         saveApiKey,         saveAsUserTemplate, deleteUserTemplate, handleLoadTemplate,
-        handleDeleteTemplate, handleImportJSON, handleExportJSON,
+        handleImportJSON, handleExportJSON,
         // v3.15.0 F1: extended user template handlers
         updateUserTemplate, duplicateUserTemplate, archiveUserTemplate,
         // v3.16.0 F2: class roster
@@ -188,9 +199,10 @@ export function App() {
         addStudent, updateStudent, removeStudent, applyStudentToAssessment,
         // v3.15.0 A3: import diff + undo
         importDiff, setImportDiff, confirmImportFromDiff, undoImport, canUndoImport, UNDO_WINDOW_MS,
-        handleGetSuggestions, applySuggestion,
+        applySuggestion,
         handleCoachNext, handleCoachSkip, handleReset,
-        confirmReplace, confirmAppend, cancelSuggestion,
+        // PATCH 2026-07-12: askConfirm flow → <ConfirmDialog>
+        confirmAction, resolveConfirm, cancelConfirm,
         // Computed
         designPrompt, techPrompt, qualityScore,
         // Constants
@@ -718,7 +730,11 @@ const renderStep1 = () => (
                                             const validLabels = accessibilityOptions.map(o => o.label);
                                             const toAdd = recommended.filter(r => validLabels.includes(r));
                                             if (toAdd.length === 0) {
-                                                alert('推薦項目冇對應嘅 a11y 維度（部分係設計建議）。手動啟用合適嘅維度。');
+                                                // PATCH 2026-07-12: alert → pushWarning (W9-10 Q3 non-blocking).
+                                                pushWarning('info', 'ℹ️ 推薦項目冇對應 a11y 維度', [
+                                                    '部分 SEN 推薦係設計建議（例如「概念：視覺時間表」），冇對應 accessibilityOptions 嘅 label',
+                                                    '請手動啟用合適嘅 a11y 維度',
+                                                ]);
                                                 return;
                                             }
                                             setFormData(prev => ({
@@ -1740,14 +1756,19 @@ const renderMultiVariant = () => {
                 />
             )}
 
-            {/* Confirm replace/append modal — AI Suggestion apply 嘅決策 */}
-            {pendingSuggestion && (
-                <ConfirmReplaceDialog
+            {/* PATCH 2026-07-12: generic ConfirmDialog — drives all destructive actions
+                (handleReset / removeStudent / deleteUserTemplate). Replaces the legacy
+                ConfirmReplaceDialog that v3.15.0 A3 ImportDiffModal made obsolete. */}
+            {confirmAction && (
+                <ConfirmDialog
                     theme={theme}
-                    pendingText={pendingSuggestion.text}
-                    onReplace={confirmReplace}
-                    onAppend={confirmAppend}
-                    onCancel={cancelSuggestion}
+                    open={true}
+                    title={confirmAction.title}
+                    message={confirmAction.message}
+                    danger={confirmAction.danger}
+                    confirmLabel={confirmAction.confirmLabel || '確認'}
+                    onConfirm={resolveConfirm}
+                    onCancel={cancelConfirm}
                 />
             )}
 
@@ -1776,6 +1797,12 @@ const renderMultiVariant = () => {
                     onApplyProfile={applyProfile}
                     onClose={() => setProfileBankOpen(false)}
                     asModal={true}
+                    // v3.17.0 1.1: auto-fill from default profile
+                    defaultProfileId={defaultProfileId}
+                    setDefaultProfileId={setDefaultProfileId}
+                    clearDefaultProfile={clearDefaultProfile}
+                    autoApplyEnabled={autoApplyEnabled}
+                    setAutoApplyEnabled={setAutoApplyEnabled}
                 />
             )}
 
