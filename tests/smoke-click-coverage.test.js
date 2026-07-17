@@ -53,11 +53,22 @@ describe('v3.17.0 6.1: click-coverage smoke test', () => {
         document.documentElement.innerHTML = '<html><head></head><body><div id="root"></div></body></html>';
         // Bypass auth gate (inline script in index.html checks sessionStorage on load)
         sessionStorage.setItem('itps_auth_v1', '1');
+        // PATCH 2026-07-14: skip onboarding (CoachMark overlay would otherwise
+        // appear on first mount + block/re-route the first click in the
+        // broad-coverage test, hiding latent ReferenceErrors behind the
+        // overlay. Matches the existing localStorage key useAppState reads:
+        // useLocalStorage('TDA_ONBOARDING_DONE_V1', false) — see
+        // useAppState.js onboardingDone useEffect gate.
+        localStorage.setItem('TDA_ONBOARDING_DONE_V1', 'true');
+        // Also reset recovery snapshot so the "load recovery?" snackbar
+        // doesn't pop up and cover buttons on first mount.
+        localStorage.removeItem('TDA_AUTOSAVE_V1');
     });
 
     afterEach(() => {
         sessionStorage.removeItem('itps_auth_v1');
-        // Cleanup any error capture state
+        localStorage.removeItem('TDA_ONBOARDING_DONE_V1');
+        localStorage.removeItem('TDA_AUTOSAVE_V1');
     });
 
     /**
@@ -173,17 +184,22 @@ describe('v3.17.0 6.1: click-coverage smoke test', () => {
             await wait(150);  // wait for React mount + auth-gate unlock
             expect(errorState.getFatal()).toEqual([]);
 
-            // Switch to content tab so the "AI 幫我諗" button is rendered
-            // Tab button text from App.jsx renderStep2: '📝 內容'
+            // PATCH 2026-07-17 (v3.18.0 §3.4 follow-up): require tab buttons to
+            // exist before switching — silent-skip 'if (contentTab) { ... }'
+            // was the false-pass risk Bug 3 from senior review. Re-applied
+            // after deferring from v3.17.0 6.1 hotfix (per user "1+2" pick).
             const contentTab = findButtonsByText('📝 內容')[0];
-            if (contentTab) {
-                contentTab.click();
-                await wait(80);
-                expect(errorState.getFatal()).toEqual([]);
-            }
+            expect(contentTab, 'content tab button should be rendered after initial mount').toBeTruthy();
+            contentTab.click();
+            await wait(80);
+            expect(errorState.getFatal()).toEqual([]);
 
             // Click "AI 幫我諗" buttons in the content tab
             const contentAiButtons = findButtonsByText('AI 幫我諗');
+            expect(
+                contentAiButtons.length,
+                'at least one "AI 幫我諗" button should render on content tab'
+            ).toBeGreaterThan(0);
             for (const btn of contentAiButtons) {
                 btn.click();
                 await wait(80);
@@ -196,20 +212,23 @@ describe('v3.17.0 6.1: click-coverage smoke test', () => {
 
             // Switch to rules tab
             const rulesTab = findButtonsByText('⚙️ 規則')[0];
-            if (rulesTab) {
-                rulesTab.click();
+            expect(rulesTab, 'rules tab button should be rendered').toBeTruthy();
+            rulesTab.click();
+            await wait(80);
+            const rulesAiButtons = findButtonsByText('AI 幫我諗');
+            expect(
+                rulesAiButtons.length,
+                'at least one "AI 幫我諗" button should render on rules tab'
+            ).toBeGreaterThan(0);
+            for (const btn of rulesAiButtons) {
+                btn.click();
                 await wait(80);
-                const rulesAiButtons = findButtonsByText('AI 幫我諗');
-                for (const btn of rulesAiButtons) {
-                    btn.click();
-                    await wait(80);
-                }
-                expect(errorState.getFatal()).toEqual(
-                    [],
-                    'Clicking "AI 幫我諗" on rules tab should not throw. Captured: ' +
-                    JSON.stringify(errorState.getFatal(), null, 2)
-                );
             }
+            expect(errorState.getFatal()).toEqual(
+                [],
+                'Clicking "AI 幫我諗" on rules tab should not throw. Captured: ' +
+                JSON.stringify(errorState.getFatal(), null, 2)
+            );
         } finally {
             errorState.restore();
         }
@@ -220,30 +239,66 @@ describe('v3.17.0 6.1: click-coverage smoke test', () => {
         try {
             await wait(150);
 
-            // Discover all interactive elements
-            const allButtons = Array.from(document.querySelectorAll('button:not([disabled]), [role="button"]:not([disabled]), a[href]'));
-
-            // Walk through and click each (errors reset after each successful click)
+            // PATCH 2026-07-14: snapshot-then-iterate was a stale-reference bug
+            // (Bug 1 from senior review). Clicks can unmount other buttons
+            // (e.g. ProfileBankPanel's Lock button unmounts the whole panel),
+            // so we must re-query on each iteration against the live DOM.
+            // Bound the loop by max iterations to avoid infinite loops if a
+            // click keeps creating new buttons (e.g. dynamic add-rows).
+            const MAX_ITERATIONS = 100;
             const triggeredErrors = [];
-            for (let i = 0; i < allButtons.length; i++) {
-                const btn = allButtons[i];
-                const label = (btn.textContent || btn.getAttribute('aria-label') || btn.getAttribute('title') || '?').trim().slice(0, 40);
+            const seen = new WeakSet();
+            let lastSize = -1;
 
-                // Skip buttons that would trigger browser-level dialogs
-                // (we can't safely simulate file upload, alert, prompt in jsdom)
-                const triggersDialog = btn.matches('input[type="file"] + *, label[class*="cursor-pointer"]');
-                if (triggersDialog) continue;
+            for (let i = 0; i < MAX_ITERATIONS; i++) {
+                const allButtons = Array.from(
+                    document.querySelectorAll(
+                        'button:not([disabled]), [role="button"]:not([disabled]), a[href]'
+                    )
+                );
+                // Termination: if the DOM hasn't changed since last iteration
+                // (i.e. we clicked everything we can see), stop.
+                if (allButtons.length === lastSize) break;
+                lastSize = allButtons.length;
 
-                // Snapshot pre-click fatal count
-                const beforeClick = errorState.getFatal().length;
-                btn.click();
-                await wait(30);
+                let clickedThisRound = 0;
+                for (const btn of allButtons) {
+                    if (seen.has(btn)) continue;
+                    seen.add(btn);
 
-                const afterClick = errorState.getFatal();
-                if (afterClick.length > beforeClick) {
-                    const newErrors = afterClick.slice(beforeClick);
-                    triggeredErrors.push({ label, errors: newErrors });
+                    const label = (
+                        btn.textContent ||
+                        btn.getAttribute('aria-label') ||
+                        btn.getAttribute('title') ||
+                        '?'
+                    ).trim().slice(0, 40);
+
+                    // Skip browser-level dialogs (file upload, alert, prompt
+                    // — jsdom can't safely simulate these).
+                    const triggersDialog = btn.matches(
+                        'input[type="file"] + *, label[class*="cursor-pointer"]'
+                    );
+                    if (triggersDialog) continue;
+
+                    // Skip links that navigate away (would lose our test
+                    // context). All in-app links are # anchors.
+                    if (btn.tagName === 'A' && btn.getAttribute('href')?.startsWith('http')) {
+                        continue;
+                    }
+
+                    const beforeClick = errorState.getFatal().length;
+                    btn.click();
+                    clickedThisRound += 1;
+                    await wait(30);
+
+                    const afterClick = errorState.getFatal();
+                    if (afterClick.length > beforeClick) {
+                        const newErrors = afterClick.slice(beforeClick);
+                        triggeredErrors.push({ label, errors: newErrors });
+                    }
                 }
+                // Safety: if a round clicked nothing, break to avoid loop
+                if (clickedThisRound === 0) break;
             }
 
             if (triggeredErrors.length > 0) {
