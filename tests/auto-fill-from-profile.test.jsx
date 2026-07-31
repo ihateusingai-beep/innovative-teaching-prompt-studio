@@ -11,7 +11,7 @@
 // @vitest-environment jsdom
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { renderHook, act, render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { renderHook, act, render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 import React from 'react';
 
 // --- Mock useLocalStorage (same pattern as reduced-motion.test.js) ---
@@ -29,7 +29,14 @@ vi.mock('../src/hooks/useLocalStorage.js', () => ({
             setRawValue(prev => {
                 const v = typeof valOrUpdater === 'function' ? valOrUpdater(prev) : valOrUpdater;
                 if (v === null || v === undefined) mockStorage.delete(key);
-                else mockStorage.set(key, v);
+                // PATCH 2026-07-17: stringify booleans so the mock matches real
+                // localStorage semantics (real localStorage.setItem(true) stores
+                // "true" as a string, but our Map-based mock was storing the raw
+                // boolean). The reader path below already coerces strings back
+                // to booleans, so this just makes the write side consistent.
+                // Without this, `expect(mockStorage.get('TDA_AUTO_FILL_ENABLED_V1')).toBe('false')`
+                // fails because get() returns the boolean false, not the string 'false'.
+                else mockStorage.set(key, typeof v === 'boolean' ? String(v) : v);
                 return v;
             });
         };
@@ -155,10 +162,17 @@ describe('v3.17.0 1.1 — Auto-Fill from Default Student Profile', () => {
         expect(result.current.formData.toolName).toBe('');
         expect(result.current.formData.purpose).toBe('');
 
-        // Effect should have run on mount → applyProfile called → formData has profile's preset
-        // Note: applyProfile merges with union/empty-fill, so senTypes + grade should be set
-        expect(result.current.formData.senTypes).toContain('ASD 自閉症譜系');
-        expect(result.current.formData.grade).toBe('小三');
+        // PATCH 2026-07-17: auto-apply useEffect runs AFTER render, so we must
+        // waitFor the assertion. Synchronous expect() was reading the pre-effect
+        // initial formData and tripping on the default suggestion for grade
+        // (e.g. "小學二年級 (P2)" from options-table) instead of the profile's
+        // applied value ("小三"). waitFor retries until the effect-driven value
+        // lands (or times out — failure then means auto-apply never fired,
+        // which is exactly what the test is meant to catch).
+        await waitFor(() => {
+            expect(result.current.formData.senTypes).toContain('ASD 自閉症譜系');
+            expect(result.current.formData.grade).toBe('小三');
+        });
     });
 
     it('clobber gate: formData with content does NOT auto-apply (existing work preserved)', async () => {

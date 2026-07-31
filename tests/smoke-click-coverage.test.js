@@ -169,16 +169,29 @@ describe('v3.17.0 6.1: click-coverage smoke test', () => {
     /**
      * Helper: find buttons matching text content (substring match).
      * Text content is preserved by terser (mangler does not rename string literals).
+     *
+     * PATCH 2026-07-17: match the button's *normalized* text — strip all
+     * whitespace before substring match. Reason: terser minification strips
+     * the inter-element whitespace that JSX inserts between adjacent
+     * <span> children, so the production button textContent for the
+     * content tab is `📝內容` (no space) while the dev build / unminified
+     * output has `📝 內容` (with space). The original substring match
+     * `t.includes('📝 內容')` silently failed in CI, so the Bug 3 expect
+     * trip (`toBeTruthy`) was masking a real "tab not found" outcome
+     * rather than a content-matching glitch. Normalized match makes the
+     * test resilient to both layouts.
      */
     function findButtonsByText(text) {
+        const norm = (s) => (s || '').replace(/\s+/g, '');
+        const target = norm(text);
         return Array.from(document.querySelectorAll('button, [role="button"]'))
             .filter(el => {
-                const t = (el.textContent || '').trim();
-                return t.includes(text) && !el.disabled;
+                const t = norm(el.textContent);
+                return t.includes(target) && !el.disabled;
             });
     }
 
-    it('regression guard: clicking "AI 幫我諗" on content / rules tabs does not throw (catches getSuggestions-class bug)', async () => {
+    it('regression guard: clicking "AI 幫我" suggestion button on content / rules tabs does not throw (catches getSuggestions-class bug)', async () => {
         const errorState = loadBundleAndCaptureErrors();
         try {
             await wait(150);  // wait for React mount + auth-gate unlock
@@ -194,11 +207,17 @@ describe('v3.17.0 6.1: click-coverage smoke test', () => {
             await wait(80);
             expect(errorState.getFatal()).toEqual([]);
 
-            // Click "AI 幫我諗" buttons in the content tab
-            const contentAiButtons = findButtonsByText('AI 幫我諗');
+            // PATCH 2026-07-17: match 'AI 幫我' (common substring) instead of
+            // the exact 'AI 幫我諗'. Reason: content tab uses 'AI 幫我諗'
+            // (purpose + context fields) but rules tab uses 'AI 幫我加規則'
+            // (different copy on App.jsx:936). The original exact match
+            // missed the rules button entirely — only worked locally because
+            // the tab click silently no-op'd and we were still on content tab.
+            // Substring 'AI 幫我' covers both copies + any future copy edits.
+            const contentAiButtons = findButtonsByText('AI 幫我');
             expect(
                 contentAiButtons.length,
-                'at least one "AI 幫我諗" button should render on content tab'
+                'at least one "AI 幫我" suggestion button should render on content tab'
             ).toBeGreaterThan(0);
             for (const btn of contentAiButtons) {
                 btn.click();
@@ -206,7 +225,7 @@ describe('v3.17.0 6.1: click-coverage smoke test', () => {
             }
             expect(errorState.getFatal()).toEqual(
                 [],
-                'Clicking "AI 幫我諗" should not throw ReferenceError. Captured: ' +
+                'Clicking "AI 幫我" should not throw ReferenceError. Captured: ' +
                 JSON.stringify(errorState.getFatal(), null, 2)
             );
 
@@ -215,10 +234,10 @@ describe('v3.17.0 6.1: click-coverage smoke test', () => {
             expect(rulesTab, 'rules tab button should be rendered').toBeTruthy();
             rulesTab.click();
             await wait(80);
-            const rulesAiButtons = findButtonsByText('AI 幫我諗');
+            const rulesAiButtons = findButtonsByText('AI 幫我');
             expect(
                 rulesAiButtons.length,
-                'at least one "AI 幫我諗" button should render on rules tab'
+                'at least one "AI 幫我" suggestion button should render on rules tab'
             ).toBeGreaterThan(0);
             for (const btn of rulesAiButtons) {
                 btn.click();
@@ -226,7 +245,7 @@ describe('v3.17.0 6.1: click-coverage smoke test', () => {
             }
             expect(errorState.getFatal()).toEqual(
                 [],
-                'Clicking "AI 幫我諗" on rules tab should not throw. Captured: ' +
+                'Clicking "AI 幫我" on rules tab should not throw. Captured: ' +
                 JSON.stringify(errorState.getFatal(), null, 2)
             );
         } finally {
