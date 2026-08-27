@@ -892,10 +892,13 @@ export const useAppState = () => {
     // === W7-8: Apply profile (merge preset into current formData) ===
     // Merge 規則：
     //   - arrays (senTypes, accessibility, learningDiversity) → union merge
-    //   - strings (grade, subjectCategory, category) → 只喺現有空白時先覆蓋
+    //   - strings (grade, subjectCategory, category) → 預設只喺空白時覆蓋；
+    //     auto-apply 傳 overwriteStrings:true，因為 schema 初始 grade 唔係 blank
+    //     （例如「小學二年級 (P2)」），否則預設 profile 嘅年級永遠套唔入
     //   - customNotes → push 入 rules 作為備註（唔覆蓋 rules 已有內容）
-    const applyProfile = useCallback((profile) => {
+    const applyProfile = useCallback((profile, opts = {}) => {
         if (!profile || !profile.preset) return;
+        const overwriteStrings = opts.overwriteStrings === true;
         pushHistory();
         setFormData(prev => {
             const merged = { ...prev };
@@ -903,7 +906,7 @@ export const useAppState = () => {
                 if (Array.isArray(value) && Array.isArray(prev[key])) {
                     merged[key] = Array.from(new Set([...prev[key], ...value]));
                 } else if (typeof value === 'string') {
-                    if (!prev[key] || prev[key].trim().length === 0) {
+                    if (overwriteStrings || !prev[key] || prev[key].trim().length === 0) {
                         merged[key] = value;
                     }
                 }
@@ -950,7 +953,8 @@ export const useAppState = () => {
         if (formData.toolName && formData.toolName.trim()) return;
         if (formData.purpose && formData.purpose.trim()) return;
         // Clobber gate passed → apply.
-        applyProfile(profile);
+        // overwriteStrings: schema 預設 grade/category 唔係空字串，auto-apply 必須強制帶入 profile 值
+        applyProfile(profile, { overwriteStrings: true });
         pushWarning('info', '✨ 已自動套用預設 profile', [
             `「${profile.name}」嘅 SEN 類型 + 年級 已帶入當前 form`,
             '想換: 喺 Profile Bank 揀另一個設為預設,或者關閉「自動套用」toggle',

@@ -28,10 +28,12 @@ jobs:
           node-version: 20
           cache: 'npm'
       - run: npm ci
-      - name: Unit tests (vitest, all *.test.{js,jsx} except smoke)
+      - name: Unit tests (vitest; smoke excluded via npm test script)
         # PATCH 2026-07-17: removed `; echo "EXIT=$?"` hack that masked npm test
         # failures (exit code from `echo` was always 0, so unit test regressions
         # didn't fail CI). Now failures propagate correctly.
+        # PATCH 2026-08-27: package.json `test` excludes smoke-* (need dist/);
+        # smoke runs in the dedicated post-build step below.
         run: npm test
       - name: Build for production bundle smoke
         # PATCH 2026-07-17: explicit build step before smoke tests. The

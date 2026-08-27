@@ -204,7 +204,9 @@ describe('v3.17.0 6.1: click-coverage smoke test', () => {
             const contentTab = findButtonsByText('📝 內容')[0];
             expect(contentTab, 'content tab button should be rendered after initial mount').toBeTruthy();
             contentTab.click();
-            await wait(80);
+            // PATCH 2026-08-27: Framer Motion tab swap needs ~500ms in jsdom
+            // before content-tab AI buttons land. 80ms was a false-fail.
+            await wait(500);
             expect(errorState.getFatal()).toEqual([]);
 
             // PATCH 2026-07-17: match 'AI 幫我' (common substring) instead of
@@ -233,7 +235,7 @@ describe('v3.17.0 6.1: click-coverage smoke test', () => {
             const rulesTab = findButtonsByText('⚙️ 規則')[0];
             expect(rulesTab, 'rules tab button should be rendered').toBeTruthy();
             rulesTab.click();
-            await wait(80);
+            await wait(500);
             const rulesAiButtons = findButtonsByText('AI 幫我');
             expect(
                 rulesAiButtons.length,

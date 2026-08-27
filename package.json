@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "npm run check:icons && vite build",
     "preview": "vite preview",
-    "test": "vitest run --config vitest.config.js",
+    "test": "vitest run --config vitest.config.js --exclude 'tests/smoke-*.test.js'",
     "test:smoke": "npm run build && vitest run --config vitest.config.js tests/smoke-build.test.js tests/smoke-click-coverage.test.js",
     "test:watch": "vitest --config vitest.config.js",
     "check:icons": "node scripts/check-icons.mjs"
