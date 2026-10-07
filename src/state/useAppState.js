@@ -116,13 +116,13 @@ export const useAppState = () => {
     });
     const [previewOpen, setPreviewOpen] = useState(false);
     const [previewTab, setPreviewTab] = useState("design");
-    const [theme, setTheme] = useState('plain');
-    // v3.12.0: 6 themes via dropdown selector (plain/warm/dark/contrast/paper/reactor)
+    const [theme, setTheme] = useState('school');
+    // v3.20.0: default school (校網藍); dropdown includes school + 6 others
     // setTheme is now called directly by dropdown onChange — no binary toggle needed
     const toggleTheme = useCallback(() => {
-        // Keep for backward compat — cycles through all 6 themes in order
+        // Keep for backward compat — cycles through all themes in order
         setTheme(prev => {
-            const order = ['plain', 'warm', 'dark', 'contrast', 'paper', 'reactor'];
+            const order = ['school', 'plain', 'warm', 'dark', 'contrast', 'paper', 'reactor'];
             const idx = order.indexOf(prev);
             return order[(idx + 1) % order.length];
         });
@@ -271,7 +271,7 @@ export const useAppState = () => {
 
     // === Theme sync to <body> className === (v3.12.0: 6 themes)
     useEffect(() => {
-        const ALL_THEMES = ['theme-cyber', 'theme-plain', 'theme-warm', 'theme-dark', 'theme-contrast', 'theme-paper', 'theme-reactor'];
+        const ALL_THEMES = ['theme-cyber', 'theme-school', 'theme-plain', 'theme-warm', 'theme-dark', 'theme-contrast', 'theme-paper', 'theme-reactor'];
         document.body.classList.remove(...ALL_THEMES);
         document.body.classList.add('theme-' + theme);
     }, [theme]);

@@ -86,7 +86,69 @@ body {
 }
 
 /* ============================================================
-   v3.3: Plain Theme — DEFAULT (Modern light mesh + glass cards)
+   v3.20.0: SCHOOL Theme — 將軍澳培智學校 default
+   淺藍底 #e8f1fb + 校網藍 #426eb4 accent
+   ============================================================ */
+body.theme-school {
+    background-color: #e8f1fb;
+    color: #1e3a5f;
+    position: relative;
+    min-height: 100vh;
+    --accent-primary: #426eb4;
+    --accent-secondary: #5b8fd4;
+    --accent-tertiary: #2f5285;
+    --gradient-primary: linear-gradient(135deg, #426eb4 0%, #5b8fd4 100%);
+    --gradient-soft: linear-gradient(135deg, rgba(66, 110, 180, 0.10), rgba(91, 143, 212, 0.08));
+    --gradient-bg: linear-gradient(135deg, #426eb4 0%, #5b8fd4 55%, #2f5285 100%);
+    --focus-ring: 0 0 0 3px rgba(66, 110, 180, 0.45);
+}
+
+body.theme-school::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 14% 10%, rgba(66, 110, 180, 0.16) 0%, transparent 48%),
+        radial-gradient(circle at 88% 20%, rgba(91, 143, 212, 0.12) 0%, transparent 50%),
+        radial-gradient(circle at 70% 90%, rgba(47, 82, 133, 0.08) 0%, transparent 48%);
+    filter: blur(36px);
+}
+
+body.theme-school::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+        linear-gradient(rgba(30, 58, 95, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(30, 58, 95, 0.03) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(circle at 50% 0%, black 0%, transparent 75%);
+    -webkit-mask-image: radial-gradient(circle at 50% 0%, black 0%, transparent 75%);
+}
+
+body.theme-school .gradient-text {
+    background: linear-gradient(135deg, #426eb4 0%, #2f5285 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+body.theme-school .plain-input {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(66, 110, 180, 0.25);
+    color: #1e3a5f;
+}
+body.theme-school .plain-input:focus {
+    border-color: #426eb4;
+    box-shadow: 0 0 0 3px rgba(66, 110, 180, 0.22);
+}
+
+/* ============================================================
+   v3.3: Plain Theme — (Modern light mesh + glass cards)
    Vercel/Linear-inspired: off-white base, subtle pastel mesh blobs in
    upper area, white floating glass cards with soft elevation.
    ============================================================ */
@@ -1023,6 +1085,34 @@ body.theme-warm textarea::-webkit-scrollbar-thumb:hover { background: rgba(245, 
 
 /* Common typography classes (used by all 6 styles) */
 .cert-header { margin-bottom: 6mm; }
+.cert-school-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4mm;
+    margin-bottom: 4mm;
+    padding-bottom: 3mm;
+    border-bottom: 1px solid rgba(66, 110, 180, 0.25);
+}
+.cert-school-logo {
+    width: 14mm;
+    height: 14mm;
+    object-fit: contain;
+    background: #fff;
+    border-radius: 2mm;
+}
+.cert-school-text { text-align: left; line-height: 1.25; }
+.cert-school-name {
+    font-size: 14pt;
+    font-weight: 800;
+    color: #1e3a5f;
+    letter-spacing: 1px;
+}
+.cert-school-sub {
+    font-size: 8pt;
+    color: #426eb4;
+    letter-spacing: 0.5px;
+}
 .cert-emblem { font-size: 56pt; line-height: 1.1; margin-bottom: 2mm; }
 .cert-title { font-size: 36pt; font-weight: 800; letter-spacing: 6px; margin: 0 0 2mm; }
 .cert-subtitle { font-size: 11pt; letter-spacing: 4px; color: #6b7280; text-transform: uppercase; margin: 0; }

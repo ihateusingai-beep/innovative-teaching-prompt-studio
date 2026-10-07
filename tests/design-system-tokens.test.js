@@ -130,11 +130,12 @@ describe('color tokens', () => {
         expect(themePrimary.cyber).toBe(accent.primary);  // alias retired
     });
 
-    it('getThemePrimary helper handles all 3 themes + invalid', () => {
+    it('getThemePrimary helper handles themes + invalid → school default', () => {
         expect(getThemePrimary('plain')).toBe(accent.primary);
         expect(getThemePrimary('warm')).toBe(warmAccent.primary);
         expect(getThemePrimary('cyber')).toBe(accent.primary);
-        expect(getThemePrimary('invalid')).toBe(accent.primary);  // default
+        expect(getThemePrimary('school')).toBe('#426eb4');
+        expect(getThemePrimary('invalid')).toBe('#426eb4');  // brand default
     });
 });
 
@@ -205,8 +206,10 @@ describe('gradient tokens', () => {
 });
 
 describe('theme metadata', () => {
-    it('themeMeta covers all 6 themes with label/emoji/description', () => {
-        expect(Object.keys(themeMeta).sort()).toEqual(['contrast', 'dark', 'paper', 'plain', 'reactor', 'warm']);
+    it('themeMeta covers all themes with label/emoji/description', () => {
+        expect(Object.keys(themeMeta).sort()).toEqual(
+            ['contrast', 'dark', 'paper', 'plain', 'reactor', 'school', 'warm'],
+        );
         for (const t of themeOrder) {
             expect(themeMeta[t].label).toBeTruthy();
             expect(themeMeta[t].emoji).toBeTruthy();
@@ -214,11 +217,12 @@ describe('theme metadata', () => {
         }
     });
 
-    it('themeOrder lists all 6 themes in display order', () => {
-        expect(themeOrder).toEqual(['plain', 'warm', 'dark', 'contrast', 'paper', 'reactor']);
+    it('themeOrder lists school first then other themes', () => {
+        expect(themeOrder).toEqual(['school', 'plain', 'warm', 'dark', 'contrast', 'paper', 'reactor']);
     });
 
-    it('themePrimary covers all 6 themes', () => {
+    it('themePrimary covers all themes', () => {
+        expect(themePrimary.school).toBe('#426eb4');
         expect(themePrimary.plain).toBe(accent.primary);
         expect(themePrimary.warm).toBe(warmAccent.primary);
         expect(themePrimary.dark).toBe(darkAccent.primary);
@@ -227,7 +231,8 @@ describe('theme metadata', () => {
         expect(themePrimary.reactor).toBe(reactorAccent.primary);
     });
 
-    it('accent palette: 4 new themes', () => {
+    it('accent palette: school + 4 extended themes', () => {
+        expect(themePrimary.school).toBe('#426eb4');
         expect(darkAccent.primary).toBe('#06b6d4');
         expect(contrastAccent.primary).toBe('#000000');
         expect(paperAccent.primary).toBe('#1c1917');

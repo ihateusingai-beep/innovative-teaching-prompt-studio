@@ -12,6 +12,7 @@ import {
 
 describe('normalizeTheme', () => {
     it('returns each named theme unchanged', () => {
+        expect(normalizeTheme('school')).toBe('school');
         expect(normalizeTheme('plain')).toBe('plain');
         expect(normalizeTheme('warm')).toBe('warm');
         expect(normalizeTheme('dark')).toBe('dark');
@@ -20,19 +21,21 @@ describe('normalizeTheme', () => {
         expect(normalizeTheme('reactor')).toBe('reactor');
     });
 
-    it('cyber alias retired → plain', () => {
-        expect(normalizeTheme('cyber')).toBe('plain');
+    it('cyber alias retired → school (brand default)', () => {
+        expect(normalizeTheme('cyber')).toBe('school');
     });
 
-    it('invalid input → plain (default)', () => {
-        expect(normalizeTheme('invalid')).toBe('plain');
-        expect(normalizeTheme(undefined)).toBe('plain');
-        expect(normalizeTheme(null)).toBe('plain');
+    it('invalid input → school (default)', () => {
+        expect(normalizeTheme('invalid')).toBe('school');
+        expect(normalizeTheme(undefined)).toBe('school');
+        expect(normalizeTheme(null)).toBe('school');
     });
 });
 
 describe('cardClass', () => {
-    it('default variant — 6 themes, each with theme-specific border', () => {
+    it('default variant — themes with theme-specific border', () => {
+        expect(cardClass('school')).toContain('glass-card');
+        expect(cardClass('school')).toContain('border-[#426eb4]/25');
         expect(cardClass('plain')).toBe('glass-card');
         expect(cardClass('warm')).toBe('glass-card border-amber-200');
         expect(cardClass('dark')).toBe('glass-card border-cyan-500/40');

@@ -46,8 +46,16 @@ export const reactorAccent = {
     tertiary: '#ef4444',      // red 500 (warning glow)
 };
 
+// === School theme accent (將軍澳培智學校 校網藍) ===
+export const schoolAccent = {
+    primary: '#426eb4',       // 校網藍
+    secondary: '#5b8fd4',     // lighter blue
+    tertiary: '#2f5285',      // deep blue
+};
+
 // === All themes accent map (for themePrimary lookup) ===
 export const accentByTheme = {
+    school: schoolAccent,
     plain: accent,
     warm: warmAccent,
     dark: darkAccent,
@@ -59,6 +67,7 @@ export const accentByTheme = {
 
 // === Focus ring colors ===
 export const focusRing = {
+    school: 'rgba(66, 110, 180, 0.45)',
     plain: 'rgba(124, 58, 237, 0.4)',
     warm: 'rgba(245, 158, 11, 0.5)',
     dark: 'rgba(6, 182, 212, 0.6)',         // neon cyan
@@ -69,6 +78,7 @@ export const focusRing = {
 
 // === Background colors (base layer, themes override via body class) ===
 export const background = {
+    school: '#e8f1fb',
     plain: '#fafafa',
     warm: '#fffbeb',
     cyber: '#fafafa',  // alias
@@ -80,6 +90,7 @@ export const background = {
 
 // === Theme → primary accent mapping ===
 export const themePrimary = {
+    school: schoolAccent.primary,
     plain: accent.primary,
     warm: warmAccent.primary,
     cyber: accent.primary,
@@ -91,7 +102,8 @@ export const themePrimary = {
 
 // === Theme metadata (label + icon hint for dropdown selector) ===
 export const themeMeta = {
-    plain: { label: '簡潔', emoji: '☀️', description: '白底藍紫 accent，default' },
+    school: { label: '校網藍', emoji: '🏫', description: '將軍澳培智淺藍底 + #426eb4，default' },
+    plain: { label: '簡潔', emoji: '☀️', description: '白底藍紫 accent' },
     warm: { label: '暖色', emoji: '🌅', description: '米色 cream amber，primary school' },
     dark: { label: 'Dark', emoji: '🌙', description: '深色 + neon cyan accent，late-night' },
     contrast: { label: '對比', emoji: '🖤', description: '純黑/白 AAA 7:1，accessibility' },
@@ -99,8 +111,8 @@ export const themeMeta = {
     reactor: { label: '反應爐', emoji: '⚡', description: 'Iron Man hologram，signature' },
 };
 
-// All themes in display order
-export const themeOrder = ['plain', 'warm', 'dark', 'contrast', 'paper', 'reactor'];
+// All themes in display order — school first (default)
+export const themeOrder = ['school', 'plain', 'warm', 'dark', 'contrast', 'paper', 'reactor'];
 
 // Helper: get theme-aware primary accent
-export const getThemePrimary = (theme) => themePrimary[theme] ?? accent.primary;
+export const getThemePrimary = (theme) => themePrimary[theme] ?? schoolAccent.primary;

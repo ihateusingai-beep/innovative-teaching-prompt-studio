@@ -199,12 +199,12 @@ describe('ToggleSwitch', () => {
         expect(html).toContain('p-2');
     });
 
-    it('v3.13.0: 6 themes render correct on color (theme propagation)', () => {
-        const themes = ['plain', 'warm', 'dark', 'contrast', 'paper', 'reactor'];
+    it('v3.13.0/v3.20.0: themes render correct on color (theme propagation)', () => {
+        const themes = ['school', 'plain', 'warm', 'dark', 'contrast', 'paper', 'reactor'];
         for (const t of themes) {
             const html = renderToStaticMarkup(<ToggleSwitch theme={t} on={true} onChange={() => {}} />);
-            // Each theme has distinct on color (via toggleClass lookup)
             const expectedColor = {
+                school: 'bg-[#426eb4]',
                 plain: 'bg-blue-600',
                 warm: 'bg-amber-500',
                 dark: 'bg-cyan-500',

@@ -30,6 +30,7 @@ import { ProfileBankPanel } from './components/ProfileBankPanel.jsx';
 import { AwardCertificateModal } from './components/AwardCertificateModal.jsx';
 import { AWARD_STYLES, AWARD_STYLE_META } from './components/AwardCertificate.jsx';
 import { buildCertificateProps, DEFAULT_TEACHER_MESSAGE } from './utils/awardDefaults.js';
+import { SCHOOL_NAME, SCHOOL_LOGO_URL } from './data/schoolBrand.js';
 import personalLogo from '../assets/personal_logo.png';
 import { mutedTextClass, pillClass, toggleClass, cardClass, ToggleSwitch } from './design-system/index.js';
 import { themeMeta, themeOrder } from './design-system/tokens/colors.js';
@@ -1862,18 +1863,26 @@ const renderMultiVariant = () => {
 
             <div className="max-w-6xl mx-auto pb-20"> {/* Increased width for dual columns */}
                 
-                {/* Header — v3.3 modern typography polish */}
+                {/* Header — v3.20.0 校徽 + 校名 + 工具名 */}
                 <header className="mb-12 text-center md:text-left flex flex-col md:flex-row md:items-start justify-between gap-token-6 relative animate-fade-in">
                     <div>
                          <h1 className="text-3xl md:text-5xl font-black flex items-start gap-token-4 justify-center md:justify-start leading-none">
-                            <img src={personalLogo} alt="NT-D" className="h-12 w-12 md:h-14 md:w-14 mt-1 rounded-xl shadow-md" />
-                            <div className="flex flex-col gap-2">
+                            <img
+                                src={SCHOOL_LOGO_URL}
+                                alt={SCHOOL_NAME}
+                                className="h-12 w-12 md:h-14 md:w-14 mt-1 rounded-xl shadow-md bg-white object-contain p-0.5"
+                                referrerPolicy="no-referrer"
+                            />
+                            <div className="flex flex-col gap-1 text-left">
+                                <span className="text-sm md:text-base font-bold tracking-wide text-[#1e3a5f]">
+                                    {SCHOOL_NAME}
+                                </span>
                                 <span className={`font-black tracking-tight text-2xl md:text-4xl gradient-text`}>
                                     創意教學 Prompt Studio
                                 </span>
                             </div>
                         </h1>
-                        <p className={`mt-4 font-medium text-base pl-0 md:pl-[4rem] flex items-center gap-token-2 ${mutedTextClass(theme)}`}>
+                        <p className={`mt-4 font-medium text-base pl-0 md:pl-[4.5rem] flex items-center gap-token-2 ${mutedTextClass(theme)}`}>
                             <Zap size={16} className="text-yellow-400" />
                             3 分鐘將 SEN 學生需要轉成結構化 prompt
                         </p>
@@ -2635,7 +2644,16 @@ const renderMultiVariant = () => {
                 <footer className={`mt-6 py-token-6 text-center text-xs font-medium tracking-widest ${
                     'text-slate-400'
                 }`}>
-                    © 2026 創意教學 Prompt Studio · designed by Ken Cheng
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                        <img
+                            src={SCHOOL_LOGO_URL}
+                            alt=""
+                            className="h-5 w-5 object-contain bg-white rounded"
+                            referrerPolicy="no-referrer"
+                        />
+                        <span className="text-[#1e3a5f] font-bold tracking-normal">{SCHOOL_NAME}</span>
+                    </div>
+                    © {new Date().getFullYear()} {SCHOOL_NAME} · 創意教學 Prompt Studio · designed by Ken Cheng
                 </footer>
 
                 {/* Floating Action Button (FAB) */}

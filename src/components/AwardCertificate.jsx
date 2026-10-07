@@ -10,6 +10,7 @@
 
 import React from 'react';
 import { resolveCertTitle, resolveCertBody, DEFAULT_TEACHER_MESSAGE } from '../utils/awardDefaults.js';
+import { SCHOOL_NAME, SCHOOL_LOGO_URL } from '../data/schoolBrand.js';
 
 export const AWARD_STYLES = ['rainbow', 'medal', 'galaxy', 'art', 'dino', 'flower'];
 
@@ -62,6 +63,18 @@ export const AwardCertificate = ({
         <div className={`award-cert cert-${safeStyle}`} data-style={safeStyle}>
             <div className="cert-frame">
                 <div className="cert-card">
+                    <div className="cert-school-bar">
+                        <img
+                            src={SCHOOL_LOGO_URL}
+                            alt={SCHOOL_NAME}
+                            className="cert-school-logo"
+                            referrerPolicy="no-referrer"
+                        />
+                        <div className="cert-school-text">
+                            <div className="cert-school-name">{SCHOOL_NAME}</div>
+                            <div className="cert-school-sub">Tseung Kwan O Pui Chi School</div>
+                        </div>
+                    </div>
                     <div className="cert-header">
                         <div className="cert-emblem">{meta.emoji}</div>
                         <h1 className="cert-title">{resolvedTitle}</h1>

@@ -148,6 +148,9 @@ describe('AwardCertificate render (v3.14.0 / v3.18.0)', () => {
         expect(html).toContain('努力證書');
         expect(html).toContain('特此頒授予');
         expect(html).toContain('恭喜 小明');
+        expect(html).toContain('cert-school-bar');
+        expect(html).toContain('將軍澳培智學校');
+        expect(html).toContain('puichi.edu.hk');
     });
 
     it('uses system default teacher message when prop omitted', () => {
