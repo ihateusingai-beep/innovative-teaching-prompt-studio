@@ -1,30 +1,15 @@
 // === AwardCertificate.jsx ===
 // v3.14.0 — Student award certificate renderer with 6 visual styles
+// v3.18.0 — 系統預設標題/正文（努力證書·進步證書），老師唔使手打
 //
 // Props (all optional — component falls back to placeholders):
 //   style: 'rainbow' | 'medal' | 'galaxy' | 'art' | 'dino' | 'flower'  (default: 'rainbow')
-//   studentName: string
-//   date: string (ISO date or display string)
-//   subject: string (e.g. "二年級數學")
-//   score: number (0-100) or string
-//   strengths: array of strings (top 1-3)
-//   improvement: string (e.g. "+12%")
-//   teacherName: string
-//   teacherMessage: string (optional personal note)
-//
-// Aesthetic decisions:
-//   - A4 landscape design (297mm × 210mm visible aspect)
-//   - 6 styles cover different student preferences:
-//       rainbow: vibrant + emojis + cartoon stars (ADHD / young)
-//       medal:   gold metallic + ribbon + clean lines (high-grade / ASD)
-//       galaxy:  deep navy + glow + starfield (older students)
-//       art:     pastels + brush strokes + frame (creative students)
-//       dino:    bold greens + T-rex icon + jagged edges (boy preference)
-//       flower:  pink + botanical line art + serif (girl preference)
-//   - All styles use semantic class names that map to .cert-* CSS classes
-//   - Print stylesheet (in styles/index.css) handles @media print A4 landscape
+//   title: string (e.g. 努力證書 / 進步證書) — 缺省自動由 score/improvement 推
+//   body: string  — 缺省「恭喜 {名} 完成 {科目}！」
+//   studentName, date, subject, score, strengths, improvement, teacherName, teacherMessage
 
 import React from 'react';
+import { resolveCertTitle, resolveCertBody, DEFAULT_TEACHER_MESSAGE } from '../utils/awardDefaults.js';
 
 export const AWARD_STYLES = ['rainbow', 'medal', 'galaxy', 'art', 'dino', 'flower'];
 
@@ -37,7 +22,6 @@ export const AWARD_STYLE_META = {
     flower:  { emoji: '🌸', label: '花漾年華', desc: '粉色 + 植物, 適合細心學生' },
 };
 
-// Fallbacks when formData missing fields
 const EMPTY = {
     studentName: '同學',
     date: new Date().toLocaleDateString('zh-HK'),
@@ -46,11 +30,12 @@ const EMPTY = {
     strengths: [],
     improvement: '',
     teacherName: '',
-    teacherMessage: '',
 };
 
 export const AwardCertificate = ({
     style = 'rainbow',
+    title,
+    body,
     studentName = EMPTY.studentName,
     date = EMPTY.date,
     subject = EMPTY.subject,
@@ -58,36 +43,37 @@ export const AwardCertificate = ({
     strengths = EMPTY.strengths,
     improvement = EMPTY.improvement,
     teacherName = EMPTY.teacherName,
-    teacherMessage = EMPTY.teacherMessage,
+    teacherMessage, // undefined → 系統預設；'' → 隱藏
 }) => {
-    // Defensive: verify style is in supported set
     const safeStyle = AWARD_STYLES.includes(style) ? style : 'rainbow';
     const meta = AWARD_STYLE_META[safeStyle];
-
-    // Truncate very long strengths to top 3
     const visibleStrengths = (strengths || []).filter(Boolean).slice(0, 3);
 
-    // Common layout: framed certificate with header / body / footer
-    // Each style changes ONLY the visual treatment via .cert-* CSS classes
+    const resolvedTitle = (title && String(title).trim())
+        || resolveCertTitle({ score, improvement, currentScore: score });
+    const resolvedBody = (body && String(body).trim())
+        || resolveCertBody({ studentName, subject, currentScore: score });
+    // undefined → 系統預設；明確 '' → 隱藏（進階關咗老師的話）
+    const resolvedMsg = (teacherMessage === undefined || teacherMessage === null)
+        ? DEFAULT_TEACHER_MESSAGE
+        : String(teacherMessage).trim();
+
     return (
         <div className={`award-cert cert-${safeStyle}`} data-style={safeStyle}>
-            {/* Decorative outer frame — style-specific border */}
             <div className="cert-frame">
-                {/* Inner card — common across all styles */}
                 <div className="cert-card">
-                    {/* Header: emblem + title */}
                     <div className="cert-header">
                         <div className="cert-emblem">{meta.emoji}</div>
-                        <h1 className="cert-title">奬 狀</h1>
+                        <h1 className="cert-title">{resolvedTitle}</h1>
                         <p className="cert-subtitle">Award of Excellence</p>
                     </div>
 
-                    {/* Body: recipient + metadata */}
                     <div className="cert-body">
                         <p className="cert-presented-to">特此頒授予</p>
-                        <h2 className="cert-student-name">{studentName}</h2>
+                        <h2 className="cert-student-name">{studentName || '同學'}</h2>
 
-                        {/* Subject + score (conditional) */}
+                        <p className="cert-body-text">{resolvedBody}</p>
+
                         {(subject || score !== '') && (
                             <div className="cert-meta-row">
                                 {subject && (
@@ -105,12 +91,10 @@ export const AwardCertificate = ({
                             </div>
                         )}
 
-                        {/* Improvement (e.g. +12%) */}
                         {improvement && (
                             <p className="cert-improvement">📈 進步 {improvement}</p>
                         )}
 
-                        {/* Strengths (top 1-3) */}
                         {visibleStrengths.length > 0 && (
                             <div className="cert-strengths">
                                 <p className="cert-strengths-label">傑出表現</p>
@@ -125,16 +109,14 @@ export const AwardCertificate = ({
                             </div>
                         )}
 
-                        {/* Optional teacher message */}
-                        {teacherMessage && (
+                        {resolvedMsg ? (
                             <p className="cert-teacher-message">
                                 <span className="cert-message-label">老師的話：</span>
-                                {teacherMessage}
+                                {resolvedMsg}
                             </p>
-                        )}
+                        ) : null}
                     </div>
 
-                    {/* Footer: signature + date */}
                     <div className="cert-footer">
                         <div className="cert-footer-item">
                             <p className="cert-footer-label">日期</p>

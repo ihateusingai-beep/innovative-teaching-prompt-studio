@@ -28,6 +28,8 @@ import { VersionPanel } from './components/VersionPanel.jsx';
 import { DiffView } from './components/DiffView.jsx';
 import { ProfileBankPanel } from './components/ProfileBankPanel.jsx';
 import { AwardCertificateModal } from './components/AwardCertificateModal.jsx';
+import { AWARD_STYLES, AWARD_STYLE_META } from './components/AwardCertificate.jsx';
+import { buildCertificateProps, DEFAULT_TEACHER_MESSAGE } from './utils/awardDefaults.js';
 import personalLogo from '../assets/personal_logo.png';
 import { mutedTextClass, pillClass, toggleClass, cardClass, ToggleSwitch } from './design-system/index.js';
 import { themeMeta, themeOrder } from './design-system/tokens/colors.js';
@@ -1138,71 +1140,61 @@ const renderStep3 = () => (
                 </div>
 
                 {/* ============================================================
-                   v3.14.0: e. 奬狀模組 (Award Certificate)
-                   從 formData.assessment 拉學生數據 → 生成 6 風格奬狀
-                   Modal preview + browser print (Cmd+P)
+                   v3.18.0: 奬狀模組（簡化）— 系統預設文案，老師唔使輪 prompt
+                   主路徑：評估 tab「一鍵出獎狀」。呢度只留風格 + 預覽 + 進階收埋。
                    ============================================================ */}
                 <div className="mt-token-6 pt-token-4 border-t border-slate-200">
-                    <div className="flex items-start gap-token-3">
-                        <ToggleSwitch
-                            theme={theme}
-                            on={formData.awardCertificate?.enabled === true}
-                            onChange={(next) => updateField('awardCertificate', { ...formData.awardCertificate, enabled: next })}
-                            ariaLabel="啟用奬狀生成模組"
-                        />
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-base ${
-                            theme === 'warm' ? 'bg-pink-100 text-pink-700' : theme === 'dark' ? 'bg-pink-500/20 text-pink-300' : theme === 'contrast' ? 'bg-white border-2 border-black text-pink-600' : theme === 'paper' ? 'bg-pink-50 text-pink-700' : theme === 'reactor' ? 'bg-pink-500/20 text-pink-300' : 'bg-pink-100 text-pink-700'
-                        }`}>
-                            🏆
-                        </div>
+                    <div className="flex items-start gap-token-3 mb-3">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-base bg-pink-100 text-pink-700">🏆</div>
                         <div className="flex-1">
-                            <div className={`font-bold text-sm ${'text-slate-800'}`}>🏆 奬狀模組 (Award Certificate)</div>
-                            <div className={`text-xs ${'text-slate-500'}`}>從「📊 評估」tab 拉學生數據 → 生成 6 風格奬狀。Modal preview + browser 列印 (Cmd+P)。</div>
+                            <div className="font-bold text-sm text-slate-800">🏆 奬狀（系統預設文案）</div>
+                            <div className="text-xs text-slate-500">標題／正文／老師句已內建。建議喺「📊 評估」一鍵出；呢度可改風格。</div>
                         </div>
                     </div>
-                    <div className={`mt-3 ml-2 space-y-3 ${formData.awardCertificate?.enabled !== true ? 'opacity-40 pointer-events-none' : ''}`}>
-                        {/* Style picker */}
-                        <div>
-                            <Label theme={theme}>奬狀風格</Label>
-                            <div className="grid grid-cols-3 gap-token-2 mt-2">
-                                {[
-                                    { value: 'rainbow', emoji: '🌈', label: '彩虹', desc: '鮮色 + emoji' },
-                                    { value: 'medal',   emoji: '🏅', label: '獎牌', desc: '金屬 ribbon' },
-                                    { value: 'galaxy',  emoji: '🌌', label: '星空', desc: '深色 + glow' },
-                                    { value: 'art',     emoji: '🎨', label: '藝術', desc: '粉彩 + 筆觸' },
-                                    { value: 'dino',    emoji: '🦕', label: '恐龍', desc: '粗獷 + 綠色' },
-                                    { value: 'flower',  emoji: '🌸', label: '花漾', desc: '粉色 + 植物' },
-                                ].map(opt => (
-                                    <button
-                                        key={opt.value}
-                                        onClick={() => updateField('awardCertificate', { ...formData.awardCertificate, style: opt.value })}
-                                        className={`p-token-2 rounded-lg text-xs font-medium transition-all border text-left flex flex-col gap-token-1 h-full ${
-                                            (formData.awardCertificate?.style || 'rainbow') === opt.value
-                                            ? 'border-pink-500 bg-pink-50 text-pink-700 ring-1 ring-pink-500'
-                                            : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600'
-                                        }`}
-                                    >
-                                        <span className="text-lg">{opt.emoji}</span>
-                                        <span className="font-bold text-sm">{opt.label}</span>
-                                        <span className="text-xs opacity-70">{opt.desc}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                        {/* Content sub-toggles */}
+                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                        <Label theme={theme}>風格</Label>
+                        <select
+                            value={formData.awardCertificate?.style || 'rainbow'}
+                            onChange={(e) => updateField('awardCertificate', { ...formData.awardCertificate, enabled: true, style: e.target.value })}
+                            className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                            aria-label="奬狀風格"
+                        >
+                            {AWARD_STYLES.map((s) => (
+                                <option key={s} value={s}>{AWARD_STYLE_META[s].emoji} {AWARD_STYLE_META[s].label}</option>
+                            ))}
+                        </select>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                updateField('awardCertificate', { ...formData.awardCertificate, enabled: true });
+                                setAwardCertOpen(true);
+                            }}
+                            className="px-4 py-2 rounded-lg text-sm font-bold bg-pink-600 text-white hover:bg-pink-700"
+                        >
+                            👁️ 預覽／列印
+                        </button>
+                    </div>
+                    <CollapsibleSection
+                        title="進階顯示欄位（可選）"
+                        badge="預設全開"
+                        isOpen={!!expandedSections?.awardCertAdvanced}
+                        onToggle={() => toggleSection('awardCertAdvanced')}
+                        theme={theme}
+                        hint="一般唔使改。系統已用預設提詞。"
+                    >
                         <div className="grid grid-cols-2 gap-token-2">
                             {[
-                                { key: 'showStudentName',    label: '學生姓名', defaultOn: true },
-                                { key: 'showDate',           label: '日期',     defaultOn: true },
-                                { key: 'showSubject',        label: '科目',     defaultOn: true },
-                                { key: 'showScore',          label: '分數',     defaultOn: true },
-                                { key: 'showStrengths',      label: '強項主題', defaultOn: true },
-                                { key: 'showImprovement',   label: '進步幅度', defaultOn: false },
-                            ].map(t => {
-                                const currentVal = formData.awardCertificate?.[t.key];
-                                const isOn = currentVal === undefined ? t.defaultOn : currentVal;
+                                { key: 'showStudentName', label: '學生姓名' },
+                                { key: 'showDate', label: '日期' },
+                                { key: 'showSubject', label: '科目' },
+                                { key: 'showScore', label: '分數' },
+                                { key: 'showStrengths', label: '強項主題' },
+                                { key: 'showImprovement', label: '進步幅度' },
+                                { key: 'showTeacherMessage', label: '老師的話' },
+                            ].map((t) => {
+                                const isOn = formData.awardCertificate?.[t.key] !== false;
                                 return (
-                                    <label key={t.key} className="flex items-center gap-token-2 px-token-3 py-token-2 rounded-lg border border-slate-200 bg-white cursor-pointer hover:bg-slate-50 transition-colors">
+                                    <label key={t.key} className="flex items-center gap-token-2 px-token-3 py-token-2 rounded-lg border border-slate-200 bg-white cursor-pointer hover:bg-slate-50">
                                         <ToggleSwitch
                                             theme={theme}
                                             size="sm"
@@ -1214,36 +1206,23 @@ const renderStep3 = () => (
                                     </label>
                                 );
                             })}
-                            {/* Teacher message toggle — full width */}
-                            <label className="col-span-2 flex items-center gap-token-2 px-token-3 py-token-2 rounded-lg border border-slate-200 bg-white cursor-pointer hover:bg-slate-50 transition-colors">
-                                <ToggleSwitch
-                                    theme={theme}
-                                    size="sm"
-                                    on={formData.awardCertificate?.showTeacherMessage === true}
-                                    onChange={(next) => updateField('awardCertificate', { ...formData.awardCertificate, showTeacherMessage: next })}
-                                    ariaLabel="老師個人訊息"
-                                />
-                                <span className="text-sm text-slate-700">老師個人訊息</span>
-                            </label>
                         </div>
-                        {formData.awardCertificate?.showTeacherMessage === true && (
-                            <TextArea
-                                theme={theme}
-                                value={formData.awardCertificate?.teacherMessage || ''}
-                                onChange={(e) => updateField('awardCertificate', { ...formData.awardCertificate, teacherMessage: e.target.value })}
-                                placeholder="例: 小明這個月在加法應用題上有顯著進步, 繼續加油!"
-                            />
+                        {formData.awardCertificate?.showTeacherMessage !== false && (
+                            <div className="mt-3">
+                                <Label theme={theme} optional>老師的話（預設句可改）</Label>
+                                <TextArea
+                                    theme={theme}
+                                    value={formData.awardCertificate?.teacherMessage || DEFAULT_TEACHER_MESSAGE}
+                                    onChange={(e) => updateField('awardCertificate', {
+                                        ...formData.awardCertificate,
+                                        teacherMessage: e.target.value,
+                                        showTeacherMessage: true,
+                                    })}
+                                    placeholder={DEFAULT_TEACHER_MESSAGE}
+                                />
+                            </div>
                         )}
-                        {/* Preview button */}
-                        <button
-                            onClick={() => setAwardCertOpen(true)}
-                            className={`w-full px-token-4 py-token-3 rounded-lg text-sm font-bold flex items-center justify-center gap-token-2 transition-all ${
-                                theme === 'warm' ? 'bg-pink-500 text-white hover:bg-pink-600' : theme === 'dark' ? 'bg-pink-500 text-white hover:bg-pink-400' : theme === 'contrast' ? 'bg-black text-white border-2 border-white hover:bg-white hover:text-black' : theme === 'paper' ? 'bg-pink-700 text-white hover:bg-pink-800' : theme === 'reactor' ? 'bg-pink-500 text-zinc-950 hover:bg-pink-400 shadow-[0_0_12px_rgba(236,72,153,0.4)]' : 'bg-pink-600 text-white hover:bg-pink-700'
-                            }`}
-                        >
-                            👁️ 預覽奬狀 + 列印
-                        </button>
-                    </div>
+                    </CollapsibleSection>
                 </div>
             </div>
         </div>
@@ -1695,28 +1674,22 @@ const renderMultiVariant = () => {
             )}
 
             {/* v3.14.0: Award Certificate preview modal */}
-            {awardCertOpen && (
-                <AwardCertificateModal
-                    open={awardCertOpen}
-                    onClose={() => setAwardCertOpen(false)}
-                    style={formData.awardCertificate?.style || 'rainbow'}
-                    onStyleChange={(s) => updateField('awardCertificate', { ...formData.awardCertificate, style: s })}
-                    certificateProps={{
-                        studentName: (formData.awardCertificate?.showStudentName !== false) ? (formData.assessment?.studentName || '同學') : '',
-                        date: (formData.awardCertificate?.showDate !== false) ? (formData.assessment?.date || new Date().toLocaleDateString('zh-HK')) : '',
-                        subject: (formData.awardCertificate?.showSubject !== false) ? (formData.subjectCategory || '') : '',
-                        score: (formData.awardCertificate?.showScore !== false) ? (formData.assessment?.currentScore || '') : '',
-                        strengths: (formData.awardCertificate?.showStrengths !== false) ? (formData.assessment?.strengths || []) : [],
-                        improvement: (formData.awardCertificate?.showImprovement === true) ? (
-                            formData.assessment?.previousScore > 0 && formData.assessment?.currentScore > 0
-                                ? `+${formData.assessment.currentScore - formData.assessment.previousScore} 分`
-                                : ''
-                        ) : '',
-                        teacherName: formData.teacherName || '',
-                        teacherMessage: (formData.awardCertificate?.showTeacherMessage === true) ? (formData.awardCertificate?.teacherMessage || '') : '',
-                    }}
-                />
-            )}
+            {awardCertOpen && (() => {
+                const cert = buildCertificateProps(formData);
+                return (
+                    <AwardCertificateModal
+                        open={awardCertOpen}
+                        onClose={() => setAwardCertOpen(false)}
+                        style={cert.style || 'rainbow'}
+                        onStyleChange={(s) => updateField('awardCertificate', {
+                            ...formData.awardCertificate,
+                            enabled: true,
+                            style: s,
+                        })}
+                        certificateProps={cert}
+                    />
+                );
+            })()}
 
             {/* v3.15.0 F1: Template Editor Modal (create + edit) */}
             {templateEditor.open && (
@@ -2507,6 +2480,78 @@ const renderMultiVariant = () => {
                                     onChange={(e) => updateField('assessment', { ...formData.assessment, improvementAreas: e.target.value.split('\n').filter(s => s.trim()) })}
                                     placeholder="例:&#10;減法&#10;應用題"
                                 />
+                            </div>
+
+                            {/* v3.18.0: 一鍵出獎狀 — 系統預設文案，唔使去規則/生成 tab 開一堆掣 */}
+                            <div className="mt-token-6 pt-token-4 border-t border-slate-200 space-y-3">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <span className="text-sm font-bold text-slate-800">🏆 出獎狀</span>
+                                    <span className="text-xs text-slate-500">系統自動填標題／正文／老師句，唔使手打 prompt</span>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <select
+                                        value={formData.awardCertificate?.style || 'rainbow'}
+                                        onChange={(e) => updateField('awardCertificate', {
+                                            ...formData.awardCertificate,
+                                            enabled: true,
+                                            style: e.target.value,
+                                        })}
+                                        className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                                        aria-label="奬狀風格"
+                                    >
+                                        {AWARD_STYLES.map((s) => (
+                                            <option key={s} value={s}>
+                                                {AWARD_STYLE_META[s].emoji} {AWARD_STYLE_META[s].label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            // 確保 enabled + 預設文案
+                                            const ac = formData.awardCertificate || {};
+                                            updateField('awardCertificate', {
+                                                ...ac,
+                                                enabled: true,
+                                                showStudentName: ac.showStudentName !== false,
+                                                showDate: ac.showDate !== false,
+                                                showSubject: ac.showSubject !== false,
+                                                showScore: ac.showScore !== false,
+                                                showStrengths: ac.showStrengths !== false,
+                                                showImprovement: ac.showImprovement !== false,
+                                                showTeacherMessage: ac.showTeacherMessage !== false,
+                                                teacherMessage: (ac.teacherMessage && String(ac.teacherMessage).trim())
+                                                    || DEFAULT_TEACHER_MESSAGE,
+                                                style: ac.style || 'rainbow',
+                                            });
+                                            // 日期空 → 今日
+                                            if (!formData.assessment?.date) {
+                                                updateField('assessment', {
+                                                    ...formData.assessment,
+                                                    date: new Date().toISOString().slice(0, 10),
+                                                });
+                                            }
+                                            setAwardCertOpen(true);
+                                            pushWarning('success', '🏆 已用系統預設文案出獎狀', [
+                                                '可喺預覽頂欄換風格／列印',
+                                                '老師唔使寫 prompt',
+                                            ]);
+                                        }}
+                                        className={`flex-1 min-w-[12rem] px-token-4 py-token-3 rounded-lg text-sm font-bold flex items-center justify-center gap-token-2 transition-all ${
+                                            theme === 'warm' ? 'bg-pink-500 text-white hover:bg-pink-600'
+                                            : theme === 'dark' ? 'bg-pink-500 text-white hover:bg-pink-400'
+                                            : theme === 'contrast' ? 'bg-black text-white border-2 border-white hover:bg-white hover:text-black'
+                                            : theme === 'paper' ? 'bg-pink-700 text-white hover:bg-pink-800'
+                                            : theme === 'reactor' ? 'bg-pink-500 text-zinc-950 hover:bg-pink-400'
+                                            : 'bg-pink-600 text-white hover:bg-pink-700'
+                                        }`}
+                                    >
+                                        🏆 一鍵出獎狀（預覽＋列印）
+                                    </button>
+                                </div>
+                                <p className={`text-xs ${mutedTextClass(theme)}`}>
+                                    預設：努力／進步證書 ·「恭喜 {'{名}'} 完成 {'{科}'}！正確率 x%」·「{DEFAULT_TEACHER_MESSAGE}」
+                                </p>
                             </div>
                         </Card>
                     </motion.div>

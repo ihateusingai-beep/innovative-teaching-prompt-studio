@@ -285,18 +285,18 @@ const getInitialFormData = () => ({
         showNewsletter: true,        // d3. 每週／每月學習電子報
         showTeacherReflection: true, // d4. 教師反思 prompt
     },
-    // v3.14.0: 奬狀模組 (master toggle OFF by default — 老師 opt-in)
+    // v3.18.0: 奬狀模組 — 預設 ON + 系統預設文案（老師唔使手打 prompt）
     awardCertificate: {
-        enabled: false,
+        enabled: true,
         style: 'rainbow',         // 'rainbow' | 'medal' | 'galaxy' | 'art' | 'dino' | 'flower'
         showStudentName: true,
         showDate: true,
         showSubject: true,
         showScore: true,
         showStrengths: true,       // top 1-3 strengths from assessment.strengths
-        showImprovement: false,
-        showTeacherMessage: false,
-        teacherMessage: '',
+        showImprovement: true,     // 有 previous/current 就自動顯示進步
+        showTeacherMessage: true,  // 預設用系統句，可改
+        teacherMessage: '繼續加油，老師為你 Proud！',
     },
     // v3.14.0: 評估數據 (第 5 tab)
     assessment: {

@@ -1,10 +1,17 @@
 // === Award Certificate tests ===
 // v3.14.0 — verify 6 styles render + schema defaults + print CSS presence
+// v3.18.0 — 系統預設標題/正文/老師句
 
 import { describe, it, expect } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import React from 'react';
 import { AwardCertificate, AWARD_STYLES, AWARD_STYLE_META } from '../src/components/AwardCertificate.jsx';
+import {
+    resolveCertTitle,
+    resolveCertBody,
+    buildCertificateProps,
+    DEFAULT_TEACHER_MESSAGE,
+} from '../src/utils/awardDefaults.js';
 
 describe('AWARD_STYLES registry (v3.14.0)', () => {
     it('exposes exactly 6 styles', () => {
@@ -25,7 +32,52 @@ describe('AWARD_STYLES registry (v3.14.0)', () => {
     });
 });
 
-describe('AwardCertificate render (v3.14.0)', () => {
+describe('awardDefaults helpers (v3.18.0)', () => {
+    it('title: 進步證書 when score improved', () => {
+        expect(resolveCertTitle({ previousScore: 60, currentScore: 80 })).toBe('進步證書');
+    });
+
+    it('title: 努力證書 by default', () => {
+        expect(resolveCertTitle({ currentScore: 70 })).toBe('努力證書');
+    });
+
+    it('body includes name + subject + accuracy', () => {
+        const body = resolveCertBody({
+            studentName: '小明',
+            subject: '數學',
+            totalQuestions: 10,
+            correctCount: 8,
+        });
+        expect(body).toContain('小明');
+        expect(body).toContain('數學');
+        expect(body).toContain('80%');
+    });
+
+    it('buildCertificateProps fills system defaults', () => {
+        const props = buildCertificateProps({
+            subjectCategory: '中文',
+            teacherName: '陳老師',
+            assessment: {
+                studentName: '小華',
+                date: '2026-04-08',
+                totalQuestions: 10,
+                correctCount: 9,
+                currentScore: 90,
+                previousScore: 70,
+                strengths: ['識字'],
+            },
+            awardCertificate: {},
+        });
+        expect(props.title).toBe('進步證書');
+        expect(props.body).toContain('小華');
+        expect(props.body).toContain('90%');
+        expect(props.teacherMessage).toBe(DEFAULT_TEACHER_MESSAGE);
+        expect(props.improvement).toContain('+20');
+        expect(props.studentName).toBe('小華');
+    });
+});
+
+describe('AwardCertificate render (v3.14.0 / v3.18.0)', () => {
     const defaultProps = {
         studentName: '小明',
         date: '2026-07-01',
@@ -33,6 +85,7 @@ describe('AwardCertificate render (v3.14.0)', () => {
         score: '85',
         strengths: ['加法運算', '圖形辨識'],
         teacherName: '陳老師',
+        teacherMessage: '自訂鼓勵',
     };
 
     it('renders default rainbow style with proper data-style attribute', () => {
@@ -62,7 +115,7 @@ describe('AwardCertificate render (v3.14.0)', () => {
     });
 
     it('falls back to default name "同學" when studentName omitted', () => {
-        const html = renderToStaticMarkup(<AwardCertificate />);
+        const html = renderToStaticMarkup(<AwardCertificate teacherMessage="" />);
         expect(html).toContain('同學');
     });
 
@@ -83,31 +136,39 @@ describe('AwardCertificate render (v3.14.0)', () => {
     });
 
     it('falls back to "老師簽名" when teacherName omitted', () => {
-        const html = renderToStaticMarkup(<AwardCertificate studentName="X" />);
+        const html = renderToStaticMarkup(<AwardCertificate studentName="X" teacherMessage="" />);
         expect(html).toContain('老師簽名');
     });
 
-    it('renders all required certificate sections', () => {
+    it('renders auto title + body sections', () => {
         const html = renderToStaticMarkup(<AwardCertificate {...defaultProps} />);
         expect(html).toContain('cert-header');
         expect(html).toContain('cert-body');
         expect(html).toContain('cert-footer');
-        expect(html).toContain('奬 狀');
+        expect(html).toContain('努力證書');
         expect(html).toContain('特此頒授予');
+        expect(html).toContain('恭喜 小明');
     });
 
-    it('does NOT render teacher message when not provided', () => {
-        const html = renderToStaticMarkup(<AwardCertificate {...defaultProps} />);
+    it('uses system default teacher message when prop omitted', () => {
+        const html = renderToStaticMarkup(<AwardCertificate studentName="X" />);
+        expect(html).toContain('cert-teacher-message');
+        expect(html).toContain(DEFAULT_TEACHER_MESSAGE);
+    });
+
+    it('hides teacher message when explicitly empty string', () => {
+        const html = renderToStaticMarkup(<AwardCertificate
+            {...defaultProps}
+            teacherMessage=""
+        />);
         expect(html).not.toContain('cert-teacher-message');
     });
 
-    it('renders teacher message when provided', () => {
+    it('renders custom teacher message when provided', () => {
         const html = renderToStaticMarkup(<AwardCertificate
             {...defaultProps}
             teacherMessage="小明這個月很努力！"
-            showTeacherMessage={true}
         />);
-        // showTeacherMessage flag isn't used in component directly — teacherMessage truthy triggers render
         expect(html).toContain('cert-teacher-message');
         expect(html).toContain('小明這個月很努力');
     });
@@ -119,14 +180,15 @@ describe('AwardCertificate render (v3.14.0)', () => {
         />);
         expect(html).toContain('+12%');
         expect(html).toContain('cert-improvement');
+        expect(html).toContain('進步證書');
     });
 });
 
-describe('Schema defaults for awardCertificate (v3.14.0)', () => {
-    it('default enabled: false (opt-in)', async () => {
+describe('Schema defaults for awardCertificate (v3.18.0)', () => {
+    it('default enabled: true (system-ready)', async () => {
         const { getInitialFormData } = await import('../src/data/schema.js');
         const initial = getInitialFormData();
-        expect(initial.awardCertificate.enabled).toBe(false);
+        expect(initial.awardCertificate.enabled).toBe(true);
     });
 
     it('default style: rainbow', async () => {
@@ -135,7 +197,7 @@ describe('Schema defaults for awardCertificate (v3.14.0)', () => {
         expect(initial.awardCertificate.style).toBe('rainbow');
     });
 
-    it('all 6 content sub-toggles default to safe values', async () => {
+    it('content toggles + default teacher message ON', async () => {
         const { getInitialFormData } = await import('../src/data/schema.js');
         const initial = getInitialFormData();
         const ac = initial.awardCertificate;
@@ -144,8 +206,8 @@ describe('Schema defaults for awardCertificate (v3.14.0)', () => {
         expect(ac.showSubject).toBe(true);
         expect(ac.showScore).toBe(true);
         expect(ac.showStrengths).toBe(true);
-        expect(ac.showImprovement).toBe(false);  // off by default — improvement == 6 content
-        expect(ac.showTeacherMessage).toBe(false);
-        expect(ac.teacherMessage).toBe('');
+        expect(ac.showImprovement).toBe(true);
+        expect(ac.showTeacherMessage).toBe(true);
+        expect(ac.teacherMessage).toBe(DEFAULT_TEACHER_MESSAGE);
     });
 });
