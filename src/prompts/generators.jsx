@@ -7,6 +7,8 @@ import {
     learningDiversityOptions,
     composePersonalizedReportRule,
     composeDashboardReportBridge,
+    composeMechanismHints,
+    composeGameStyleSpec,
 } from '../data/option-tables.js';
 
 import promptScorer from '../data/scorer.js';
@@ -39,12 +41,14 @@ export const generateDesignPrompt = (formData) => {
     allRules.push(...userRules);
     const rulesList = allRules.map((r, i) => `${i + 1}. ${normalizeRule(r)}`).join("\n    ");
     const examplesList = formData.examples.filter(ex => ex.text.trim() !== "").map((ex, i) => `* [${ex.level}] (${ex.mechanism}) ${ex.text} (請生成 ${ex.count || 10} 題近似題目)`).join("\n    ");
+    const mechanismHintsBlock = composeMechanismHints(formData.examples);
     const isGame = formData.category === "教學遊戲";
     
     const subject = formData.subjectCategory === "其他" ? formData.subjectCustomInput : formData.subjectCategory;
     
     // Game Style is now a single string
     const style = formData.gameStyle === "其他" ? formData.gameStyleCustomInput : formData.gameStyle;
+    const retroSpecBlock = isGame ? composeGameStyleSpec(formData.gameStyle, formData.gameStyleCustomInput) : '';
     
     let interactions = [...formData.interactionType];
     if (interactions.includes("其他")) {
@@ -113,10 +117,12 @@ export const generateDesignPrompt = (formData) => {
 * **工具範疇**：${formData.category}
 * **科目**：${subject || "未指定"}
 ${isGame ? `* **遊戲風格 (Game Style)**：${style} (請以此風格作為主要的視覺隱喻與互動包裝)
-    * **遊戲機制說明**：「遊戲階段」：純粹遊戲(無知識），僅作為學習間的動機調節器，所有知識傳遞僅發生於問答彈窗。「遊戲－問答交替循環」模式， 進行遊戲機制後會彈出一個問題， 無論答對或答錯，皆給予即時回饋，並返回下一個關卡，此循環持續進行，直到完成預設題數。` : ""}
+    * **遊戲機制說明**：「遊戲階段」：純粹遊戲(無知識），僅作為學習間的動機調節器，所有知識傳遞僅發生於問答彈窗。「遊戲－問答交替循環」模式， 進行遊戲機制後會彈出一個問題， 無論答對或答錯，皆給予即時回饋，並返回下一個關卡，此循環持續進行，直到完成預設題數。
+${retroSpecBlock ? `    ${retroSpecBlock}` : ''}` : ""}
 * **互動機制**：${interaction}
 ${isGame ? `* **遊戲模式需求**：請生成 **三種遊戲模式**，每種模式需分開 **初階、中階、高階** 三種難度。` : ""}
 ${examplesList ? `* **範例題目 (Example Questions)**：\n    ${examplesList}` : ""}
+${mechanismHintsBlock ? `${mechanismHintsBlock}` : ""}
 * **核心用途**：${formData.purpose}
 * **目標學生年級**：${formData.grade}
 * **支援程度 (SEN Level)**：${formData.senLevel}

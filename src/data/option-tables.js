@@ -93,6 +93,128 @@ export const composeDashboardReportBridge = (config) => {
 - 避免做兩個獨立 widget 各自儲存，導致數據唔一致`;
 };
 
+// === v3.19.0: 答題機制 (example.mechanism) ===
+// App.jsx Select + generators 共用
+const answerMechanismOptions = [
+    { value: '2選1答案', label: '2選1答案' },
+    { value: '3選1答案', label: '3選1答案' },
+    { value: '4選1答案', label: '4選1答案' },
+    { value: '是非題 (True/False)', label: '是非題 (✓/✗)' },
+    { value: '多選題', label: '多選題' },
+    { value: '輸入文字 (Text Input)', label: '輸入文字 (Text Input)' },
+    { value: '其他', label: '其他' },
+];
+
+/** mechanism → prompt 實作句（inject 入 Part 1 範例區） */
+const MECHANISM_PROMPT_HINTS = {
+    '2選1答案': '兩個超大選項（圖或短字）、左右／上下並排、正確與干擾項差異明顯（禁相似字／近義）、一點即答、即時 ✅/❌ feedback；中度 SEN 主推。',
+    '3選1答案': '三個大選項（A/B/C 大圓標）、一點即答、干擾項明顯錯。',
+    '4選1答案': '四個選項（A/B/C/D 大圓標）、版面 2×2、觸控區 ≥44px。',
+    '是非題 (True/False)': '只提供 ✓ 是／✗ 否 兩個大掣（綠/紅）、禁第三選項、答完即時 feedback + 可選 TTS 讀題；適合判斷句／生活常規。',
+    '多選題': '可多選，提交掣明確；選中態高對比。',
+    '輸入文字 (Text Input)': '大輸入框 + 虛擬鍵盤友善；可選數字 pad。',
+    '其他': '按題目自訂答題 UI，保持大 hit area。',
+};
+
+export const composeMechanismHints = (examples = []) => {
+    const used = [...new Set(
+        (examples || [])
+            .map((ex) => ex?.mechanism)
+            .filter((m) => m && String(m).trim()),
+    )];
+    if (used.length === 0) return '';
+    const lines = used.map((m) => {
+        const hint = MECHANISM_PROMPT_HINTS[m] || MECHANISM_PROMPT_HINTS['其他'];
+        return `* **${m}**：${hint}`;
+    });
+    return `* **答題機制實作規格（必須遵守）**：
+    ${lines.join('\n    ')}`;
+};
+
+// === v3.19.0: 遊戲風格分組（獎勵 / Retro / 益智） ===
+const GAME_STYLE_GROUPS = [
+    {
+        id: 'reward',
+        label: '🎁 獎勵系',
+        styles: [
+            '扭蛋機 (Gachapon)',
+            '夾公仔機 (Claw Crane)',
+            'Candy Crush (消除類 / Match-3)',
+            '老虎機 (Slot Machine)',
+            '轉盤抽獎 (Spin Wheel)',
+            '大富翁 / 骰子前進 (Board Game)',
+            '寶箱 / 神秘禮盒 (Mystery Box)',
+            '氣球戳破 (Pop the Balloon)',
+            '投幣許願池 (Wishing Well)',
+            '打地鼠 (Whack-a-Mole)',
+            '接水果 (Catching Fruit)',
+            '禮物盒 / 聖誕拆禮 (Gift Box)',
+            '飲料機 / 自助點餐機 (Vending Machine)',
+            '放天燈 / 孔明燈 (Sky Lantern)',
+            '祈福牆 / 願望板 (Wish Wall)',
+            '香爐 / 點香祈福 (Incense Offering)',
+        ],
+    },
+    {
+        id: 'retro',
+        label: '🕹️ Retro 街機',
+        styles: [
+            '太空侵略者 (Space Invaders)',
+            '小精靈 / 食豆 (Pac-Man)',
+            '跳跳人 / 平台 (Platformer)',
+            '打磚塊 (Breakout)',
+            '俄羅斯方塊 (Tetris-lite)',
+            '復古街機跑酷 (Pixel Runner)',
+        ],
+    },
+    {
+        id: 'puzzle',
+        label: '🧩 益智系',
+        styles: [
+            '找詞遊戲 (Word Search Puzzle)',
+            '翻卡 / 翻牌記憶配對 (Memory Flip Cards)',
+        ],
+    },
+    {
+        id: 'other',
+        label: '其他',
+        styles: ['其他'],
+    },
+];
+
+const gameStyles = GAME_STYLE_GROUPS.flatMap((g) => g.styles);
+
+const RETRO_STYLE_HINTS = {
+    '太空侵略者 (Space Invaders)': 'pixel 敵人行列下移；答對＝射中／消滅對應敵人；答錯＝短閃紅 + 再試；大 hit、短 loop 8-bit SFX。',
+    '小精靈 / 食豆 (Pac-Man)': '迷宮 + 豆子；正確答案豆可食（加分），錯誤豆避開或食錯扣速；簡潔 4 向控制或點擊路徑。',
+    '跳跳人 / 平台 (Platformer)': '橫向／單屏平台；答對彈出安全平台或彈跳前進，答錯平台消失／慢動作重試。',
+    '打磚塊 (Breakout)': '底板 + 球；答對令目標磚消去，答錯球減速或重置角度；UI 簡潔少字。',
+    '俄羅斯方塊 (Tetris-lite)': '簡化方塊；答對先允許落塊／清一層，答錯方塊變灰重試；唔好完整複雜 SRS。',
+    '復古街機跑酷 (Pixel Runner)': '自動向前跑；答對加速／跳過障礙，答錯減速或原地答完再跑；pixel art + 短 BGM loop。',
+};
+
+const RETRO_COMMON_SPEC = `【Retro 街機共通規格】
+- 視覺：pixel / 8-bit 調色、粗描邊、大精靈、少文字
+- 音效：短 loop chiptune SFX（答對升調、答錯降調），可 mute
+- 操作：大 hit area（≥44px）、支援觸控；鍵盤方向可選
+- 循環：遊戲動作 → 問答彈窗 → 即時 feedback → 返回遊戲；知識只在問答發生
+- 負荷：一次一題；動畫可 prefers-reduced-motion 降級`;
+
+/** 若 gameStyle 係 retro → 注入專屬 + 共通 spec */
+export const composeGameStyleSpec = (gameStyle, gameStyleCustomInput = '') => {
+    const style = gameStyle === '其他'
+        ? (gameStyleCustomInput || '其他')
+        : (gameStyle || '');
+    if (!style) return '';
+    const retroHint = RETRO_STYLE_HINTS[gameStyle];
+    if (retroHint) {
+        const commonIndented = RETRO_COMMON_SPEC.split('\n').join('\n    ');
+        return `* **Retro 遊戲實作**：${retroHint}
+    ${commonIndented}`;
+    }
+    return '';
+};
+
 // === Personalized Report Module ===
 // v3.2.4: 由原 defaultRules 抽出嘅 3 段 rule 內容 (a/b/c)
 // v3.2.5: 加 d 段「親師溝通格式」— 深化 b 段視覺化嘅延伸（家長/老師 export + 反思）
@@ -185,5 +307,11 @@ export {
     personalizedReportSections,
     categories,
     subjects,
-    // composePersonalizedReportRule 由上面 export const 直接 export，唔重複列
+    answerMechanismOptions,
+    MECHANISM_PROMPT_HINTS,
+    GAME_STYLE_GROUPS,
+    gameStyles,
+    RETRO_STYLE_HINTS,
+    // composePersonalizedReportRule / composeDashboardReportBridge /
+    // composeMechanismHints / composeGameStyleSpec 已 export const
 };

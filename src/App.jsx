@@ -42,6 +42,8 @@ import {
     senTypeOptions,
     accessibilityOptions,
     learningDiversityOptions,
+    answerMechanismOptions,
+    GAME_STYLE_GROUPS,
 } from './data/option-tables.js';
 
 // === Feature flags ===
@@ -50,36 +52,6 @@ import {
 //   true  → 顯示（原有 Gemini 直接 generate → download HTML 嘅 user flow）
 // v3.13.0: re-enabled with F2 multi-variant 3-card side-by-side comparison UI
 const GEMINI_DIRECT_GENERATE_ENABLED = true;
-
-const gameStyles = [
-    "扭蛋機 (Gachapon)", 
-    "夾公仔機 (Claw Crane)", 
-    "Candy Crush (消除類 / Match-3)",
-    "老虎機 (Slot Machine)", 
-    "轉盤抽獎 (Spin Wheel)", 
-    "大富翁 / 骰子前進 (Board Game)", 
-    "寶箱 / 神秘禮盒 (Mystery Box)", 
-    "氣球戳破 (Pop the Balloon)", 
-    "投幣許願池 (Wishing Well)", 
-    "打地鼠 (Whack-a-Mole)", 
-    "接水果 (Catching Fruit)", 
-    "禮物盒 / 聖誕拆禮 (Gift Box)", 
-    "飲料機 / 自助點餐機 (Vending Machine)", 
-    "放天燈 / 孔明燈 (Sky Lantern)", 
-    "祈福牆 / 願望板 (Wish Wall)", 
-    "香爐 / 點香祈福 (Incense Offering)", 
-    "找詞遊戲 (Word Search Puzzle)", 
-    "翻卡 / 翻牌記憶配對 (Memory Flip Cards)",
-    "其他"
-];
-
-const answerMechanismOptions = [
-     { value: "3選1答案", label: "3選1答案" },
-     { value: "4選1答案", label: "4選1答案" },
-     { value: "多選題", label: "多選題" },
-     { value: "輸入文字 (Text Input)", label: "輸入文字 (Text Input)" },
-     { value: "其他", label: "其他" }
-];
 
 const interactionTypes = [
     // 基礎題型 REMOVED
@@ -488,21 +460,27 @@ const renderStep1 = () => (
             >
                 <div className="space-y-token-3">
                     <Label theme={theme}>1.5 遊戲風格 (Game Style)</Label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-token-2">
-                        {gameStyles.map(style => (
-                            <button
-                                key={style}
-                                onClick={() => updateField('gameStyle', style)}
-                                className={`p-token-2 rounded-lg text-sm font-medium transition-all border text-left ${
-                                    formData.gameStyle === style
-                                        ? 'border-pink-500 bg-pink-50 text-pink-700 ring-1 ring-pink-500'
-                                        : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600'
-                                }`}
-                            >
-                                {style}
-                            </button>
-                        ))}
-                    </div>
+                    {GAME_STYLE_GROUPS.map((group) => (
+                        <div key={group.id} className="space-y-token-2">
+                            <div className={`text-xs font-bold tracking-wide ${'text-slate-500'}`}>{group.label}</div>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-token-2">
+                                {group.styles.map((style) => (
+                                    <button
+                                        key={style}
+                                        type="button"
+                                        onClick={() => updateField('gameStyle', style)}
+                                        className={`p-token-2 rounded-lg text-sm font-medium transition-all border text-left ${
+                                            formData.gameStyle === style
+                                                ? 'border-pink-500 bg-pink-50 text-pink-700 ring-1 ring-pink-500'
+                                                : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-600'
+                                        }`}
+                                    >
+                                        {style}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
                     {formData.gameStyle === "其他" && (
                         <div className="mt-2">
                             <Input

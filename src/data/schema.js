@@ -250,9 +250,9 @@ const getInitialFormData = () => ({
     useGeminiStyle: true, // 控制 output format（單一 HTML 檔 + Gemini 風格生成指令），唔係揀 AI model
     fabStyle: "cyber", // New: 生成出嚟嘅 HTML 工具右下角 FAB 風格（cyber holographic / minimal / off）
     examples: [
-        { text: "", level: "初階", count: 10, mechanism: "3選1答案" },
-        { text: "", level: "中階", count: 10, mechanism: "4選1答案" },
-        { text: "", level: "高階", count: 10, mechanism: "輸入文字 (Text Input)" }
+        { text: "", level: "初階", count: 10, mechanism: "2選1答案" },
+        { text: "", level: "中階", count: 10, mechanism: "是非題 (True/False)" },
+        { text: "", level: "高階", count: 10, mechanism: "3選1答案" }
     ],
     grade: "小學二年級 (P2)",
     senLevel: "輕度 (Mild)",

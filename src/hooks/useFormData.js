@@ -35,7 +35,7 @@ export const useFormData = () => {
             ...prev,
             examples: [
                 ...prev.examples,
-                { text: "", level: "初階", count: 10, mechanism: "3選1答案" },
+                { text: "", level: "初階", count: 10, mechanism: "2選1答案" },
             ],
         }));
     }, []);

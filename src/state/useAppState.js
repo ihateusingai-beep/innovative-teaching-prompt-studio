@@ -803,7 +803,7 @@ export const useAppState = () => {
                 text,
                 level: formData.examples[formData.examples.length - 1]?.level || "初階",
                 count: 10,
-                mechanism: "3選1答案",
+                mechanism: "2選1答案",
             }];
             updateField('examples', newExamples);
         } else {
