@@ -12,6 +12,15 @@ import {
 } from '../data/option-tables.js';
 
 import promptScorer from '../data/scorer.js';
+import {
+    SCHOOL_NAME,
+    SCHOOL_NAME_EN,
+    SCHOOL_BLUE,
+    SCHOOL_BG,
+    SCHOOL_BG_SOFT,
+    SCHOOL_TEXT,
+    SCHOOL_LOGO_URL,
+} from '../data/schoolBrand.js';
 
 export const generateDesignPrompt = (formData) => {
     // W9-10 #6: rules 由 string[] → {text, __isDefault}[] object array
@@ -233,7 +242,14 @@ ${formData.useGeminiStyle ? `請生成一個完整的**單一 HTML 檔案**，�
     ${formData.includePreferenceSettings ? preferenceSettingsText : ""}
     * **⬅️ 導航**: 左上方必須有一個顯眼的「返回主頁」按鈕。
     * **💾 儲存 (Download HTML)**: 於主頁左下角設置提供「⬇️ 下載 HTML」按鈕，供使用者一鍵下載當前網頁完整 HTML 原始碼的能力，便於教師備份教學頁面。
-    * **🦶 頁尾與版權 (Footer)**: 頁面最底端顯示置中文字：\`© ${new Date().getFullYear()} ${formData.teacherName || '老師'} 設計\`。
+    * **🎨 校網粉藍底色 (School Powder Blue)**: 全頁背景必須用粉藍色 \`${SCHOOL_BG}\`（次要區塊可用 \`${SCHOOL_BG_SOFT}\`）；主色/按鈕/連結用 \`${SCHOOL_BLUE}\`；主要文字用 \`${SCHOOL_TEXT}\`。禁止純白大底或深色全頁（除非學生偏好設定高對比模式）。
+    * **🏫 校名與校徽 (School Identity)**: 頂欄（header）必須同時顯示：
+        - \`<img src="${SCHOOL_LOGO_URL}" alt="${SCHOOL_NAME}" width="48" height="48" style="object-fit:contain;background:#fff;border-radius:8px" referrerPolicy="no-referrer" />\`（必須用呢個校網 URL，唔好改路徑、唔好改成本地檔）
+        - 旁邊明文顯示校名：「${SCHOOL_NAME}」
+    * **🦶 頁尾與版權 (Footer)**: 頁面最底端置中 footer，結構固定：
+        1. 細 logo（同一校網 URL）+ 校名「${SCHOOL_NAME}」
+        2. 下一行版權字串（必須一字不改）：\`Copyright © ${SCHOOL_NAME_EN}. All Rights Reserved.\`
+        3. 可選附加一行小字：\`${formData.teacherName || '老師'} 設計 · {工具名稱}\`
 ${formData.fabStyle === "cyber" ? `    * **🏷️ 懸浮標籤 (FAB) — Cyber 全息風格**:
         - 位置：右下角固定 (Fixed)。
         - 樣式：使用彩虹般的全息色 (holographic/iridescent)，隨視角或時間微變，外框與文字，半透明材質，營造未來感。帶有電腦型 (Monitor) 圖示。

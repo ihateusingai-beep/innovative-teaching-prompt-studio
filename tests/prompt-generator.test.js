@@ -112,11 +112,21 @@ describe('generateDesignPrompt() + generateTechPrompt() — brand leak (#1)', ()
         expect(tech).not.toContain('Ken Cheng');
     });
 
-    it('Tech prompt Footer 用動態年份 + 老師名（唔係 hardcoded 2025 + WMC）', () => {
+    it('Tech prompt Footer 用校名 EN copyright + 老師名可選小字（唔係 WMC）', () => {
         const tech = generateTechPrompt(fullFormData);
-        const currentYear = new Date().getFullYear();
-        expect(tech).toContain(String(currentYear));
-        expect(tech).toContain('陳老師'); // teacherName
+        expect(tech).toContain('Copyright © Tseung Kwan O Pui Chi School. All Rights Reserved.');
+        expect(tech).toContain('將軍澳培智學校');
+        expect(tech).toContain('陳老師'); // teacherName still in optional designer line / FAB
+        expect(tech).not.toContain('WMC');
+    });
+
+    it('Tech prompt 強制粉藍底 + 校徽 URL + 校名', () => {
+        const tech = generateTechPrompt(fullFormData);
+        expect(tech).toContain('#e8f1fb');
+        expect(tech).toContain('#426eb4');
+        expect(tech).toContain('https://www.puichi.edu.hk/it-school/php/webcms/files/upload/tinymce//1a__pui_chi_logo_png_1791177564.png');
+        expect(tech).toContain('校網粉藍底色');
+        expect(tech).toContain('School Identity');
     });
 
     it('FAB (cyber + minimal) 用老師名，唔 reference 個人簽名 PNG', () => {

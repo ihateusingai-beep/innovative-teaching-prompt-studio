@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowRight, ArrowLeft, Save, Sparkles, Wand2, Eye, Copy, Download, Upload, RotateCcw, History, Key, Star, X, FileText, FileJson, Trash2, Sun, Moon, ChevronDown, ChevronLeft, ChevronRight, Plus, CheckCircle, CheckCircle2, ExternalLink, Github, Monitor, Bot, Zap, Users, Accessibility, Code, BarChart3 } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Save, Sparkles, Wand2, Eye, Copy, Download, Upload, RotateCcw, History, Key, Star, X, FileText, FileJson, Trash2, Sun, Moon, ChevronDown, ChevronLeft, ChevronRight, Plus, CheckCircle, CheckCircle2, ExternalLink, Github, Monitor, Bot, Users, Accessibility, Code, BarChart3 } from 'lucide-react';
 
 import { useAppState } from './state/useAppState.js';
 import { formatTimeAgo } from './utils/time.js';
@@ -1882,10 +1882,6 @@ const renderMultiVariant = () => {
                                 </span>
                             </div>
                         </h1>
-                        <p className={`mt-4 font-medium text-base pl-0 md:pl-[4.5rem] flex items-center gap-token-2 ${mutedTextClass(theme)}`}>
-                            <Zap size={16} className="text-yellow-400" />
-                            3 分鐘將 SEN 學生需要轉成結構化 prompt
-                        </p>
                     </div>
                     <div className="flex flex-col items-end gap-token-2">
                         {/* v3.12.0: Theme dropdown selector (6 themes) */}
